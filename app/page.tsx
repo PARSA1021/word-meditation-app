@@ -40,12 +40,15 @@ export default function Home() {
         {/* Library Info / Stats Island */}
         <section className="space-y-4">
           <div className="flex items-end justify-between px-1">
-            <div className="space-y-1">
+            <div className="space-y-2">
+              <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 font-black text-[12px] uppercase tracking-wider rounded-full">
+                Welcome to TruePath
+              </span>
               <h2 className="text-[26px] font-extrabold text-[#222222] leading-tight tracking-tight">당신을 위한<br />진리의 보물창고</h2>
             </div>
             <div className="text-right">
               <span className="text-[32px] font-black text-[#0099ff] leading-none tracking-tighter">{stats.total.toLocaleString()}</span>
-              <p className="text-[12px] font-bold text-[#717171] uppercase tracking-tighter">전체 말씀</p>
+              <p className="text-[12px] font-bold text-[#717171] uppercase tracking-tighter mt-1">전체 말씀</p>
             </div>
           </div>
 
@@ -91,12 +94,17 @@ export default function Home() {
         </section>
 
         {/* Brand Philosophy */}
-        <section className="airbnb-card bg-[#f7f7f7] border-none shadow-none p-8 space-y-4">
-          <h3 className="text-[22px] font-extrabold text-[#222222]">지혜의 갈무리</h3>
-          <p className="text-[16px] text-[#222222] leading-[1.6] font-medium opacity-80">
-            TruePath는 당신의 영적 성장을 돕는 가장 편안한 동반자입니다. 매일의 말씀을 통해 새로운 영감을 얻고, 당신만의 진리를 발견해보세요.
-          </p>
-          <button className="btn-primary w-full py-4 text-[16px]">지금 시작하기</button>
+        <section className="airbnb-card bg-gradient-to-br from-[#f0f7ff] to-[#ffffff] border-blue-100 p-8 space-y-5 relative overflow-hidden group">
+          <div className="absolute -right-6 -top-6 text-[100px] opacity-5 transform group-hover:scale-110 transition-transform duration-700">🕊️</div>
+          <div className="space-y-2 relative z-10">
+            <h3 className="text-[22px] font-extrabold text-[#222222]">마음의 쉼터, TruePath</h3>
+            <p className="text-[15px] text-[#444444] leading-relaxed font-medium">
+              TruePath는 복잡한 일상 속에서 당신의 영적 성장을 돕는 따뜻한 동반자입니다. 매일 새로운 말씀을 통해 영감을 얻고, 당신만의 진리를 발견하는 여정을 시작해보세요.
+            </p>
+          </div>
+          <button className="ios-btn w-full shadow-lg shadow-blue-500/20 active:scale-95 transition-all text-[16px]">
+            여정 시작하기
+          </button>
         </section>
       </main>
     </div>

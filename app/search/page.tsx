@@ -9,8 +9,6 @@ export default function SearchPage() {
   const [query, setQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-
-
   // Results filtered by text
   const textResults = useMemo(() => {
     if (query.trim().length < 2) return []
@@ -58,10 +56,10 @@ export default function SearchPage() {
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value)
-                setSelectedCategory(null) // Reset category on new search
+                setSelectedCategory(null)
               }}
               placeholder="검색어를 입력하세요 (최소 2자)"
-              className="w-full pl-12 pr-4 py-4 bg-black/5 border-none rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-500/20 outline-none transition-all text-[17px] font-medium placeholder:text-slate-400"
+              className="w-full pl-12 pr-4 py-4 bg-black/5 border-none rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#0099FF]/20 outline-none transition-all text-[17px] font-medium placeholder:text-slate-400"
             />
           </div>
 
@@ -71,24 +69,27 @@ export default function SearchPage() {
               <button
                 onClick={() => setSelectedCategory(null)}
                 className={`flex-none px-4 py-2 rounded-full text-sm font-bold transition-all border ${selectedCategory === null
-                  ? "bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20"
+                  ? "bg-[#0099FF] border-[#0099FF] text-white shadow-lg shadow-[#0099FF]/20"
                   : "bg-white border-black/5 text-slate-500"
                   }`}
               >
                 전체 {textResults.length}
               </button>
-              {Object.entries(categoryCounts).map(([cat, count]) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`flex-none px-4 py-2 rounded-full text-sm font-bold transition-all border ${selectedCategory === cat
-                    ? "bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20"
-                    : "bg-white border-black/5 text-slate-500"
-                    }`}
-                >
-                  {cat} {count}
-                </button>
-              ))}
+
+              {Object.entries(categoryCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([cat, count]) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`flex-none px-4 py-2 rounded-full text-sm font-bold transition-all border ${selectedCategory === cat
+                        ? "bg-[#0099FF] border-[#0099FF] text-white shadow-lg shadow-[#0099FF]/20"
+                        : "bg-white border-black/5 text-slate-500"
+                      }`}
+                  >
+                    {cat} {count}
+                  </button>
+                ))}
             </div>
           )}
         </div>

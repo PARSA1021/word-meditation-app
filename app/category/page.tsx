@@ -11,7 +11,11 @@ export default function CategoryPage() {
   const allWords = useMemo(() => getAllWords(), [])
   const stats = useMemo(() => getWordStats(), [])
 
-  const categories = Object.keys(stats.byCategory)
+  const sortedCategories = useMemo(
+    () => Object.entries(stats.byCategory).sort((a, b) => b[1] - a[1]),
+    [stats]
+  )
+  const categories = useMemo(() => sortedCategories.map(([c]) => c), [sortedCategories])
 
   const filteredWords = selectedCategory
     ? allWords.filter(w => w.category === selectedCategory)
@@ -48,7 +52,7 @@ export default function CategoryPage() {
         {!selectedCategory ? (
           <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">전체 {categories.length}개 카테고리</p>
-            {categories.map((c) => (
+            {categories.map((c, index) => (
               <button
                 key={c}
                 onClick={() => setSelectedCategory(c)}
@@ -59,7 +63,14 @@ export default function CategoryPage() {
                     📁
                   </div>
                   <div className="text-left">
-                    <h4 className="text-[17px] font-bold text-black group-hover:text-blue-600 transition-colors">{c}</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-[17px] font-bold text-black group-hover:text-blue-600 transition-colors">{c}</h4>
+                      {index < 3 && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[11px] font-black tracking-tight">
+                          TOP
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-slate-400 font-medium">{stats.byCategory[c]}개의 말씀</p>
                   </div>
                 </div>

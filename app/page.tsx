@@ -5,12 +5,29 @@ import NotificationSetup from "@/components/NotificationSetup"
 
 export default function Home() {
   const stats = getWordStats()
+  const sortedCategories = Object.entries(stats.byCategory).sort((a, b) => b[1] - a[1])
 
   return (
-    <div className="min-h-screen bg-white pb-32">
+    <div className="min-h-screen bg-[#F2F2F7] pb-32">
       {/* Airbnb Style Search Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-[#ebebeb] px-6 py-4">
+      <header className="sticky top-0 z-50 airbnb-nav border-b border-black/5 px-6 py-4">
         <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
+          <div className="flex items-center justify-between mb-3">
+            <div className="leading-tight">
+              <h1 className="text-[20px] font-black text-black tracking-tight">TruePath</h1>
+              <p className="text-[12px] font-bold text-slate-400 tracking-tight">매일 말씀과 함께하는 당신의 길</p>
+            </div>
+            <Link
+              href="/search"
+              className="w-11 h-11 rounded-2xl bg-white/70 border border-black/5 flex items-center justify-center text-[#0099ff] active:scale-95 transition-transform"
+              aria-label="말씀 검색"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </Link>
+          </div>
+
           <Link href="/search" className="search-pill flex items-center justify-between group">
             <div className="flex items-center gap-4 pl-2">
               <span className="text-[#0099ff]">
@@ -19,7 +36,7 @@ export default function Home() {
                 </svg>
               </span>
               <div className="flex flex-col">
-                <span className="text-[14px] font-extrabold text-[#222222]">어디로든 떠나볼까요?</span>
+                <span className="text-[14px] font-extrabold text-[#222222]">말씀을 찾아볼까요?</span>
                 <span className="text-[12px] text-[#717171] font-medium">검색어를 입력하고 지혜를 찾으세요</span>
               </div>
             </div>
@@ -42,7 +59,7 @@ export default function Home() {
           <div className="flex items-end justify-between px-1">
             <div className="space-y-2">
               <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 font-black text-[12px] uppercase tracking-wider rounded-full">
-                Welcome to TruePath
+                TruePath 라이브러리
               </span>
               <h2 className="text-[26px] font-extrabold text-[#222222] leading-tight tracking-tight">당신을 위한<br />진리의 보물창고</h2>
             </div>
@@ -53,7 +70,7 @@ export default function Home() {
           </div>
 
           <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
-            {Object.entries(stats.byCategory).map(([category, count]) => (
+            {sortedCategories.map(([category, count]) => (
               <Link
                 key={category}
                 href={`/category?name=${encodeURIComponent(category)}`}
@@ -68,7 +85,15 @@ export default function Home() {
 
         {/* Daily Word Airbnb style */}
         <section className="space-y-4">
-          <h3 className="text-[20px] font-extrabold text-[#222222] px-1">오늘의 말씀</h3>
+          <div className="flex items-end justify-between px-1">
+            <h3 className="text-[20px] font-extrabold text-[#222222]">오늘의 말씀</h3>
+            <Link
+              href="/today"
+              className="text-[12px] font-black text-slate-400 hover:text-[#0099ff] transition-colors"
+            >
+              전체 보기
+            </Link>
+          </div>
           <DailyWord />
         </section>
 

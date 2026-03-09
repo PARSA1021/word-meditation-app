@@ -8,14 +8,18 @@ export default function NotificationSetup() {
     const [isIOS, setIsIOS] = useState(false)
     const [isStandalone, setIsStandalone] = useState(false)
 
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (typeof window !== "undefined") {
+            type NavigatorWithStandalone = Navigator & { standalone?: boolean }
+
             // Check iOS + Standalone mode (PWA)
             const ua = window.navigator.userAgent.toLowerCase()
             const isIOSDevice = /iphone|ipad|ipod/.test(ua)
             setIsIOS(isIOSDevice)
 
-            const isStandaloneMode = ('standalone' in window.navigator && (window.navigator as any).standalone) || window.matchMedia('(display-mode: standalone)').matches
+            const nav = window.navigator as NavigatorWithStandalone
+            const isStandaloneMode = Boolean(nav.standalone) || window.matchMedia("(display-mode: standalone)").matches
             setIsStandalone(isStandaloneMode)
 
             if ("Notification" in window) {
@@ -29,6 +33,7 @@ export default function NotificationSetup() {
             }
         }
     }, [])
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const requestPermission = async () => {
         if (!("Notification" in window)) {
@@ -66,7 +71,7 @@ export default function NotificationSetup() {
                     <div>
                         <h3 className="text-[17px] font-bold text-slate-800">앱으로 설치해보세요</h3>
                         <p className="text-[14px] text-slate-500 font-medium leading-relaxed mt-1">
-                            아이폰이신가요? 매일 매일 알림을 받으시려면 화면 하단의 <b>공유</b> 버튼을 누르고 <b>'홈 화면에 추가'</b>를 선택해 주세요!
+                            아이폰이신가요? 매일 매일 알림을 받으시려면 화면 하단의 <b>공유</b> 버튼을 누르고 <b>&apos;홈 화면에 추가&apos;</b>를 선택해 주세요!
                         </p>
                     </div>
                 </div>
@@ -89,7 +94,7 @@ export default function NotificationSetup() {
                 <div>
                     <h3 className="text-[17px] font-bold text-slate-800">매일 말씀 알림</h3>
                     <p className="text-[14px] text-slate-500 font-medium leading-relaxed mt-1">
-                        마음의 평화를 위해 "오늘의 말씀" 알림을 받아보시겠어요?
+                        마음의 평화를 위해 &quot;오늘의 말씀&quot; 알림을 받아보시겠어요?
                     </p>
                 </div>
             </div>

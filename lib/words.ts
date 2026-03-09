@@ -22,6 +22,22 @@ export function getRandomWord(): Word {
   return words[index]
 }
 
+export function getRandomWordExcept(exceptId?: number | null): Word {
+  if (words.length === 0) throw new Error("words 목록이 비어 있습니다.")
+  if (exceptId == null || words.length === 1) return getRandomWord()
+
+  // Avoid returning the same word repeatedly when user taps refresh quickly.
+  // Bounded retries to prevent any possible infinite loop.
+  for (let i = 0; i < 12; i++) {
+    const w = getRandomWord()
+    if (w.id !== exceptId) return w
+  }
+  // Fallback: deterministic next item if randomness keeps colliding.
+  const currentIndex = words.findIndex(w => w.id === exceptId)
+  const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % words.length : 0
+  return words[nextIndex]
+}
+
 export function getWordStats(): WordStats {
   const byCategory: { [key: string]: number } = {}
   words.forEach(w => {

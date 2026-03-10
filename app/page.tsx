@@ -4,154 +4,264 @@ import { getWordStats } from "@/lib/words"
 import NotificationSetup from "@/components/NotificationSetup"
 
 export default function Home() {
+
   const stats = getWordStats()
-  const sortedCategories = Object.entries(stats.byCategory).sort((a, b) => b[1] - a[1])
+
+  const sortedCategories =
+    Object.entries(stats.byCategory)
+      .sort((a, b) => b[1] - a[1])
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] pb-32">
-      {/* Airbnb Style Search Header */}
-      <header className="sticky top-0 z-50 airbnb-nav border-b border-black/5 px-6 py-4">
-        <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-3">
-            <div className="leading-tight">
-              <h1 className="text-[20px] font-black text-black tracking-tight">TruePath</h1>
-              <p className="text-[12px] font-bold text-slate-400 tracking-tight">매일 말씀과 함께하는 당신의 길</p>
-            </div>
-            <Link
-              href="/search"
-              className="w-11 h-11 rounded-2xl bg-white/70 border border-black/5 flex items-center justify-center text-[#0099ff] active:scale-95 transition-transform"
-              aria-label="말씀 검색"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </Link>
+
+    <div className="min-h-screen bg-[#F7F7F7] pb-32">
+
+      {/* AIRBNB HERO HEADER */}
+      <header className="px-6 pt-12 pb-8">
+
+        <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto space-y-6">
+
+          {/* BRAND */}
+          <div className="space-y-1">
+
+            <h1 className="text-[42px] md:text-[48px] font-black tracking-tight text-black leading-none">
+              True<span className="text-[#0099FF]">Path</span>
+            </h1>
+
+            <p className="text-[14px] text-[#717171] font-medium">
+              매일 말씀과 함께하는 당신의 길
+            </p>
+
           </div>
 
-          <Link href="/search" className="search-pill flex items-center justify-between group">
-            <div className="flex items-center gap-4 pl-2">
-              <span className="text-[#0099ff]">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </span>
-              <div className="flex flex-col">
-                <span className="text-[14px] font-extrabold text-[#222222]">말씀을 찾아볼까요?</span>
-                <span className="text-[12px] text-[#717171] font-medium">검색어를 입력하고 지혜를 찾으세요</span>
+
+          {/* AIRBNB SEARCH CARD */}
+          <Link
+            href="/search"
+            className="bg-white rounded-3xl border border-[#EBEBEB] px-6 py-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all active:scale-95"
+          >
+
+            <div className="flex items-center gap-4">
+
+              <div className="w-10 h-10 rounded-full bg-[#0099FF]/10 flex items-center justify-center text-[#0099FF]">
+                🔍
               </div>
+
+              <div className="flex flex-col">
+
+                <span className="text-[14px] font-bold text-[#222222]">
+                  말씀 검색
+                </span>
+
+                <span className="text-[12px] text-[#717171]">
+                  참사랑 · 믿음 · 기도
+                </span>
+
+              </div>
+
             </div>
-            <div className="w-10 h-10 rounded-full bg-[#f7f7f7] border border-[#dddddd] flex items-center justify-center text-slate-400 group-hover:bg-[#0099ff] group-hover:text-white transition-all">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-              </svg>
+
+            <div className="text-[#717171]">
+              →
             </div>
+
           </Link>
+
         </div>
+
       </header>
 
-      <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 pt-8 space-y-10 animate-slide-up">
 
-        {/* Notification Prompt */}
+
+      <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 space-y-12">
+
         <NotificationSetup />
 
-        {/* Library Info / Stats Island */}
+        {/* LIBRARY SECTION */}
         <section className="space-y-4">
-          <div className="flex items-end justify-between px-1">
-            <div className="space-y-2">
-              <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 font-black text-[12px] uppercase tracking-wider rounded-full">
-                TruePath 라이브러리
-              </span>
-              <h2 className="text-[26px] font-extrabold text-[#222222] leading-tight tracking-tight">당신을 위한<br />진리의 보물창고</h2>
+
+          <div className="flex justify-between items-end">
+
+            <div>
+
+              <p className="text-[12px] font-bold text-[#717171] uppercase tracking-wider">
+                TRUEPATH LIBRARY
+              </p>
+
+              <h2 className="text-[24px] font-extrabold text-[#222222]">
+                진리의 보물창고
+              </h2>
+
             </div>
+
             <div className="text-right">
-              <span className="text-[32px] font-black text-[#0099ff] leading-none tracking-tighter">{stats.total.toLocaleString()}</span>
-              <p className="text-[12px] font-bold text-[#717171] uppercase tracking-tighter mt-1">전체 말씀</p>
+
+              <span className="text-[34px] font-black text-[#0099FF]">
+                {stats.total.toLocaleString()}
+              </span>
+
+              <p className="text-[12px] text-[#717171] font-bold">
+                전체 말씀
+              </p>
+
             </div>
+
           </div>
 
-          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+
+          {/* CATEGORY SCROLL */}
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+
             {sortedCategories.map(([category, count]) => (
+
               <Link
                 key={category}
-                href={`/category?name=${encodeURIComponent(category)}`}
-                className="flex-none px-5 py-3 rounded-2xl bg-white border border-[#dddddd] shadow-sm hover:shadow-md transition-all active:scale-95 space-y-1"
+                href={`/category/${encodeURIComponent(category)}`}
+                className="flex-none bg-white border border-[#EBEBEB] rounded-2xl px-5 py-3 shadow-sm hover:shadow-md transition-all active:scale-95"
               >
-                <p className="text-[14px] font-bold text-[#222222] whitespace-nowrap">{category}</p>
-                <p className="text-[12px] text-[#717171] font-medium">{count}개</p>
+
+                <p className="text-[14px] font-bold text-[#222222]">
+                  {category}
+                </p>
+
+                <p className="text-[12px] text-[#717171]">
+                  {count}개
+                </p>
+
               </Link>
+
             ))}
+
           </div>
+
         </section>
 
-        {/* Daily Word Airbnb style */}
+
+
+        {/* TODAY WORD */}
         <section className="space-y-4">
-          <div className="flex items-end justify-between px-1">
-            <h3 className="text-[20px] font-extrabold text-[#222222]">오늘의 말씀</h3>
+
+          <div className="flex justify-between items-center">
+
+            <h3 className="text-[20px] font-extrabold text-[#222222]">
+              오늘의 말씀
+            </h3>
+
             <Link
               href="/today"
-              className="text-[12px] font-black text-slate-400 hover:text-[#0099ff] transition-colors"
+              className="text-[12px] font-bold text-[#717171] hover:text-[#0099FF]"
             >
-              전체 보기
+              전체보기
             </Link>
+
           </div>
+
           <DailyWord />
+
         </section>
 
-        {/* Categories / Experience Grid */}
+
+
+        {/* EXPERIENCE */}
         <section className="space-y-4">
-          <h3 className="text-[20px] font-extrabold text-[#222222] px-1">말씀 익히기</h3>
+
+          <h3 className="text-[20px] font-extrabold text-[#222222]">
+            말씀 익히기
+          </h3>
+
           <div className="grid grid-cols-2 gap-4">
+
             <ExperienceCard
               href="/quiz"
-              title="퀴즈 풀기"
+              title="말씀 퀴즈"
               description="재미있게 익히기"
-              image="🧠"
-              color="bg-blue-50"
+              icon="🧠"
+              color="bg-white"
             />
+
             <ExperienceCard
               href="/category"
               title="주제 탐색"
-              description="주제별 모아보기"
-              image="📁"
-              color="bg-slate-50"
+              description="카테고리 보기"
+              icon="📁"
+              color="bg-white"
             />
+
           </div>
+
         </section>
 
-        {/* Brand Philosophy */}
-        <section className="airbnb-card bg-gradient-to-br from-[#f0f7ff] to-[#ffffff] border-blue-100 p-8 space-y-5 relative overflow-hidden group">
-          <div className="absolute -right-6 -top-6 text-[100px] opacity-5 transform group-hover:scale-110 transition-transform duration-700">🕊️</div>
-          <div className="space-y-2 relative z-10">
-            <h3 className="text-[22px] font-extrabold text-[#222222]">마음의 쉼터, TruePath</h3>
-            <p className="text-[15px] text-[#444444] leading-relaxed font-medium">
-              TruePath는 복잡한 일상 속에서 당신의 영적 성장을 돕는 따뜻한 동반자입니다. 매일 새로운 말씀을 통해 영감을 얻고, 당신만의 진리를 발견하는 여정을 시작해보세요.
-            </p>
-          </div>
-          <button className="ios-btn w-full shadow-lg shadow-blue-500/20 active:scale-95 transition-all text-[16px]">
-            여정 시작하기
-          </button>
+
+
+        {/* BRAND MESSAGE */}
+        <section className="bg-white border border-[#EBEBEB] rounded-3xl p-8 shadow-sm space-y-4">
+
+          <h3 className="text-[22px] font-extrabold text-[#222222]">
+            마음의 쉼터, TruePath
+          </h3>
+
+          <p className="text-[14px] text-[#717171] leading-relaxed">
+            복잡한 일상 속에서도 말씀을 통해
+            삶의 방향과 평안을 찾을 수 있습니다.
+          </p>
+
+          <Link
+            href="/search"
+            className="inline-block bg-[#0099FF] text-white font-bold px-6 py-3 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all"
+          >
+            말씀 찾기
+          </Link>
+
         </section>
+
       </main>
+
     </div>
+
   )
+
 }
 
-function ExperienceCard({ href, title, description, image, color }: {
-  href: string;
-  title: string;
-  description: string;
-  image: string;
-  color: string;
+
+
+function ExperienceCard({
+  href,
+  title,
+  description,
+  icon,
+  color
+}: {
+  href: string
+  title: string
+  description: string
+  icon: string
+  color: string
 }) {
+
   return (
-    <Link href={href} className="flex flex-col gap-3 group active:scale-95 transition-transform">
-      <div className={`aspect-square ${color} rounded-[24px] flex items-center justify-center text-4xl shadow-sm border border-[#ebebeb] group-hover:shadow-md transition-shadow`}>
-        {image}
+
+    <Link
+      href={href}
+      className="flex flex-col gap-3 group active:scale-95 transition-transform"
+    >
+
+      <div className={`aspect-square ${color} rounded-3xl border border-[#EBEBEB] flex items-center justify-center text-4xl shadow-sm group-hover:shadow-md`}>
+        {icon}
       </div>
-      <div className="px-1">
-        <h4 className="text-[15px] font-bold text-[#222222]">{title}</h4>
-        <p className="text-[13px] text-[#717171] font-medium">{description}</p>
+
+      <div>
+
+        <h4 className="text-[15px] font-bold text-[#222222]">
+          {title}
+        </h4>
+
+        <p className="text-[13px] text-[#717171]">
+          {description}
+        </p>
+
       </div>
+
     </Link>
+
   )
+
 }

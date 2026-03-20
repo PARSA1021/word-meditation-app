@@ -1,5 +1,6 @@
 import "./globals.css"
 import BottomNav from "@/components/BottomNav"
+import { uiFont } from "@/lib/fonts"
 
 export const metadata = {
   title: "TruePath",
@@ -20,7 +21,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className="antialiased selection:bg-blue-100 selection:text-blue-900 transition-colors duration-300">
+      <body
+        className={`
+          ${uiFont.className}
+          antialiased
+          selection:bg-blue-100
+          selection:text-blue-900
+          transition-colors
+          duration-300
+        `}
+      >
         <main className="pb-20 min-h-[100dvh]">
           {children}
         </main>

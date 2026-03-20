@@ -32,10 +32,19 @@ export const allWords: Word[] = [
 ]
 
 // -----------------------------
-// 3️⃣ 모든 단어 가져오기
+// 3️⃣ 모든 단어 가져오기 (권장하지 않음, 전체 렌더링 주의)
 // -----------------------------
 export function getAllWords(): Word[] {
   return allWords
+}
+
+// -----------------------------
+// 3-1️⃣ 페이지 단위로 가져오기
+// -----------------------------
+export function getWordsByPage(page: number, pageSize: number): Word[] {
+  const start = (page - 1) * pageSize
+  const end = start + pageSize
+  return allWords.slice(start, end)
 }
 
 // -----------------------------
@@ -90,6 +99,20 @@ export function searchWords(query: string, type?: "general" | "cheonseong"): Wor
     const matchesType = !type || w.type === type
     return matchesQuery && matchesType
   })
+}
+
+// -----------------------------
+// 7-1️⃣ 검색 + 페이지네이션
+// -----------------------------
+export function searchWordsPaged(
+  query: string,
+  page: number,
+  pageSize: number,
+  type?: "general" | "cheonseong"
+): Word[] {
+  const filtered = searchWords(query, type)
+  const start = (page - 1) * pageSize
+  return filtered.slice(start, start + pageSize)
 }
 
 // -----------------------------

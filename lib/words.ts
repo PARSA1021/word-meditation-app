@@ -47,20 +47,32 @@ export function getRandomWord(): Word {
 }
 
 // -----------------------------
-// 5️⃣ 랜덤 (중복 방지 강화 버전 🔥)
+// 5️⃣ 랜덤 (🔥 완전 개선 버전)
 // -----------------------------
 export function getRandomWordExcept(
-  exceptIds: number[] = []
+  except?: number | number[] | null
 ): Word {
   if (allWords.length === 0) {
     throw new Error("words 목록이 비어 있습니다.")
   }
 
-  const excluded = new Set(exceptIds)
+  // 👉 제외 ID 배열로 통일
+  let excludedIds: number[] = []
 
-  const candidates = allWords.filter((w) => !excluded.has(w.id))
+  if (Array.isArray(except)) {
+    excludedIds = except
+  } else if (typeof except === "number") {
+    excludedIds = [except]
+  }
 
-  if (candidates.length === 0) return getRandomWord()
+  const excludedSet = new Set(excludedIds)
+
+  const candidates = allWords.filter((w) => !excludedSet.has(w.id))
+
+  // 👉 전부 제외된 경우 fallback
+  if (candidates.length === 0) {
+    return getRandomWord()
+  }
 
   return candidates[Math.floor(Math.random() * candidates.length)]
 }
@@ -123,7 +135,6 @@ export function searchWords(
       for (const token of tokens) {
         let matched = false
 
-        // 🔥 핵심 매칭 (본문 중심)
         if (text === token) {
           score += 100
           matched = true
@@ -135,7 +146,6 @@ export function searchWords(
           matched = true
         }
 
-        // 🔥 보조 점수
         if (source.includes(token)) score += 10
         if (speaker.includes(token)) score += 5
 

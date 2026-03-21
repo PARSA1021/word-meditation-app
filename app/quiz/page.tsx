@@ -14,7 +14,6 @@ export default function QuizPage() {
     const [showCorrection, setShowCorrection] = useState(false)
     const [shuffledOptions, setShuffledOptions] = useState<string[]>([])
 
-    // Initialize/Next Quiz
     const startQuiz = (type: QuizType) => {
         const newQuiz = getRandomQuiz(type)
         setQuiz(newQuiz)
@@ -37,15 +36,12 @@ export default function QuizPage() {
         newAnswers[activeBlankIndex] = option
         setUserAnswers(newAnswers)
 
-        // Auto-advance
         const nextEmpty = newAnswers.findIndex((ans, idx) => idx > activeBlankIndex && ans === "")
         if (nextEmpty !== -1) {
             setActiveBlankIndex(nextEmpty)
         } else {
             const anyEmpty = newAnswers.findIndex(ans => ans === "")
-            if (anyEmpty !== -1) {
-                setActiveBlankIndex(anyEmpty)
-            }
+            if (anyEmpty !== -1) setActiveBlankIndex(anyEmpty)
         }
     }
 
@@ -53,7 +49,6 @@ export default function QuizPage() {
         setShowCorrection(true)
     }
 
-    // Parse question into parts and blanks
     const questionElements = useMemo(() => {
         if (!quiz) return null
 
@@ -63,6 +58,7 @@ export default function QuizPage() {
         return parts.map((part, index) => {
             if (part.match(/(\( *___ *\)|\b___+\b)/)) {
                 const currentIdx = blankCounter++
+
                 const isCorrect = showCorrection && userAnswers[currentIdx] === quiz.answers[currentIdx]
                 const isWrong = showCorrection && userAnswers[currentIdx] !== quiz.answers[currentIdx]
 
@@ -70,17 +66,36 @@ export default function QuizPage() {
                     <button
                         key={`blank-${index}`}
                         onClick={() => !showCorrection && setActiveBlankIndex(currentIdx)}
-                        className={`inline-flex items-center justify-center min-w-[90px] px-3 py-2 mx-1 rounded-2xl border-[3px] transition-all duration-300 font-bold text-lg ${activeBlankIndex === currentIdx && !showCorrection
-                            ? "border-amber-400 bg-amber-50 scale-105 shadow-lg shadow-amber-200/20"
-                            : "border-slate-100 bg-slate-50 text-slate-400"
-                            } ${isCorrect ? "bg-emerald-50 border-emerald-500 text-emerald-700" : ""} ${isWrong ? "bg-rose-50 border-rose-500 text-rose-700" : ""
-                            }`}
+                        className={`inline-flex flex-col items-center justify-center min-w-[90px] px-3 py-2 mx-1 rounded-2xl border-[3px] transition-all duration-300 font-bold text-lg
+                        
+                        ${activeBlankIndex === currentIdx && !showCorrection
+                            ? "border-amber-400 bg-amber-50 scale-105 shadow-lg"
+                            : "border-slate-100 bg-slate-50 text-slate-400"}
+                        
+                        ${isCorrect ? "bg-emerald-50 border-emerald-500 text-emerald-700 scale-105" : ""}
+                        ${isWrong ? "bg-rose-50 border-rose-500 text-rose-700 animate-[shake_0.3s]" : ""}
+                        `}
                     >
-                        {userAnswers[currentIdx] || (showCorrection ? quiz.answers[currentIdx] : "?")}
+                        {showCorrection ? (
+                            userAnswers[currentIdx] === quiz.answers[currentIdx] ? (
+                                userAnswers[currentIdx]
+                            ) : (
+                                <span className="flex flex-col items-center leading-tight">
+                                    <span className="line-through text-rose-500 text-sm">
+                                        {userAnswers[currentIdx]}
+                                    </span>
+                                    <span className="text-emerald-600 text-sm font-bold">
+                                        {quiz.answers[currentIdx]}
+                                    </span>
+                                </span>
+                            )
+                        ) : (
+                            userAnswers[currentIdx] || "?"
+                        )}
                     </button>
                 )
             }
-            return <span key={`text-${index}`} className="leading-normal">{part}</span>
+            return <span key={`text-${index}`}>{part}</span>
         })
     }, [quiz, userAnswers, activeBlankIndex, showCorrection])
 
@@ -90,30 +105,24 @@ export default function QuizPage() {
 
     if (view === "selection") {
         return (
-            <div className="min-h-screen bg-[#F2F2F7] p-6 pb-32">
-                <div className="max-w-xl mx-auto space-y-10 pt-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                    <div className="space-y-2 px-2">
-                        <p className="label-tertiary">Learning Center</p>
-                        <h1 className="text-4xl font-black text-black">말씀 퀴즈</h1>
-                        <p className="text-[17px] text-slate-500 font-medium">학습하고 싶은 분야를 선택해 주세요.</p>
-                    </div>
+            <div className="min-h-screen bg-[#F2F2F7] p-6">
+                <div className="max-w-xl mx-auto space-y-6 pt-12">
+                    <h1 className="text-3xl md:text-4xl font-black">말씀 퀴즈</h1>
 
-                    <div className="space-y-4">
-                        <QuizCategoryCard
-                            title="원리강론 퀴즈"
-                            description="진리의 핵심 원리를 빈칸 채우기로 마스터합니다."
-                            icon="💡"
-                            onClick={() => startQuiz("divine_principle")}
-                            accent="bg-orange-100 text-orange-600"
-                        />
-                        <QuizCategoryCard
-                            title="성경 말씀 퀴즈"
-                            description="성경 속 귀한 성구들을 재미있게 암송합니다."
-                            icon="📖"
-                            onClick={() => startQuiz("bible")}
-                            accent="bg-blue-100 text-blue-600"
-                        />
-                    </div>
+                    <QuizCategoryCard
+                        title="원리강론 퀴즈"
+                        description="핵심 원리 학습"
+                        icon="💡"
+                        onClick={() => startQuiz("divine_principle")}
+                        accent="bg-orange-100 text-orange-600"
+                    />
+                    <QuizCategoryCard
+                        title="성경 말씀 퀴즈"
+                        description="성구 암송"
+                        icon="📖"
+                        onClick={() => startQuiz("bible")}
+                        accent="bg-blue-100 text-blue-600"
+                    />
                 </div>
             </div>
         )
@@ -122,84 +131,89 @@ export default function QuizPage() {
     if (!quiz) return null
 
     return (
-        <div className="min-h-screen bg-[#F2F2F7] pb-40">
-            {/* Header */}
-            <header className="sticky top-0 z-50 airbnb-nav border-b border-black/5 px-6 py-4">
-                <div className="max-w-4xl mx-auto flex items-center justify-between">
-                    <button
-                        onClick={() => setView("selection")}
-                        className="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center text-black active:scale-90 transition-transform hover:bg-[#0099ff] hover:text-white"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path></svg>
-                    </button>
-                    <h2 className="text-lg font-black text-black">
-                        {quizType === "bible" ? "성경 퀴즈" : "원리강론 퀴즈"}
-                    </h2>
-                    <div className="w-10"></div>
-                </div>
-            </header>
+        <div className="min-h-screen bg-[#F2F2F7] pb-32 md:pb-16">
 
-            <main className="max-w-2xl mx-auto p-6 space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                {/* Question Area */}
-                <div className="airbnb-card bg-white p-8 md:p-12">
-                    <div className="word-emphasis text-center leading-relaxed">
-                        {questionElements}
-                    </div>
+            <main className="max-w-2xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
+
+                {/* 문제 */}
+                <div className="airbnb-card bg-white p-6 md:p-10 text-center text-lg leading-relaxed">
+                    {questionElements}
                 </div>
 
-                {/* Options Section */}
-                <div className="space-y-4">
-                    <p className="label-tertiary px-2">정답 선택</p>
-                    <div className="grid grid-cols-2 gap-3">
-                        {shuffledOptions.map((option) => (
+                {/* 선택지 */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {shuffledOptions.map((option) => {
+                        const isSelected = userAnswers.includes(option)
+                        const isCorrect = quiz.answers.includes(option)
+
+                        return (
                             <button
                                 key={option}
                                 onClick={() => handleOptionClick(option)}
                                 disabled={showCorrection}
-                                className={`airbnb-card py-5 px-4 text-center font-bold text-[17px] active:bg-[#f7f7f7] hover:border-[#0099ff] ${userAnswers.includes(option)
-                                    ? "border-[#0099ff] bg-blue-50/50 text-[#0099ff]"
-                                    : "text-[#222222]"
-                                    } ${showCorrection ? "opacity-40 cursor-not-allowed" : ""}`}
+                                className={`airbnb-card py-4 px-3 font-bold text-sm md:text-base transition-all
+                                
+                                ${!showCorrection
+                                    ? isSelected
+                                        ? "border-blue-500 bg-blue-50 text-blue-600"
+                                        : "hover:border-blue-400"
+                                    : ""}
+
+                                ${showCorrection
+                                    ? isCorrect
+                                        ? "bg-emerald-50 border-emerald-500 text-emerald-700 scale-105"
+                                        : isSelected
+                                            ? "bg-rose-50 border-rose-500 text-rose-700"
+                                            : "opacity-30"
+                                    : ""}
+                                `}
                             >
                                 {option}
                             </button>
-                        ))}
-                    </div>
+                        )
+                    })}
                 </div>
 
-                {/* Results / Next */}
+                {/* 결과 */}
                 {showCorrection && (
-                    <div className="airbnb-card bg-[#F7F7F7] border-none p-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex items-start gap-4">
-                            <div className="text-4xl">{isPerfect ? "🌟" : "🧐"}</div>
-                            <div className="space-y-1">
-                                <h3 className="text-lg font-bold text-black">
-                                    {isPerfect ? "완벽합니다!" : "결과를 확인해 보세요."}
-                                </h3>
-                                <p className="text-[15px] text-slate-500 font-medium leading-relaxed">
-                                    {quiz.explanation}
-                                </p>
-                            </div>
-                        </div>
+                    <div className="airbnb-card p-6 bg-gray-100">
+                        <h3 className="font-bold text-lg">
+                            {isPerfect ? "🌟 완벽합니다!" : "❌ 틀린 부분을 확인해보세요"}
+                        </h3>
+                        <p className="text-gray-600 mt-2">{quiz.explanation}</p>
+
                         <button
                             onClick={handleNext}
-                            className="ios-btn w-full bg-black shadow-lg shadow-black/10"
+                            className="mt-4 ios-btn w-full bg-black text-white"
                         >
-                            다음 문제 풀기
+                            다음 문제
+                        </button>
+                    </div>
+                )}
+
+                {/* PC 버튼 */}
+                {!showCorrection && (
+                    <div className="hidden md:block mt-6">
+                        <button
+                            onClick={checkAnswer}
+                            disabled={!allFilled}
+                            className="ios-btn w-full"
+                        >
+                            정답 확인하기
                         </button>
                     </div>
                 )}
             </main>
 
-            {/* Sticky Check Button */}
+            {/* 모바일 버튼 */}
             {!showCorrection && (
-                <div className="fixed bottom-28 left-6 right-6 z-40 max-w-xl mx-auto">
+                <div className="md:hidden fixed bottom-[calc(env(safe-area-inset-bottom)+16px)] left-4 right-4 z-50 max-w-xl mx-auto">
                     <button
                         onClick={checkAnswer}
                         disabled={!allFilled}
-                        className="ios-btn w-full shadow-2xl disabled:bg-slate-200 disabled:shadow-none transition-all"
+                        className="ios-btn w-full shadow-2xl disabled:bg-slate-200"
                     >
-                        <span>정답 확인하기</span>
+                        정답 확인하기
                     </button>
                 </div>
             )}
@@ -207,27 +221,15 @@ export default function QuizPage() {
     )
 }
 
-function QuizCategoryCard({ title, description, icon, onClick, accent }: {
-    title: string;
-    description: string;
-    icon: string;
-    onClick: () => void;
-    accent: string;
-}) {
+function QuizCategoryCard({ title, description, icon, onClick, accent }: any) {
     return (
-        <button
-            onClick={onClick}
-            className="airbnb-card w-full flex items-center gap-4 text-left group hover:border-[#0099ff]"
-        >
-            <div className={`w-14 h-14 shrink-0 rounded-[22px] flex items-center justify-center text-3xl ${accent}`}>
+        <button onClick={onClick} className="airbnb-card flex gap-4 p-4">
+            <div className={`w-12 h-12 flex items-center justify-center rounded-xl ${accent}`}>
                 {icon}
             </div>
-            <div className="flex-grow">
-                <h3 className="text-[19px] font-black text-black">{title}</h3>
-                <p className="text-[14px] text-slate-500 font-medium">{description}</p>
-            </div>
-            <div className="text-slate-300">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
+            <div>
+                <h3 className="font-bold">{title}</h3>
+                <p className="text-sm text-gray-500">{description}</p>
             </div>
         </button>
     )

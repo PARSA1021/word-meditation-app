@@ -1,4 +1,5 @@
 // lib/words.ts
+
 import wordsData from "@/data/words.json"
 import cheonseongData from "@/data/cheonseong_words.json"
 
@@ -20,66 +21,75 @@ export type WordStats = {
 }
 
 // -----------------------------
-// 2️⃣ JSON 데이터 합치기
+// 2️⃣ 데이터 합치기
 // -----------------------------
 export const allWords: Word[] = [
-  ...wordsData.map(w => ({ ...w, type: "general" } as Word)),
+  ...wordsData.map((w) => ({ ...w, type: "general" } as Word)),
   ...cheonseongData.map((w, i) => ({
     ...w,
     type: "cheonseong",
-    id: 10000 + i, // 기존 id와 겹치지 않도록 offset
-  } as Word))
+    id: 10000 + i,
+  } as Word)),
 ]
 
 // -----------------------------
-// 3️⃣ 모든 단어 가져오기 (권장하지 않음, 전체 렌더링 주의)
+// 3️⃣ 전체 가져오기
 // -----------------------------
 export function getAllWords(): Word[] {
   return allWords
 }
 
 // -----------------------------
-// 3-1️⃣ 페이지 단위로 가져오기
+// 4️⃣ 랜덤 단어
 // -----------------------------
-export function getWordsByPage(page: number, pageSize: number): Word[] {
-  const start = (page - 1) * pageSize
-  const end = start + pageSize
-  return allWords.slice(start, end)
+export function getRandomWord(): Word {
+  return allWords[Math.floor(Math.random() * allWords.length)]
 }
 
 // -----------------------------
-// 4️⃣ 랜덤 단어 가져오기
+// 5️⃣ 랜덤 (중복 방지 강화 버전 🔥)
 // -----------------------------
-export function getRandomWord(): Word {
-  const index = Math.floor(Math.random() * allWords.length)
+export function getRandomWordExcept(
+  exceptIds: number[] = []
+): Word {
+  if (allWords.length === 0) {
+    throw new Error("words 목록이 비어 있습니다.")
+  }
+
+  const excluded = new Set(exceptIds)
+
+  const candidates = allWords.filter((w) => !excluded.has(w.id))
+
+  if (candidates.length === 0) return getRandomWord()
+
+  return candidates[Math.floor(Math.random() * candidates.length)]
+}
+
+// -----------------------------
+// 6️⃣ 오늘의 말씀 (날짜 기반 고정 🔥)
+// -----------------------------
+export function getDailyWord(): Word {
+  const today = new Date().toISOString().slice(0, 10)
+
+  let hash = 0
+  for (let i = 0; i < today.length; i++) {
+    hash = today.charCodeAt(i) + ((hash << 5) - hash)
+  }
+
+  const index = Math.abs(hash) % allWords.length
   return allWords[index]
 }
 
 // -----------------------------
-// 5️⃣ 랜덤 단어 (특정 id 제외)
-// -----------------------------
-export function getRandomWordExcept(exceptId?: number | null): Word {
-  if (allWords.length === 0) throw new Error("words 목록이 비어 있습니다.")
-  if (exceptId == null || allWords.length === 1) return getRandomWord()
-
-  for (let i = 0; i < 12; i++) {
-    const w = getRandomWord()
-    if (w.id !== exceptId) return w
-  }
-
-  const currentIndex = allWords.findIndex((w: Word) => w.id === exceptId)
-  const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % allWords.length : 0
-  return allWords[nextIndex]
-}
-
-// -----------------------------
-// 6️⃣ 통계
+// 7️⃣ 통계
 // -----------------------------
 export function getWordStats(): WordStats {
   const byCategory: { [key: string]: number } = {}
-  allWords.forEach((w: Word) => {
+
+  allWords.forEach((w) => {
     byCategory[w.category] = (byCategory[w.category] || 0) + 1
   })
+
   return {
     total: allWords.length,
     byCategory,
@@ -87,22 +97,62 @@ export function getWordStats(): WordStats {
 }
 
 // -----------------------------
-// 7️⃣ 검색 (type 필터 포함 가능)
+// 8️⃣ 고급 검색 (점수 기반 🔥)
 // -----------------------------
-export function searchWords(query: string, type?: "general" | "cheonseong"): Word[] {
-  const lowerQuery = query.toLowerCase().trim()
-  return allWords.filter((w: Word) => {
-    const matchesQuery =
-      lowerQuery === "" ||
-      w.text.toLowerCase().includes(lowerQuery) ||
-      w.source.toLowerCase().includes(lowerQuery)
-    const matchesType = !type || w.type === type
-    return matchesQuery && matchesType
-  })
+export function searchWords(
+  query: string,
+  type?: "general" | "cheonseong"
+): Word[] {
+  const normalized = query.toLowerCase().trim()
+  const tokens = normalized.split(/\s+/).filter(Boolean)
+
+  if (tokens.length === 0) {
+    return type ? allWords.filter((w) => w.type === type) : allWords
+  }
+
+  const results = allWords
+    .map((word): { word: Word; score: number } | null => {
+      if (type && word.type !== type) return null
+
+      const text = word.text.toLowerCase()
+      const source = word.source.toLowerCase()
+      const speaker = (word.speaker || "").toLowerCase()
+
+      let score = 0
+
+      for (const token of tokens) {
+        let matched = false
+
+        // 🔥 핵심 매칭 (본문 중심)
+        if (text === token) {
+          score += 100
+          matched = true
+        } else if (text.startsWith(token)) {
+          score += 50
+          matched = true
+        } else if (text.includes(token)) {
+          score += 30
+          matched = true
+        }
+
+        // 🔥 보조 점수
+        if (source.includes(token)) score += 10
+        if (speaker.includes(token)) score += 5
+
+        if (!matched) return null
+      }
+
+      return { word, score }
+    })
+    .filter((v): v is { word: Word; score: number } => v !== null)
+
+  results.sort((a, b) => b.score - a.score)
+
+  return results.map((r) => r.word)
 }
 
 // -----------------------------
-// 7-1️⃣ 검색 + 페이지네이션
+// 9️⃣ 검색 + 페이지네이션
 // -----------------------------
 export function searchWordsPaged(
   query: string,
@@ -110,29 +160,27 @@ export function searchWordsPaged(
   pageSize: number,
   type?: "general" | "cheonseong"
 ): Word[] {
-  const filtered = searchWords(query, type)
+  const results = searchWords(query, type)
+
   const start = (page - 1) * pageSize
-  return filtered.slice(start, start + pageSize)
+  return results.slice(start, start + pageSize)
 }
 
 // -----------------------------
-// 8️⃣ 천성경 단어만 가져오기
-// -----------------------------
-export function getCheonseongWords(): Word[] {
-  return allWords.filter((w: Word) => w.type === "cheonseong")
-}
-
-// -----------------------------
-// 9️⃣ 일반 단어만 가져오기
-// -----------------------------
-export function getGeneralWords(): Word[] {
-  return allWords.filter((w: Word) => w.type === "general")
-}
-
-// -----------------------------
-// 🔟 카테고리별 단어 가져오기
+// 🔟 카테고리별 단어
 // -----------------------------
 export function getCategoryWords(category: string): Word[] {
-  const decodedCategory = decodeURIComponent(category)
-  return allWords.filter((w: Word) => w.category === decodedCategory)
+  const decoded = decodeURIComponent(category)
+  return allWords.filter((w) => w.category === decoded)
+}
+
+// -----------------------------
+// 11️⃣ 타입별 필터
+// -----------------------------
+export function getGeneralWords(): Word[] {
+  return allWords.filter((w) => w.type === "general")
+}
+
+export function getCheonseongWords(): Word[] {
+  return allWords.filter((w) => w.type === "cheonseong")
 }

@@ -2,6 +2,7 @@
 
 import wordsData from "@/data/words.json"
 import cheonseongData from "@/data/cheonseong_words.json"
+import wonliData from "@/data/wonligangnon_words.json"
 
 // -----------------------------
 // 1️⃣ 타입 정의
@@ -12,7 +13,7 @@ export type Word = {
   source: string
   category: string
   speaker?: string | null
-  type: "general" | "cheonseong"
+  type: "general" | "cheonseong" | "wonli"
 }
 
 export type WordStats = {
@@ -25,10 +26,17 @@ export type WordStats = {
 // -----------------------------
 export const allWords: Word[] = [
   ...wordsData.map((w) => ({ ...w, type: "general" } as Word)),
+
   ...cheonseongData.map((w, i) => ({
     ...w,
     type: "cheonseong",
     id: 10000 + i,
+  } as Word)),
+
+  ...wonliData.map((w, i) => ({
+    ...w,
+    type: "wonli",
+    id: 20000 + i,
   } as Word)),
 ]
 
@@ -47,7 +55,7 @@ export function getRandomWord(): Word {
 }
 
 // -----------------------------
-// 5️⃣ 랜덤 (🔥 완전 개선 버전)
+// 5️⃣ 랜덤 (제외 기능)
 // -----------------------------
 export function getRandomWordExcept(
   except?: number | number[] | null
@@ -56,7 +64,6 @@ export function getRandomWordExcept(
     throw new Error("words 목록이 비어 있습니다.")
   }
 
-  // 👉 제외 ID 배열로 통일
   let excludedIds: number[] = []
 
   if (Array.isArray(except)) {
@@ -69,7 +76,6 @@ export function getRandomWordExcept(
 
   const candidates = allWords.filter((w) => !excludedSet.has(w.id))
 
-  // 👉 전부 제외된 경우 fallback
   if (candidates.length === 0) {
     return getRandomWord()
   }
@@ -78,7 +84,7 @@ export function getRandomWordExcept(
 }
 
 // -----------------------------
-// 6️⃣ 오늘의 말씀 (날짜 기반 고정 🔥)
+// 6️⃣ 오늘의 말씀 (날짜 기반)
 // -----------------------------
 export function getDailyWord(): Word {
   const today = new Date().toISOString().slice(0, 10)
@@ -109,11 +115,11 @@ export function getWordStats(): WordStats {
 }
 
 // -----------------------------
-// 8️⃣ 고급 검색 (점수 기반 🔥)
+// 8️⃣ 고급 검색 (점수 기반)
 // -----------------------------
 export function searchWords(
   query: string,
-  type?: "general" | "cheonseong"
+  type?: "general" | "cheonseong" | "wonli"
 ): Word[] {
   const normalized = query.toLowerCase().trim()
   const tokens = normalized.split(/\s+/).filter(Boolean)
@@ -168,7 +174,7 @@ export function searchWordsPaged(
   query: string,
   page: number,
   pageSize: number,
-  type?: "general" | "cheonseong"
+  type?: "general" | "cheonseong" | "wonli"
 ): Word[] {
   const results = searchWords(query, type)
 
@@ -193,4 +199,8 @@ export function getGeneralWords(): Word[] {
 
 export function getCheonseongWords(): Word[] {
   return allWords.filter((w) => w.type === "cheonseong")
+}
+
+export function getWonliWords(): Word[] {
+  return allWords.filter((w) => w.type === "wonli")
 }

@@ -1,7 +1,6 @@
 import Link from "next/link"
 import DailyWord from "@/components/DailyWord"
 import { getWordStats } from "@/lib/words"
-import NotificationSetup from "@/components/NotificationSetup"
 import StepCard from "@/components/StepCard"
 import CategoryCard from "@/components/CategoryCard"
 import QuickActionBtn from "@/components/QuickActionBtn"
@@ -58,7 +57,6 @@ export default function Home() {
 
       <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 space-y-16">
 
-        <NotificationSetup />
 
         {/* 2. USAGE FLOW (Subtle Support Guide) */}
         <section className="space-y-4 animate-in fade-in duration-700 opacity-90 transition-opacity">

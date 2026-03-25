@@ -1,17 +1,16 @@
 "use client";
 
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import { useState, useMemo } from "react";
 import { getCategoryWords, Word } from "@/lib/words";
 import QuoteCard from "@/components/QuoteCard";
 
 const PAGE_SIZE = 30; // 한 페이지에 보여줄 단어 수
 
-interface CategoryPageProps {
-  category?: string; // URL param이 없는 경우 대비
-}
-
-export default function CategoryPage({ category }: CategoryPageProps) {
+export default function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
+  // params를 React.use()로 해결 (Next.js 15+ 대응)
+  const resolvedParams = React.use(params);
+  const category = decodeURIComponent(resolvedParams.category);
   // 페이지 상태
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -27,28 +26,33 @@ export default function CategoryPage({ category }: CategoryPageProps) {
   }, [words, currentPage]);
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] p-6">
-      <div className="max-w-xl mx-auto space-y-6">
-
-        {/* 헤더 */}
-        <header className="flex flex-col gap-2 mb-6">
-          <h1 className="text-3xl font-extrabold text-[#222222]">{category || "카테고리"}</h1>
+    <div className="min-h-screen bg-[#F2F2F7]">
+      {/* Sticky Header (Consistent with main category page) */}
+      <header className="sticky top-0 z-50 airbnb-nav border-b border-black/5 px-6 py-4 bg-[#F2F2F7]">
+        <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto flex items-center gap-3">
           <Link
-            href="/category"
-            className="text-[14px] text-[#0099FF] font-bold hover:underline"
+            href="/"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-black/5 text-black active:scale-95 transition-transform"
           >
-            ← 전체 카테고리 보기
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+            </svg>
           </Link>
-        </header>
+          <h1 className="text-xl font-black text-black">
+            {category}
+          </h1>
+        </div>
+      </header>
 
-        {/* 말씀 리스트 */}
+      <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 pt-6 pb-32 space-y-6">
         {words.length > 0 ? (
-          <>
-            <div className="space-y-4">
-              {visibleWords.map((word) => (
-                <QuoteCard key={word.id} word={word} showCategory={true} />
-              ))}
-            </div>
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">
+              &apos;{category}&apos; 결과 {words.length}개
+            </p>
+            {visibleWords.map((word) => (
+              <QuoteCard key={word.id} word={word} showCategory={true} />
+            ))}
 
             {/* 페이지 번호 버튼 */}
             {totalPages > 1 && (
@@ -56,7 +60,10 @@ export default function CategoryPage({ category }: CategoryPageProps) {
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
                   <button
                     key={num}
-                    onClick={() => setCurrentPage(num)}
+                    onClick={() => {
+                      setCurrentPage(num);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     className={`
                       min-w-[38px] h-10 flex items-center justify-center
                       rounded-full border-2 font-semibold text-sm transition-all
@@ -72,13 +79,16 @@ export default function CategoryPage({ category }: CategoryPageProps) {
                 ))}
               </div>
             )}
-          </>
+          </div>
         ) : (
-          <div className="text-center text-[#717171] mt-12">
+          <div className="text-center text-[#717171] mt-12 animate-in fade-in duration-500">
             <p>이 카테고리에는 아직 말씀이 없습니다.</p>
+            <Link href="/" className="inline-block mt-4 text-[#0099FF] font-black hover:underline">
+              홈으로 돌아가기
+            </Link>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
-}
+}

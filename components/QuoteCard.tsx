@@ -43,7 +43,7 @@ export default function QuoteCard({
 
             {/* 말씀 */}
             <div className="space-y-2">
-                <p className={`${scriptureFont.className} text-[16px] leading-[1.7] text-gray-900 whitespace-pre-line`}>
+                <p className={`${scriptureFont.className} text-[16px] leading-[1.7] text-gray-900 whitespace-pre-line break-keep`}>
                     “{highlighted}”
                 </p>
 

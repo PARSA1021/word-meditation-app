@@ -1,11 +1,10 @@
+# 🧭 TruePath (Word Meditation App) 아키텍처
 
-# Word Meditation App 아키텍처
-
-이 문서는 Word Meditation App의 기술적인 구조와 설계를 설명합니다.
+이 문서는 **TruePath**의 기술적인 구조와 설계를 설명합니다.
 
 ## 1. 프로젝트 개요
 
-Word Meditation App은 사용자가 매일 말씀을 묵상하고 관련 퀴즈를 풀며 신앙을 키워나갈 수 있도록 돕는 웹 애플리케이션입니다.
+TruePath는 사용자가 매일 말씀을 묵상하고 관련 퀴즈를 풀며 신앙을 키워나갈 수 있도록 돕는 웹 애플리케이션입니다.
 
 ## 2. 기술 스택
 

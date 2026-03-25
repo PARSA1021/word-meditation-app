@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { getAllWords, searchWords, Word } from "@/lib/words"
+import { getAllWords, Word } from "@/lib/words"
 import Link from "next/link"
 import QuoteCard from "@/components/QuoteCard"
 
@@ -9,16 +9,30 @@ const PAGE_SIZE = 30
 
 export default function SearchPage() {
   const [query, setQuery] = useState("")
+  const [searchMode, setSearchMode] = useState<"text" | "source">("text")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
   const hasQuery = query.trim().length >= 2
 
-  // 🔥 검색 결과
+  // 🔥 검색 (텍스트 / 소스 분리)
   const textResults = useMemo(() => {
     if (!hasQuery) return []
-    return searchWords(query)
-  }, [query, hasQuery])
+
+    const normalized = query.toLowerCase().trim()
+
+    return getAllWords().filter((word) => {
+      if (searchMode === "text") {
+        return word.text.toLowerCase().includes(normalized)
+      }
+
+      if (searchMode === "source") {
+        return word.source.toLowerCase().includes(normalized)
+      }
+
+      return false
+    })
+  }, [query, hasQuery, searchMode])
 
   // 🔥 카테고리 통계
   const categoryCounts = useMemo(() => {
@@ -76,6 +90,31 @@ export default function SearchPage() {
             <h1 className="text-xl font-black">말씀 검색</h1>
           </div>
 
+          {/* 🔥 검색 모드 선택 */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSearchMode("text")}
+              className={`px-3 py-1 rounded-full text-sm font-semibold border transition
+                ${searchMode === "text"
+                  ? "bg-[#0099FF] text-white border-[#0099FF]"
+                  : "bg-white text-gray-500 border-gray-200"
+                }`}
+            >
+              텍스트
+            </button>
+
+            <button
+              onClick={() => setSearchMode("source")}
+              className={`px-3 py-1 rounded-full text-sm font-semibold border transition
+                ${searchMode === "source"
+                  ? "bg-[#0099FF] text-white border-[#0099FF]"
+                  : "bg-white text-gray-500 border-gray-200"
+                }`}
+            >
+              소스
+            </button>
+          </div>
+
           {/* 검색 */}
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -86,7 +125,11 @@ export default function SearchPage() {
               autoFocus
               value={query}
               onChange={(e) => handleQueryChange(e.target.value)}
-              placeholder="검색어를 입력하세요 (최소 2자)"
+              placeholder={
+                searchMode === "text"
+                  ? "말씀 내용을 검색하세요 (최소 2자)"
+                  : "출처(소스)를 검색하세요 (최소 2자)"
+              }
               className="w-full pl-12 pr-4 py-4 bg-black/5 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#0099FF]/20 outline-none transition text-[17px] font-medium"
             />
           </div>
@@ -145,13 +188,12 @@ export default function SearchPage() {
               {selectedCategory || "전체"} 결과 {filteredResults.length}개
             </p>
 
-            {/* 🔥 하이라이트 적용 */}
             {visibleWords.map((word: Word) => (
               <QuoteCard
                 key={word.id}
                 word={word}
                 showCategory={true}
-                highlightQuery={query} // 🔥 핵심
+                highlightQuery={query}
               />
             ))}
 

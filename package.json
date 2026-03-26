@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@tosspayments/payment-sdk": "^1.9.2",
+    "framer-motion": "^12.38.0",
     "next": "16.1.6",
     "openai": "^6.27.0",
     "react": "19.2.3",

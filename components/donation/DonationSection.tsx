@@ -105,28 +105,65 @@ export default function DonationSection() {
             >
               {/* 1. 계좌 확인 블록 */}
               <div>
-                <div className="bg-[#007AFF] px-6 py-5">
-                  <p className="text-blue-100 text-xs font-semibold mb-1">후원 계좌</p>
-                  <p className="text-white text-lg font-bold">국민은행 · 문성민</p>
-                  <p className="text-white text-2xl font-mono font-black tracking-tight mt-1">
-                    020-6020-423-0715
+                <div className="bg-[#007AFF] px-6 py-6 relative overflow-hidden">
+                  {/* Subtle Background Icon */}
+                  <div className="absolute right-[-10px] bottom-[-10px] text-white opacity-10 rotate-12">
+                    <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.36 8-6.63 8-11.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2v-2h2v2zm0-3.5h-2c0-3.25 3-3 3-5 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-3 2.75-3 5z"/>
+                    </svg>
+                  </div>
+
+                  <p className="text-blue-100 text-xs font-bold mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse" />
+                    후원금을 보내실 곳
                   </p>
+                  
+                  <div className="space-y-1">
+                    <p className="text-white text-lg font-bold flex items-center gap-2">
+                      국민은행 · 문성민
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-white text-3xl font-mono font-black tracking-tighter">
+                        02060204230715
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="px-6 py-5 border-b border-gray-100 bg-[#FAFAFA]">
+                <div className="px-6 py-5 border-b border-gray-100 bg-white">
                   <button
                     onClick={copyAccount}
-                    className={`w-full py-3 rounded-xl font-semibold text-sm transition-all active:scale-95 ${
+                    className={`w-full py-4 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm ${
                       copied
-                        ? "bg-green-50 text-green-600 border border-green-200"
-                        : "bg-white text-gray-700 border border-gray-200 shadow-sm hover:bg-gray-50"
+                        ? "bg-green-500 text-white"
+                        : "bg-[#F0F7FF] text-[#007AFF] border border-blue-100 hover:bg-blue-100"
                     }`}
                   >
-                    {copied ? "✓ 계좌번호 복사 완료!" : "계좌번호 복사하기"}
+                    {copied ? (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        복사 완료! 이제 은행 앱을 켜주세요
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                        계좌번호 복사하기
+                      </>
+                    )}
                   </button>
-                  <p className="mt-4 text-xs text-blue-700 font-medium text-center bg-blue-50/50 p-2.5 rounded-lg border border-blue-100">
-                    💡 위 계좌로 후원금을 송금하신 후 폼을 작성해주세요.
-                  </p>
+                  
+                  <div className="mt-5 p-4 rounded-2xl bg-orange-50 border border-orange-100 space-y-2">
+                    <p className="flex items-center gap-2 text-[13px] font-bold text-orange-700">
+                      <span className="text-lg">⚠️</span> 확인해주세요!
+                    </p>
+                    <p className="text-[12px] text-orange-600 leading-relaxed font-medium">
+                      이 페이지에서 버튼을 눌러도 <span className="underline decoration-2 underline-offset-2">돈이 자동으로 빠져나가지 않습니다.</span> 먼저 위에 있는 계좌번호를 복사하신 후, <span className="font-bold">가지고 계신 은행 앱(카카오뱅크, 토스 등)에서 직접 성함으로 송금</span>해주셔야 합니다.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -240,21 +277,28 @@ export default function DonationSection() {
                 </div>
 
                 {/* Submit Button */}
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="w-full bg-[#007AFF] text-white py-4 rounded-[18px] font-bold text-base hover:bg-blue-600 active:scale-95 transition-all shadow-lg shadow-[#007AFF]/25 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                      </svg>
-                      전송 중...
-                    </span>
-                  ) : "후원 정보 제출 완료"}
-                </button>
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 text-center">
+                    <p className="text-[11px] text-blue-600 font-bold">
+                      송금을 완료하신 후에 아래 "정보 등록" 버튼을 눌러주세요
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="w-full bg-[#007AFF] text-white py-4 rounded-[18px] font-bold text-base hover:bg-blue-600 active:scale-95 transition-all shadow-lg shadow-[#007AFF]/25 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                        </svg>
+                        등록 중...
+                      </span>
+                    ) : "후원 정보 등록 완료 (송금 완료 후 클릭)"}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -278,10 +322,14 @@ export default function DonationSection() {
               </motion.div>
 
               <div>
-                <h3 className="text-2xl font-black text-gray-900">후원 감사합니다</h3>
-                <p className="text-sm text-gray-400 mt-2">
-                  {formData.anonymous ? "익명" : formData.name || "후원자"}님의 사랑에 진심으로 감사드려요
-                </p>
+                <h3 className="text-2xl font-black text-gray-900">후원 정보 등록 완료!</h3>
+                <div className="mt-4 px-4 py-3 bg-green-50 rounded-xl border border-green-100">
+                  <p className="text-[13px] text-green-700 font-bold leading-relaxed">
+                    "{formData.anonymous ? "익명" : formData.name || "후원자"}"님의 소중한 마음을 기록했습니다.<br/>
+                    혹시 아직 송금을 안 하셨다면,<br/> 
+                    <span className="text-green-800 underline underline-offset-2">복사한 계좌로 꼭 직접 보내주셔야 합니다!</span>
+                  </p>
+                </div>
               </div>
 
               {verse && (

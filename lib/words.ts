@@ -3,6 +3,7 @@
 import wordsData from "@/data/words.json"
 import cheonseongData from "@/data/cheonseong_words.json"
 import wonliData from "@/data/wonligangnon_words.json"
+import pyeonghwashinkyungData from"@/data/pyeonghwashinkyung_words.json"
 
 // -----------------------------
 // 1️⃣ 타입 정의
@@ -13,7 +14,7 @@ export type Word = {
   source: string
   category: string
   speaker?: string | null
-  type: "general" | "cheonseong" | "wonli"
+  type: "general" | "cheonseong" | "wonli" | "pyeonghwashinkyung"
 }
 
 export type WordStats = {
@@ -33,11 +34,17 @@ export const allWords: Word[] = [
     id: 10000 + i,
   } as Word)),
 
-  ...wonliData.map((w, i) => ({
-    ...w,
-    type: "wonli",
-    id: 20000 + i,
-  } as Word)),
+    ...wonliData.map((w, i) => ({
+      ...w,
+      type: "wonli",
+      id: 20000 + i,
+    } as Word)),
+
+    ...pyeonghwashinkyungData.map((w, i) => ({
+      ...w,
+      type: "pyeonghwashinkyung",
+      id: 30000 + i,
+    } as Word)),
 ]
 
 // -----------------------------

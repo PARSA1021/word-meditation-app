@@ -164,6 +164,7 @@ export default function Home() {
             <QuickActionBtn href="/search" icon="🔍" text="빠른검색" />
             <QuickActionBtn href="/category" icon="📂" text="주제별" />
             <QuickActionBtn href="/quiz" icon="🧠" text="기억하기" />
+            <QuickActionBtn href="/donate" icon="🙌" text="후원하기" />
             <QuickActionBtn href="/today" icon="🌅" text="새말씀" />
           </div>
         </section>

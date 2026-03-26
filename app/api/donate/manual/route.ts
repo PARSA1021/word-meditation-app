@@ -3,42 +3,47 @@ import { sendSlackNotification } from '@/lib/notifications';
 
 export async function POST(req: Request) {
   try {
-    const { name, phone, message } = await req.json();
+    const { name, phone, amount, message } = await req.json();
 
-    // 입력이 없으면 익명으로 처리
+    // 입력이 없으면 기본값 처리
     const finalName = name?.trim() || '익명 후원자';
     const finalPhone = phone?.trim() || '정보 없음';
+    const finalAmount = amount?.trim() ? `${amount}원` : '미기입';
 
-    // TODO: DB 저장 로직 추가 (PostgreSQL/Prisma 연동 시)
-    // 예: const donation = await db.donations.create({ 
-    //   data: { name, phone, message, method: 'bank', status: 'pending' } 
-    // });
-
-    // 업그레이드된 프리미엄 슬랙 알림 형식
+    // 한층 품격 있는 프리미엄 슬랙 알림 형식
     const slackPayload = {
       attachments: [
         {
-          color: "#0099FF", // TruePath 브랜드 컬러
-          pretext: "🔔 *새로운 후원 정보가 등록되었습니다*",
-          title: `후원자: ${finalName}님`,
+          fallback: `새로운 후원 정보 등록: ${finalName}님 (${finalAmount})`,
+          color: "#00CA72", // 성공을 상징하는 청량한 그린
+          pretext: "✨ *새로운 소중한 마음이 도착했습니다*",
+          title: `🙏 후원자: ${finalName}님`,
+          text: message ? `> "${message}"` : "_응원 메시지가 없습니다._",
           fields: [
             {
-              title: "연락처",
-              value: `*${finalPhone}*`,
+              title: "💰 후원 금액",
+              value: `*${finalAmount}*`,
               short: true
             },
             {
-              title: "등록 시간",
-              value: new Date().toLocaleString('ko-KR'),
+              title: "📱 연락처",
+              value: finalPhone !== '정보 없음' ? `\`${finalPhone}\`` : "_익명_",
               short: true
             },
             {
-              title: "응원 메시지",
-              value: message || "_메시지가 없습니다._",
-              short: false
+              title: "⏰ 등록 시간",
+              value: new Date().toLocaleString('ko-KR', { 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+              }),
+              short: true
             }
           ],
-          footer: "TruePath Donation System",
+          footer: "🕊️ TruePath Donation Management Suite",
+          footer_icon: "https://word-meditation-app.vercel.app/favicon.ico",
           ts: Math.floor(Date.now() / 1000)
         }
       ]
@@ -52,7 +57,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ 
         success: false, 
         error: `알림 전송 실패: ${notifError.message}`,
-        details: notifError.message
       }, { status: 500 });
     }
 

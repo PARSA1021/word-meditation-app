@@ -1,7 +1,6 @@
 import Link from "next/link"
 import DailyWord from "@/components/DailyWord"
 import { getWordStats } from "@/lib/words"
-import StepCard from "@/components/StepCard"
 import CategoryCard from "@/components/CategoryCard"
 import QuickActionBtn from "@/components/QuickActionBtn"
 
@@ -29,7 +28,7 @@ export default function Home() {
               Welcome to TruePath
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div className="flex flex-col gap-6">
               <div className="space-y-2">
                 <h1 className="text-[48px] md:text-[56px] font-black tracking-tighter text-black leading-none group transition-all duration-500">
                   True<span className="text-[#0099FF] group-hover:drop-shadow-[0_0_15px_rgba(0,153,255,0.4)] transition-all">Path</span>
@@ -38,16 +37,6 @@ export default function Home() {
                   매일 말씀으로 방향을 찾고, <br className="hidden sm:block" />
                   삶을 단단하게 만드는 공간
                 </p>
-              </div>
-              <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-right-4 duration-1000">
-                {["말씀", "묵상", "학습", "성장"].map((item) => (
-                  <span
-                    key={item}
-                    className="text-[11px] bg-white border border-[#EBEBEB] px-3.5 py-2 rounded-full text-[#717171] font-black shadow-sm hover:border-[#0099FF]/20 hover:text-black transition-all cursor-default"
-                  >
-                    {item}
-                  </span>
-                ))}
               </div>
             </div>
           </div>
@@ -58,35 +47,7 @@ export default function Home() {
       <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 space-y-16">
 
 
-        {/* 2. USAGE FLOW (Subtle Support Guide) */}
-        <section className="space-y-4 animate-in fade-in duration-700 opacity-90 transition-opacity">
-          <div className="flex items-center gap-2 text-[#CCC] font-black text-[11px] uppercase tracking-widest px-1">
-            HOW IT WORKS
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <StepCard
-              step={1}
-              icon="🔍"
-              title="검색하기"
-              desc="상황에 맞는 키워드 검색"
-              compact={true}
-            />
-            <StepCard
-              step={2}
-              icon="📖"
-              title="묵상하기"
-              desc="진심을 다해 말씀 읽기"
-              compact={true}
-            />
-            <StepCard
-              step={3}
-              icon="🧠"
-              title="퀴즈풀기"
-              desc="말씀을 퀴즈로 풀어보기"
-              compact={true}
-            />
-          </div>
-        </section>
+        {/* USAGE FLOW REMOVED as requested */}
 
         {/* 3. SEARCH HERO (Scaled for balance & positioned below steps) */}
         <section className="relative group animate-in zoom-in-95 duration-700 delay-150">
@@ -169,21 +130,21 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FINAL CTA (Scaled down for subtle presence) */}
-        <section className="relative overflow-hidden rounded-[40px] bg-gradient-to-br from-[#060606] via-[#111111] to-[#060606] p-10 text-center shadow-2xl border border-white/5 group mt-10">
-          <div className="absolute -top-10 -right-10 w-48 h-48 bg-[#0099FF]/10 blur-[80px] rounded-full"></div>
-          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-blue-600/5 blur-[80px] rounded-full"></div>
+        {/* FINAL CTA (Refined & Integrated) */}
+        <section className="relative overflow-hidden rounded-[32px] bg-white p-8 text-center shadow-sm border border-[#EBEBEB] group mt-10 transition-all hover:shadow-md">
+          <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#0099FF]/5 blur-[50px] rounded-full"></div>
+          <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-blue-600/5 blur-[50px] rounded-full"></div>
 
-          <div className="relative z-10 space-y-6">
-            <div className="space-y-3 max-w-sm mx-auto">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-[#0099FF] uppercase tracking-widest">
+          <div className="relative z-10 space-y-5">
+            <div className="space-y-2 max-w-sm mx-auto">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0099FF]/10 text-[10px] font-black text-[#0099FF] uppercase tracking-widest">
                 진리의 여정
               </div>
-              <h3 className="text-[24px] sm:text-[26px] font-black tracking-tighter text-white leading-[1.2] break-keep">
+              <h3 className="text-[20px] sm:text-[22px] font-black tracking-tight text-[#111827] leading-[1.3] break-keep">
                 말씀이 삶의 중심이 되는 <br className="hidden sm:block" />
-                <span className="text-white/80">단단한 하루를 시작하세요</span>
+                단단한 하루를 시작하세요
               </h3>
-              <p className="text-[13px] text-white/40 font-medium leading-relaxed px-4 break-keep">
+              <p className="text-[13px] text-[#717171] font-medium leading-relaxed px-4 break-keep">
                 하루의 마지막과 시작을 말씀과 함께하며, <br className="hidden sm:block" />
                 흔들리지 않는 삶의 궤적을 만들어보세요.
               </p>
@@ -191,13 +152,13 @@ export default function Home() {
 
             <Link
               href="/today"
-              className="relative z-10 inline-flex items-center gap-3 bg-[#0099FF] text-white font-black px-10 py-4 rounded-[20px] hover:bg-white hover:text-black hover:scale-105 active:scale-95 transition-all duration-500 shadow-xl shadow-[#0099FF]/20 group/btn"
+              className="relative z-10 inline-flex items-center justify-center gap-2 bg-[#0099FF] text-white font-bold text-[14px] px-8 py-3.5 rounded-[16px] hover:bg-[#007AFF] active:scale-95 transition-all shadow-md shadow-[#0099FF]/20 group/btn mt-2"
             >
               <span>오늘의 말씀 묵상하기</span>
-              <span className="text-lg group-hover/btn:rotate-12 transition-transform duration-500">✨</span>
+              <span className="text-base group-hover/btn:-translate-y-0.5 transition-transform duration-300">✨</span>
             </Link>
 
-            <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em] pt-2">Guided by TruePath</p>
+            <p className="text-[10px] text-[#A0A0A0] font-bold uppercase tracking-[0.2em] pt-1">Guided by TruePath</p>
           </div>
         </section>
 

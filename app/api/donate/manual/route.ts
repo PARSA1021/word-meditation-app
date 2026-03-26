@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
 import { sendSlackNotification } from '@/lib/notifications';
-import { resend } from '@/lib/resend';
-import { getThankYouEmailHtml } from '@/lib/email-templates';
 
 export async function POST(req: Request) {
   try {
-    const { name, phone, email, amount, message } = await req.json();
+    const { name, amount, message } = await req.json();
 
     // 입력이 없으면 기본값 처리
     const finalName = name?.trim() || '익명 후원자';
-    const finalPhone = phone?.trim() || '정보 없음';
-    const finalEmail = email?.trim() || '';
     const finalAmount = amount?.trim() ? `${amount}원` : '미기입';
 
     // 한층 품격 있는 프리미엄 슬랙 알림 형식
@@ -26,11 +22,6 @@ export async function POST(req: Request) {
             {
               title: "💰 후원 금액",
               value: `*${finalAmount}*`,
-              short: true
-            },
-            {
-              title: "📱 연락처 / 이메일",
-              value: [finalPhone !== '정보 없음' ? `\`${finalPhone}\`` : null, finalEmail ? `\`${finalEmail}\`` : null].filter(Boolean).join(" / ") || "_익명_",
               short: true
             },
             {
@@ -61,21 +52,6 @@ export async function POST(req: Request) {
         success: false, 
         error: `알림 전송 실패: ${notifError.message}`,
       }, { status: 500 });
-    }
-
-    // 이메일 주소가 있으면 감사 메일 전송
-    if (finalEmail && resend) {
-      try {
-        await resend.emails.send({
-          from: 'TruePath <noreply@resend.dev>', // 프로덕션에서는 도메인 설정 후 변경 필요 (예: noreply@truepath.app)
-          to: [finalEmail],
-          subject: '🙏 TruePath 말씀 사역에 동참해 주셔서 감사합니다',
-          html: getThankYouEmailHtml(finalName, finalAmount),
-        });
-      } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-        // 이메일 전송 실패가 전체 프로세스를 중단시키지 않도록 함 (에러 로그만 남김)
-      }
     }
 
     return NextResponse.json({ 

@@ -3,15 +3,15 @@ import { sendSlackNotification } from '@/lib/notifications';
 
 export async function POST(req: Request) {
   try {
-    const { name, amount, message } = await req.json();
+    const { name, phone, message } = await req.json();
 
-    if (!name || !amount) {
-      return NextResponse.json({ error: '필수 항목이 누락되었습니다.' }, { status: 400 });
-    }
+    // 입력이 없으면 익명으로 처리
+    const finalName = name?.trim() || '익명 후원자';
+    const finalPhone = phone?.trim() || '정보 없음';
 
     // TODO: DB 저장 로직 추가 (PostgreSQL/Prisma 연동 시)
     // 예: const donation = await db.donations.create({ 
-    //   data: { name, amount, message, method: 'bank', status: 'pending' } 
+    //   data: { name, phone, message, method: 'bank', status: 'pending' } 
     // });
 
     // 업그레이드된 프리미엄 슬랙 알림 형식
@@ -19,16 +19,16 @@ export async function POST(req: Request) {
       attachments: [
         {
           color: "#0099FF", // TruePath 브랜드 컬러
-          pretext: "🔔 *새로운 후원 입금 알림이 도착했습니다*",
-          title: `후원자: ${name}님`,
+          pretext: "🔔 *새로운 후원 정보가 등록되었습니다*",
+          title: `후원자: ${finalName}님`,
           fields: [
             {
-              title: "금액",
-              value: `*${Number(amount).toLocaleString()}원*`,
+              title: "연락처",
+              value: `*${finalPhone}*`,
               short: true
             },
             {
-              title: "입금 확인 시간",
+              title: "등록 시간",
               value: new Date().toLocaleString('ko-KR'),
               short: true
             },
@@ -44,7 +44,17 @@ export async function POST(req: Request) {
       ]
     };
 
-    await sendSlackNotification(slackPayload);
+    try {
+      await sendSlackNotification(slackPayload);
+    } catch (notifError: any) {
+      console.error('Notification failed:', notifError.message);
+      // 알림 설정 문제(Webhook 누락 등)인 경우 에러 응답 반환하여 관리자에게 알림
+      return NextResponse.json({ 
+        success: false, 
+        error: '시스템 설정 오류로 인해 알림을 전송할 수 없습니다. 관리자에게 문의하세요.',
+        details: process.env.NODE_ENV === 'development' ? notifError.message : undefined
+      }, { status: 500 });
+    }
 
     return NextResponse.json({ 
       success: true, 

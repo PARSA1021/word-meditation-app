@@ -6,12 +6,15 @@ export const metadata = {
   title: "TruePath",
   description: "말씀 묵상 앱",
   manifest: "/manifest.json",
-  themeColor: "#0099ff",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "TruePath",
   },
+}
+
+export const viewport = {
+  themeColor: "#0099ff",
 }
 
 export default function RootLayout({

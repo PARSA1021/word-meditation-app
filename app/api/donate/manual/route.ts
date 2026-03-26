@@ -51,8 +51,8 @@ export async function POST(req: Request) {
       // 알림 설정 문제(Webhook 누락 등)인 경우 에러 응답 반환하여 관리자에게 알림
       return NextResponse.json({ 
         success: false, 
-        error: '시스템 설정 오류로 인해 알림을 전송할 수 없습니다. 관리자에게 문의하세요.',
-        details: process.env.NODE_ENV === 'development' ? notifError.message : undefined
+        error: `알림 전송 실패: ${notifError.message}`,
+        details: notifError.message
       }, { status: 500 });
     }
 

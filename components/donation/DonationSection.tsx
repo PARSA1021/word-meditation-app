@@ -43,7 +43,7 @@ export default function DonationSection() {
         setIsSubmitted(true);
       } else {
         const data = await res.json();
-        alert(data.error || '전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        alert(data.error || data.details || '전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       }
     } catch (err) {
       console.error(err);

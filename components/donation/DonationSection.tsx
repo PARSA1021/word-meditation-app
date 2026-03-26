@@ -31,6 +31,7 @@ export default function DonationSection() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    email: "",
     amount: "",
     message: "",
     anonymous: false,
@@ -286,6 +287,14 @@ export default function DonationSection() {
                     }
                     className="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent disabled:opacity-40 disabled:cursor-not-allowed"
                   />
+                  <input
+                    type="email"
+                    placeholder="이메일 (감사 편지를 보내드려요)"
+                    value={formData.email}
+                    disabled={formData.anonymous}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent disabled:opacity-40 disabled:cursor-not-allowed"
+                  />
                   <label className="flex items-center gap-3 cursor-pointer select-none">
                     <div
                       onClick={() =>
@@ -436,7 +445,7 @@ export default function DonationSection() {
               <button
                 onClick={() => {
                   setStep("info");
-                  setFormData({ name: "", phone: "", amount: "", message: "", anonymous: false });
+                  setFormData({ name: "", phone: "", email: "", amount: "", message: "", anonymous: false });
                   setVerse("");
                   setVerseSource("");
                 }}

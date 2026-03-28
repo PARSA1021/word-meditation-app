@@ -1,66 +1,135 @@
+// app/api/donate/manual/route.ts
 import { NextResponse } from 'next/server';
 import { sendSlackNotification } from '@/lib/notifications';
+import { z } from 'zod';
+
+const donationSchema = z.object({
+  name: z.string().trim().max(50).optional().default(''),
+  message: z.string().trim().max(800).optional().default(''),
+  anonymous: z.boolean().optional().default(false),
+  hasDonated: z.boolean().optional().default(false),
+});
 
 export async function POST(req: Request) {
   try {
-    const { name, amount, message } = await req.json();
+    const body = await req.json();
+    const { name, message, anonymous, hasDonated } = donationSchema.parse(body);
 
-    // 입력이 없으면 기본값 처리
-    const finalName = name?.trim() || '익명 후원자';
-    const finalAmount = amount?.trim() ? `${amount}원` : '미기입';
+    // 이름 처리
+    const finalName = (!anonymous && name?.trim())
+      ? name.trim()
+      : '익명 후원자';
 
-    // 한층 품격 있는 프리미엄 슬랙 알림 형식
+    const finalMessage = message?.trim() || '';
+
+    // 시간 포맷 (관리자가 보기 편하게)
+    const now = new Date();
+    const formattedTime = now.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    // 후원 상태 표시 (가장 중요!)
+    const donationStatus = hasDonated
+      ? '✅ 실제 송금 완료'
+      : '💌 메시지만 보냄 (송금 예정)';
+
     const slackPayload = {
-      attachments: [
+      blocks: [
         {
-          fallback: `새로운 후원 정보 등록: ${finalName}님 (${finalAmount})`,
-          color: "#00CA72", // 성공을 상징하는 청량한 그린
-          pretext: "✨ *새로운 소중한 마음이 도착했습니다*",
-          title: `🙏 후원자: ${finalName}님`,
-          text: message ? `> "${message}"` : "_응원 메시지가 없습니다._",
+          type: 'header',
+          text: {
+            type: 'plain_text',
+            text: '✨ 새로운 나눔의 마음이 도착했습니다',
+            emoji: true,
+          },
+        },
+        { type: 'divider' },
+
+        // 기본 정보 (이름 + 시간 + 후원 상태)
+        {
+          type: 'section',
           fields: [
             {
-              title: "💰 후원 금액",
-              value: `*${finalAmount}*`,
-              short: true
+              type: 'mrkdwn',
+              text: `*🙏 후원자*\n${finalName}`,
             },
             {
-              title: "⏰ 등록 시간",
-              value: new Date().toLocaleString('ko-KR', { 
-                month: 'long', 
-                day: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: true 
-              }),
-              short: true
-            }
+              type: 'mrkdwn',
+              text: `*⏰ 시간*\n${formattedTime}`,
+            },
           ],
-          footer: "🕊️ TruePath Donation Management Suite",
-          footer_icon: "https://word-meditation-app.vercel.app/favicon.ico",
-          ts: Math.floor(Date.now() / 1000)
-        }
-      ]
+        },
+
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*📌 후원 상태*\n${donationStatus}`,
+          },
+        },
+
+        { type: 'divider' },
+
+        // 메시지 본문 (가장 중요하게 강조)
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: finalMessage
+              ? `💬 *남겨주신 마음*\n${finalMessage.replace(/\n/g, '\n> ')}`
+              : '_메시지가 없습니다._',
+          },
+        },
+
+        { type: 'divider' },
+
+        // 감성 푸터
+        {
+          type: 'context',
+          elements: [
+            {
+              type: 'mrkdwn',
+              text: '🕊️ 지금 이 순간에도 하나님의 사랑이 여러분을 통해 흘러가고 있습니다',
+            },
+          ],
+        },
+      ],
     };
 
-    try {
-      await sendSlackNotification(slackPayload);
-    } catch (notifError: any) {
-      console.error('Notification failed:', notifError.message);
-      // 알림 설정 문제(Webhook 누락 등)인 경우 에러 응답 반환하여 관리자에게 알림
-      return NextResponse.json({ 
-        success: false, 
-        error: `알림 전송 실패: ${notifError.message}`,
-      }, { status: 500 });
+    await sendSlackNotification(slackPayload);
+
+    return NextResponse.json({
+      success: true,
+      message: '감사합니다. 따뜻한 마음이 잘 전달되었습니다.',
+    });
+
+  } catch (error: any) {
+    console.error('Manual donation API error:', {
+      message: error.message,
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+    });
+
+    if (error.name === 'ZodError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '입력값이 올바르지 않습니다.',
+        },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: '후원 알림이 성공적으로 전송되었습니다.' 
-    });
-  } catch (error) {
-    console.error('Manual donation error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '서버 내부 오류가 발생했습니다.',
+      },
+      { status: 500 }
+    );
   }
 }
-

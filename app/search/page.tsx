@@ -15,7 +15,7 @@ export default function SearchPage() {
 
   const hasQuery = query.trim().length >= 2
 
-  // 🔥 개선된 멀티 워드 AND 검색 + 정확한 구문 검색
+  // 멀티 워드 AND 검색 + 정확한 구문 검색
   const textResults = useMemo(() => {
     if (!hasQuery) return []
 
@@ -53,7 +53,6 @@ export default function SearchPage() {
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     const baseList = hasQuery ? textResults : getAllWords()
-
     baseList.forEach((w) => {
       counts[w.category] = (counts[w.category] || 0) + 1
     })
@@ -86,7 +85,6 @@ export default function SearchPage() {
 
   const clearQuery = () => setQuery("")
 
-  // 검색 조건 안내
   const searchDescription = useMemo(() => {
     if (!hasQuery) return ""
     const tokens = query.trim().split(/\s+/).filter(Boolean)
@@ -97,44 +95,44 @@ export default function SearchPage() {
   }, [query, searchMode, hasQuery])
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7]">
+    <div className="min-h-screen bg-[#F2F2F7] pb-20">
 
-      {/* 헤더 */}
-      <header className="sticky top-0 z-50 border-b border-black/5 px-6 py-4 bg-[#F2F2F7]/95 backdrop-blur-md">
+      {/* 컴팩트한 고정 헤더 */}
+      <header className="sticky top-0 z-50 bg-[#F2F2F7]/95 backdrop-blur-md border-b border-black/5 px-5 py-4">
 
-        <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto space-y-4">
+        <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
 
-          <div className="flex items-center gap-3">
-            <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
-              </svg>
-            </Link>
-            <h1 className="text-xl font-black tracking-tight">말씀 검색</h1>
-          </div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Link href="/" className="w-9 h-9 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+                </svg>
+              </Link>
+              <h1 className="text-xl font-black tracking-tight">말씀 검색</h1>
+            </div>
 
-          {/* 검색 모드 */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSearchMode("text")}
-              className={`px-4 py-1.5 rounded-2xl text-sm font-semibold border transition-all
-                ${searchMode === "text"
-                  ? "bg-[#0099FF] text-white border-[#0099FF] shadow-sm"
-                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-                }`}
-            >
-              말씀 본문
-            </button>
-            <button
-              onClick={() => setSearchMode("source")}
-              className={`px-4 py-1.5 rounded-2xl text-sm font-semibold border transition-all
-                ${searchMode === "source"
-                  ? "bg-[#0099FF] text-white border-[#0099FF] shadow-sm"
-                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-                }`}
-            >
-              출처 · 인물
-            </button>
+            {/* 검색 모드 - 더 컴팩트하게 */}
+            <div className="flex gap-1 bg-white rounded-2xl p-1 border border-gray-100">
+              <button
+                onClick={() => setSearchMode("text")}
+                className={`px-4 py-1 text-xs font-semibold rounded-xl transition-all ${searchMode === "text"
+                  ? "bg-[#0099FF] text-white shadow-sm"
+                  : "text-gray-500 hover:bg-gray-50"
+                  }`}
+              >
+                본문
+              </button>
+              <button
+                onClick={() => setSearchMode("source")}
+                className={`px-4 py-1 text-xs font-semibold rounded-xl transition-all ${searchMode === "source"
+                  ? "bg-[#0099FF] text-white shadow-sm"
+                  : "text-gray-500 hover:bg-gray-50"
+                  }`}
+              >
+                출처
+              </button>
+            </div>
           </div>
 
           {/* 검색 입력창 */}
@@ -147,15 +145,15 @@ export default function SearchPage() {
               onChange={(e) => handleQueryChange(e.target.value)}
               placeholder={
                 searchMode === "text"
-                  ? "예: 사랑 축복   또는   \"하나님의 사랑\""
-                  : "예: 잠언   또는   \"사도 바울\""
+                  ? "사랑 축복 또는 \"하나님의 사랑\""
+                  : "잠언 또는 \"사도 바울\""
               }
-              className="w-full pl-12 pr-12 py-4 bg-white border border-black/5 rounded-3xl focus:border-[#0099FF] focus:ring-1 focus:ring-[#0099FF]/30 outline-none text-[17px] font-medium transition-all"
+              className="w-full pl-12 pr-12 py-3.5 bg-white border border-black/5 rounded-3xl focus:border-[#0099FF] focus:ring-1 focus:ring-[#0099FF]/30 outline-none text-[17px] font-medium"
             />
             {query && (
               <button
                 onClick={clearQuery}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xl leading-none"
               >
                 ✕
               </button>
@@ -164,48 +162,50 @@ export default function SearchPage() {
 
           {/* 검색 조건 안내 */}
           {searchDescription && (
-            <div className="bg-blue-50 text-blue-700 text-sm px-5 py-3 rounded-2xl flex items-center gap-2">
-              <span className="text-base">🔎</span>
+            <div className="mt-3 bg-blue-50 text-blue-700 text-sm px-4 py-2.5 rounded-2xl flex items-center gap-2">
+              <span>🔎</span>
               <span>{searchDescription}</span>
-            </div>
-          )}
-
-          {/* 카테고리 */}
-          {Object.keys(categoryCounts).length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar -mx-1 px-1">
-              <button
-                onClick={() => { setSelectedCategory(null); setCurrentPage(1) }}
-                className={`flex-none px-5 py-2 rounded-2xl text-sm font-semibold border transition-all whitespace-nowrap
-                  ${selectedCategory === null
-                    ? "bg-[#0099FF] text-white border-[#0099FF]"
-                    : "bg-white text-slate-600 border-black/5 hover:border-black/10"
-                  }`}
-              >
-                전체 {filteredResults.length}
-              </button>
-
-              {Object.entries(categoryCounts)
-                .sort((a, b) => b[1] - a[1])
-                .map(([cat, count]) => (
-                  <button
-                    key={cat}
-                    onClick={() => handleCategorySelect(cat)}
-                    className={`flex-none px-5 py-2 rounded-2xl text-sm font-semibold border transition-all whitespace-nowrap
-                      ${selectedCategory === cat
-                        ? "bg-[#0099FF] text-white border-[#0099FF]"
-                        : "bg-white text-slate-600 border-black/5 hover:border-black/10"
-                      }`}
-                  >
-                    {cat} {count}
-                  </button>
-                ))}
             </div>
           )}
         </div>
       </header>
 
+      {/* 카테고리 필터 - 스크롤 시에도 잘 보이게 */}
+      {Object.keys(categoryCounts).length > 0 && (
+        <div className="sticky top-[118px] z-40 bg-[#F2F2F7]/95 backdrop-blur-md border-b border-black/5 px-5 py-3 overflow-x-auto no-scrollbar">
+          <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto flex gap-2">
+            <button
+              onClick={() => { setSelectedCategory(null); setCurrentPage(1) }}
+              className={`flex-none px-5 py-2 rounded-2xl text-sm font-semibold border transition-all whitespace-nowrap
+                ${selectedCategory === null
+                  ? "bg-[#0099FF] text-white border-[#0099FF]"
+                  : "bg-white text-slate-600 border-black/5 hover:border-black/10"
+                }`}
+            >
+              전체 {filteredResults.length}
+            </button>
+
+            {Object.entries(categoryCounts)
+              .sort((a, b) => b[1] - a[1])
+              .map(([cat, count]) => (
+                <button
+                  key={cat}
+                  onClick={() => handleCategorySelect(cat)}
+                  className={`flex-none px-5 py-2 rounded-2xl text-sm font-semibold border transition-all whitespace-nowrap
+                    ${selectedCategory === cat
+                      ? "bg-[#0099FF] text-white border-[#0099FF]"
+                      : "bg-white text-slate-600 border-black/5 hover:border-black/10"
+                    }`}
+                >
+                  {cat} {count}
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* 본문 */}
-      <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 pt-8 pb-32 space-y-6">
+      <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-5 pt-6 pb-20 space-y-6">
 
         {!hasQuery && !selectedCategory ? (
           <div className="py-20 text-center space-y-5">
@@ -229,7 +229,7 @@ export default function SearchPage() {
             ))}
 
             {totalPages > 1 && (
-              <div className="flex gap-2 mt-8 overflow-x-auto pb-4">
+              <div className="flex gap-2 mt-10 overflow-x-auto pb-6 justify-center">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
                   <button
                     key={num}

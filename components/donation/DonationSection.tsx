@@ -94,16 +94,16 @@ export default function DonationSection() {
   }, [formData.anonymous]);
 
   return (
-    <section className={`min-h-[100dvh] bg-[#F8F7F4] ${uiFont.className}`}>
+    <section className={`min-h-[100dvh] bg-[#F8F7F4] overflow-x-hidden ${uiFont.className}`}>
 
-      {/* 부드러운 배경 */}
+      {/* 배경 */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-indigo-50/70 to-amber-50/50" />
         <div className="absolute top-[-15%] left-[-10%] w-[700px] h-[700px] bg-blue-300/20 rounded-full blur-[160px]" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-300/20 rounded-full blur-[150px]" />
       </div>
 
-      <div className="max-w-[440px] mx-auto px-5 py-10 min-h-[100dvh] flex flex-col">
+      <div className="max-w-[440px] mx-auto px-5 pt-16 pb-20">
 
         {/* 상단 네비게이션 */}
         {step !== 'done' && (
@@ -140,10 +140,10 @@ export default function DonationSection() {
           {step === 'intro' && (
             <motion.div
               key="intro"
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -40 }}
-              className="flex-1 flex flex-col justify-center text-center pt-10"
+              exit={{ opacity: 0, y: -30 }}
+              className="pt-8 pb-16 text-center"
             >
               <div className="text-[96px] mb-10">🤝</div>
 
@@ -151,7 +151,7 @@ export default function DonationSection() {
                 함께 나누는<br />동행
               </h1>
 
-              <p className="text-xl text-gray-600 mb-14 max-w-[310px] mx-auto">
+              <p className="text-xl text-gray-600 mb-16 max-w-[310px] mx-auto">
                 몇 번의 클릭으로<br />따뜻한 나눔을 시작할 수 있어요
               </p>
 
@@ -159,29 +159,28 @@ export default function DonationSection() {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => setStep('guide')}
-                className="w-full py-7 text-xl font-bold text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 rounded-3xl shadow-xl shadow-blue-500/40 transition-all"
+                className="w-full py-7 text-xl font-bold text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 rounded-3xl shadow-xl shadow-blue-500/40"
               >
                 지금 바로 시작하기
               </motion.button>
 
-              <p className="mt-8 text-sm text-gray-400">송금 → 한마디 남기기 · 30초면 충분해요</p>
+              <p className="mt-10 text-sm text-gray-400">송금 → 한마디 남기기 · 30초면 충분해요</p>
             </motion.div>
           )}
 
-          {/* GUIDE - KB 로고 적용 */}
+          {/* GUIDE */}
           {step === 'guide' && (
             <motion.div
               key="guide"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex-1 pt-20 space-y-10"
+              className="pt-12 pb-16 space-y-10"
             >
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-900 mb-3">KB 국민은행으로 송금하기</h2>
-                <p className="text-gray-500">아래 계좌로 송금 후 다음으로 넘어가 주세요</p>
+                <p className="text-gray-500">아래 계좌로 송금 후 다음 단계로 넘어가 주세요</p>
               </div>
 
-              {/* 계좌 카드 */}
               <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
                 <div className="flex items-center justify-center gap-3 mb-7">
                   <img
@@ -230,7 +229,7 @@ export default function DonationSection() {
               key="form"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex-1 pt-20 space-y-10"
+              className="pt-12 pb-16 space-y-10"
             >
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-900">마음 전하기</h2>
@@ -289,7 +288,7 @@ export default function DonationSection() {
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleSubmit(true)}
                   disabled={!hasDonated || loading || !formData.message.trim()}
-                  className="py-7 rounded-3xl font-bold text-xl text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 disabled:opacity-50 shadow-xl transition-all"
+                  className="w-full py-7 rounded-3xl font-bold text-xl text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 disabled:opacity-50 shadow-xl transition-all"
                 >
                   {loading ? '전송 중...' : '✅ 마음 전하기'}
                 </motion.button>
@@ -299,7 +298,7 @@ export default function DonationSection() {
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleSubmit(false)}
                   disabled={loading || !formData.message.trim()}
-                  className="py-6 rounded-3xl font-medium text-base border-2 border-gray-200 hover:border-gray-300 text-gray-700 transition-all"
+                  className="w-full py-6 rounded-3xl font-medium text-base border-2 border-gray-200 hover:border-gray-300 text-gray-700 transition-all"
                 >
                   💌 메시지만 먼저 보내기
                 </motion.button>
@@ -313,7 +312,7 @@ export default function DonationSection() {
               key="done"
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex-1 flex flex-col justify-center text-center pt-10 pb-12 space-y-12"
+              className="pt-12 pb-20 text-center space-y-12"
             >
               <div className="text-[118px]">🕊️</div>
 
@@ -340,7 +339,7 @@ export default function DonationSection() {
                   setVerse('');
                   setVerseSource('');
                 }}
-                className="mt-6 px-12 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-2xl transition-colors"
+                className="mt-8 px-12 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-2xl transition-colors"
               >
                 다시 후원하기
               </button>

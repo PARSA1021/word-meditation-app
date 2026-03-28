@@ -94,26 +94,26 @@ export default function DonationSection() {
   }, [formData.anonymous]);
 
   return (
-    <section className={`min-h-[100dvh] flex items-center justify-center px-4 py-10 relative overflow-hidden bg-[#F8F7F4] ${uiFont.className}`}>
+    <section className={`min-h-[100dvh] bg-[#F8F7F4] ${uiFont.className}`}>
 
-      {/* 배경 */}
+      {/* 부드러운 배경 */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-indigo-50/70 to-amber-50/50" />
-        <div className="absolute top-[-20%] left-[-10%] w-[650px] h-[650px] bg-blue-300/20 rounded-full blur-[150px]" />
-        <div className="absolute bottom-[-25%] right-[-10%] w-[550px] h-[550px] bg-indigo-300/20 rounded-full blur-[140px]" />
+        <div className="absolute top-[-15%] left-[-10%] w-[700px] h-[700px] bg-blue-300/20 rounded-full blur-[160px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-300/20 rounded-full blur-[150px]" />
       </div>
 
-      <div className="w-full max-w-[440px] mx-auto relative">
+      <div className="max-w-[440px] mx-auto px-5 py-10 min-h-[100dvh] flex flex-col">
 
         {/* 상단 네비게이션 */}
         {step !== 'done' && (
-          <div className="fixed top-5 left-4 md:left-8 z-50 flex items-center gap-4">
+          <div className="fixed top-5 left-5 z-50 flex items-center gap-3">
             {step !== 'intro' && (
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
                 onClick={goBack}
-                className="flex items-center gap-2 bg-white shadow-md hover:shadow-lg border border-gray-100 px-5 py-3 rounded-2xl text-sm font-medium text-gray-700 active:bg-gray-50 transition-all"
+                className="flex items-center gap-2 bg-white shadow-sm hover:shadow border border-gray-100 px-5 py-3 rounded-2xl text-sm font-medium text-gray-700 active:bg-gray-50 transition-all"
               >
                 ← 이전으로
               </motion.button>
@@ -125,8 +125,8 @@ export default function DonationSection() {
                   key={s}
                   onClick={() => setStep(s)}
                   className={`h-2.5 rounded-full transition-all cursor-pointer ${step === s
-                    ? 'w-10 bg-gradient-to-r from-blue-500 to-indigo-600'
-                    : 'w-6 bg-gray-200 hover:bg-gray-300'
+                      ? 'w-10 bg-gradient-to-r from-blue-500 to-indigo-600'
+                      : 'w-6 bg-gray-200 hover:bg-gray-300'
                     }`}
                 />
               ))}
@@ -140,50 +140,50 @@ export default function DonationSection() {
           {step === 'intro' && (
             <motion.div
               key="intro"
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -40 }}
-              className="text-center pt-20 pb-12"
+              className="flex-1 flex flex-col justify-center text-center pt-10"
             >
-              <div className="text-[92px] mb-8">🤝</div>
+              <div className="text-[96px] mb-10">🤝</div>
 
-              <h1 className={`${scriptureFont.className} text-5xl md:text-6xl font-bold leading-none tracking-tight text-gray-900 mb-6`}>
+              <h1 className={`${scriptureFont.className} text-5xl md:text-6xl font-bold leading-none tracking-tighter text-gray-900 mb-6`}>
                 함께 나누는<br />동행
               </h1>
 
-              <p className="text-xl text-gray-600 mb-12 max-w-[300px] mx-auto">
+              <p className="text-xl text-gray-600 mb-14 max-w-[310px] mx-auto">
                 몇 번의 클릭으로<br />따뜻한 나눔을 시작할 수 있어요
               </p>
 
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => setStep('guide')}
-                className="w-full py-7 text-xl font-bold text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 rounded-3xl shadow-xl shadow-blue-500/40"
+                className="w-full py-7 text-xl font-bold text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 rounded-3xl shadow-xl shadow-blue-500/40 transition-all"
               >
                 지금 바로 시작하기
               </motion.button>
 
-              <p className="mt-6 text-sm text-gray-400">송금 → 메시지 남기기 (30초면 충분해요)</p>
+              <p className="mt-8 text-sm text-gray-400">송금 → 한마디 남기기 · 30초면 충분해요</p>
             </motion.div>
           )}
 
-          {/* GUIDE - KB 국민은행 로고 적용 */}
+          {/* GUIDE - KB 로고 적용 */}
           {step === 'guide' && (
             <motion.div
               key="guide"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="pt-20 space-y-10"
+              className="flex-1 pt-20 space-y-10"
             >
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">KB 국민은행으로 송금하기</h2>
-                <p className="text-gray-500">아래 계좌로 송금 후 다음 단계로 진행해주세요</p>
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">KB 국민은행으로 송금하기</h2>
+                <p className="text-gray-500">아래 계좌로 송금 후 다음으로 넘어가 주세요</p>
               </div>
 
-              {/* 계좌 카드 with KB 로고 */}
+              {/* 계좌 카드 */}
               <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                <div className="flex items-center justify-center gap-3 mb-6">
+                <div className="flex items-center justify-center gap-3 mb-7">
                   <img
                     src="/kb-logo.jpg"
                     alt="KB 국민은행"
@@ -192,14 +192,14 @@ export default function DonationSection() {
                   <span className="text-2xl font-semibold text-gray-800">국민은행</span>
                 </div>
 
-                <div className="text-center mb-6">
+                <div className="text-center mb-7">
                   <p className="text-sm text-gray-500 mb-1">예금주</p>
                   <p className="text-2xl font-medium text-gray-900">{ACCOUNT.holder}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-2xl p-6 text-center">
                   <p className="text-sm text-gray-500 mb-2">계좌번호</p>
-                  <p className="text-3xl md:text-4xl font-mono font-semibold tracking-widest text-gray-900 break-all">
+                  <p className="text-3xl font-mono font-semibold tracking-[2px] text-gray-900 break-all">
                     {ACCOUNT.number}
                   </p>
                 </div>
@@ -230,23 +230,23 @@ export default function DonationSection() {
               key="form"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="pt-20 space-y-10"
+              className="flex-1 pt-20 space-y-10"
             >
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-900">마음 전하기</h2>
-                <p className="text-gray-500 mt-2">한마디만 남겨주세요</p>
+                <p className="text-gray-500 mt-2">당신의 따뜻한 한마디를 남겨주세요</p>
               </div>
 
               <div className="space-y-8">
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 relative">
+                <div className="bg-white rounded-3xl p-7 shadow-sm border border-gray-100 relative">
                   <textarea
                     placeholder="이 사역을 응원하는 당신의 마음을 자유롭게 적어주세요..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full h-48 bg-transparent outline-none text-base resize-y placeholder:text-gray-400"
+                    className="w-full h-52 bg-transparent outline-none text-base resize-y placeholder:text-gray-400 leading-relaxed"
                     maxLength={500}
                   />
-                  <div className="text-right text-xs text-gray-400 mt-1">
+                  <div className="absolute bottom-4 right-6 text-xs text-gray-400">
                     {formData.message.length}/500
                   </div>
                 </div>
@@ -264,11 +264,11 @@ export default function DonationSection() {
                     type="checkbox"
                     checked={hasDonated}
                     onChange={() => setHasDonated(!hasDonated)}
-                    className="w-6 h-6 mt-1 accent-blue-600"
+                    className="w-6 h-6 mt-1 accent-blue-600 rounded"
                   />
                   <div className="text-base text-gray-700">
                     송금을 이미 완료했습니다
-                    <p className="text-sm text-gray-500 mt-1">체크 안 해도 메시지는 보낼 수 있어요</p>
+                    <p className="text-sm text-gray-500 mt-1">체크하지 않아도 메시지는 보낼 수 있어요</p>
                   </div>
                 </label>
 
@@ -283,13 +283,13 @@ export default function DonationSection() {
                 </label>
               </div>
 
-              <div className="grid gap-4 pt-4">
+              <div className="grid gap-4 pt-6">
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleSubmit(true)}
                   disabled={!hasDonated || loading || !formData.message.trim()}
-                  className="py-7 rounded-3xl font-bold text-xl text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 disabled:opacity-50 shadow-xl"
+                  className="py-7 rounded-3xl font-bold text-xl text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 disabled:opacity-50 shadow-xl transition-all"
                 >
                   {loading ? '전송 중...' : '✅ 마음 전하기'}
                 </motion.button>
@@ -299,9 +299,9 @@ export default function DonationSection() {
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleSubmit(false)}
                   disabled={loading || !formData.message.trim()}
-                  className="py-6 rounded-3xl font-medium text-base border-2 border-gray-300 hover:border-gray-400 text-gray-700"
+                  className="py-6 rounded-3xl font-medium text-base border-2 border-gray-200 hover:border-gray-300 text-gray-700 transition-all"
                 >
-                  💌 메시지만 보내기
+                  💌 메시지만 먼저 보내기
                 </motion.button>
               </div>
             </motion.div>
@@ -313,20 +313,22 @@ export default function DonationSection() {
               key="done"
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center pt-16 pb-12 space-y-12"
+              className="flex-1 flex flex-col justify-center text-center pt-10 pb-12 space-y-12"
             >
-              <div className="text-[120px]">🕊️</div>
+              <div className="text-[118px]">🕊️</div>
 
               <h2 className={`${scriptureFont.className} text-4xl md:text-5xl font-bold leading-tight text-gray-900`}>
                 당신의 마음이<br />이미 누군가에게 닿았습니다
               </h2>
 
               {verse && (
-                <div className="bg-white/70 backdrop-blur-xl border border-blue-100 rounded-3xl p-10 shadow">
+                <div className="bg-white rounded-3xl p-9 shadow border border-blue-100">
                   <p className={`${scriptureFont.className} text-2xl leading-relaxed text-blue-950`}>
                     "{verse}"
                   </p>
-                  {verseSource && <p className="mt-6 text-gray-400">{verseSource}</p>}
+                  {verseSource && (
+                    <p className="mt-7 text-sm text-gray-400 tracking-wide">{verseSource}</p>
+                  )}
                 </div>
               )}
 
@@ -338,7 +340,7 @@ export default function DonationSection() {
                   setVerse('');
                   setVerseSource('');
                 }}
-                className="mt-8 px-10 py-4 bg-blue-600 text-white font-medium rounded-2xl hover:bg-blue-700 transition-colors"
+                className="mt-6 px-12 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-2xl transition-colors"
               >
                 다시 후원하기
               </button>

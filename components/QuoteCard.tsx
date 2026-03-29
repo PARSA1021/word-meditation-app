@@ -9,15 +9,44 @@ interface QuoteCardProps {
     word: Word
     showCategory?: boolean
     highlightQuery?: string
+    highlightRanges?: Array<{ start: number; end: number }>
+}
+
+// 범위 기반 하이라이트 렌더러
+function HighlightedByRanges({
+    text,
+    ranges,
+}: {
+    text: string
+    ranges: Array<{ start: number; end: number }>
+}) {
+    const parts: React.ReactNode[] = []
+    let cursor = 0
+
+    for (const { start, end } of ranges) {
+        if (start > cursor) parts.push(<span key={`t-${cursor}`}>{text.slice(cursor, start)}</span>)
+        parts.push(
+            <mark
+                key={`h-${start}`}
+                className="bg-yellow-200 text-yellow-900 rounded-sm px-0.5 font-semibold not-italic"
+            >
+                {text.slice(start, end)}
+            </mark>
+        )
+        cursor = end
+    }
+    if (cursor < text.length) parts.push(<span key={`t-${cursor}`}>{text.slice(cursor)}</span>)
+    return <>{parts}</>
 }
 
 export default function QuoteCard({
     word,
     showCategory = false,
-    highlightQuery = ""
+    highlightQuery = "",
+    highlightRanges,
 }: QuoteCardProps) {
     const [isExpanded, setIsExpanded] = useState(false)
-    const [isCopied, setIsCopied] = useState(false) // 복사 상태 추가
+    const [isCopied, setIsCopied] = useState(false)
     const MAX_LENGTH = 120
 
     const needsExpansion = word.text.length > MAX_LENGTH
@@ -25,15 +54,21 @@ export default function QuoteCard({
         ? word.text.slice(0, MAX_LENGTH) + "..."
         : word.text
 
-    const highlighted = highlightText(displayText, highlightQuery)
+    // highlightRanges가 있으면 범위 기반 하이라이트 우선 사용
+    // 없으면 기존 highlightText 폴백
+    const renderedText = highlightRanges && highlightRanges.length > 0
+        ? <HighlightedByRanges text={displayText} ranges={
+            // 텍스트가 잘린 경우 범위도 잘라냄
+            highlightRanges
+                .filter((r) => r.start < displayText.length)
+                .map((r) => ({ start: r.start, end: Math.min(r.end, displayText.length) }))
+        } />
+        : highlightText(displayText, highlightQuery)
 
     const copyToClipboard = async () => {
         try {
-            // 수정: 템플릿 리터럴 백틱(`) 적용
             const textToCopy = `"${word.text}"\n- ${word.source} ${word.speaker ? `(${word.speaker})` : ""}`
             await navigator.clipboard.writeText(textToCopy)
-
-            // 피드백 애니메이션
             setIsCopied(true)
             setTimeout(() => setIsCopied(false), 2000)
         } catch (err) {
@@ -47,10 +82,9 @@ export default function QuoteCard({
             {/* 상단: 말씀 본문 */}
             <div className="space-y-3">
                 <div className="relative">
-                    {/* 인용구 장식 (선택 사항) */}
-                    <span className="absolute -top-2 -left-2 text-4xl text-blue-50 opacity-10 font-serif">“</span>
+                    <span className="absolute -top-2 -left-2 text-4xl text-blue-50 opacity-10 font-serif">"</span>
                     <p className={`${scriptureFont.className} text-[17px] md:text-[19px] leading-[1.8] text-slate-800 whitespace-pre-line break-keep`}>
-                        {highlighted}
+                        {renderedText}
                     </p>
                 </div>
 
@@ -87,7 +121,6 @@ export default function QuoteCard({
                     </div>
                 </div>
 
-                {/* 복사 버튼: 모바일에서 터치 영역 확보 */}
                 <button
                     onClick={copyToClipboard}
                     title="복사하기"
@@ -108,7 +141,6 @@ export default function QuoteCard({
                         </svg>
                     )}
                 </button>
-
             </div>
         </div>
     )

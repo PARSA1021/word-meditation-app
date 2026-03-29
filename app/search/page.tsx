@@ -244,7 +244,7 @@ export default function SearchPage() {
               placeholder={
                 searchMode === "text"
                   ? '예: 사랑   또는   사랑 축복   또는   "하나님의 사랑"'
-                  : '예: 잠언   또는   "사도 바울"'
+                  : '예: 타락론   또는   재림론'
               }
               className="w-full pl-12 pr-12 py-4 bg-white border border-black/5 rounded-3xl focus:border-[#0099FF] focus:ring-1 focus:ring-[#0099FF]/30 outline-none text-[17px] font-medium transition-all"
             />

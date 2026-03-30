@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useMemo, useCallback, useEffect } from "react"
+import { useState, useMemo, useCallback, useEffect, useRef } from "react"
 import { getAllWords, searchWordsAdvanced, getSynonyms, type Word, type SearchResult } from "@/lib/words"
 import Link from "next/link"
 import QuoteCard from "@/components/QuoteCard"
 
-const PAGE_SIZE = 50 // 페이지 사이즈 상향 조정
-const DEBOUNCE_MS = 220 
+const PAGE_SIZE = 50
+const DEBOUNCE_MS = 220 // 타이핑 멈춘 뒤 220ms 후 검색
 
 // -----------------------------
 // Debounce 훅
@@ -21,13 +21,39 @@ function useDebounced<T>(value: T, delay: number): T {
 }
 
 // -----------------------------
-// 매칭 타입 뱃지 (초성 제거)
+// 하이라이트 렌더러
+// -----------------------------
+function HighlightedByRanges({
+  text,
+  ranges,
+}: {
+  text: string
+  ranges: Array<{ start: number; end: number }>
+}) {
+  const parts: React.ReactNode[] = []
+  let cursor = 0
+  for (const { start, end } of ranges) {
+    if (start > cursor) parts.push(<span key={`t-${cursor}`}>{text.slice(cursor, start)}</span>)
+    parts.push(
+      <mark key={`h-${start}`} className="bg-yellow-200 text-yellow-900 rounded-sm px-0.5 font-semibold not-italic">
+        {text.slice(start, end)}
+      </mark>
+    )
+    cursor = end
+  }
+  if (cursor < text.length) parts.push(<span key={`t-end`}>{text.slice(cursor)}</span>)
+  return <>{parts}</>
+}
+
+// -----------------------------
+// 매칭 타입 뱃지
 // -----------------------------
 const MATCH_BADGE: Record<string, { label: string; className: string }> = {
   exact: { label: "정확", className: "bg-green-100 text-green-700" },
   phrase: { label: "구절", className: "bg-blue-100 text-blue-700" },
   token: { label: "포함", className: "bg-slate-100 text-slate-500" },
   stem: { label: "어근", className: "bg-orange-100 text-orange-700" },
+  chosung: { label: "초성", className: "bg-purple-100 text-purple-700" },
   synonym: { label: "유사어", className: "bg-pink-100 text-pink-700" },
 }
 
@@ -40,13 +66,9 @@ function SearchResultCard({ result, query, showCategory }: {
   showCategory?: boolean
 }) {
   const badge = MATCH_BADGE[result.matchType]
-  
-  // 초성 매칭인 경우 뱃지를 표시하지 않거나 무시하도록 처리
-  const shouldShowBadge = result.matchType !== "token" && badge;
-
   return (
     <div className="relative">
-      {shouldShowBadge && (
+      {result.matchType !== "token" && (
         <span className={`absolute -top-2.5 left-4 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide z-10 ${badge.className}`}>
           {badge.label}
         </span>
@@ -92,9 +114,12 @@ function SynonymSuggestions({ query, onSelect }: {
   )
 }
 
+// -----------------------------
+// 메인 페이지
+// -----------------------------
 export default function SearchPage() {
-  const [inputValue, setInputValue] = useState("") 
-  const debouncedQuery = useDebounced(inputValue, DEBOUNCE_MS) 
+  const [inputValue, setInputValue] = useState("")       // 즉시 반영 (UI)
+  const debouncedQuery = useDebounced(inputValue, DEBOUNCE_MS) // 실제 검색에 사용
 
   const [searchMode, setSearchMode] = useState<"text" | "source">("text")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -102,11 +127,11 @@ export default function SearchPage() {
   const [showOnlyTopMatch, setShowOnlyTopMatch] = useState(false)
 
   const hasQuery = debouncedQuery.trim().length >= 1
-  const isTyping = inputValue !== debouncedQuery 
+  const isTyping = inputValue !== debouncedQuery // 타이핑 중 여부
 
+  // 🚀 debounced query로만 검색 실행
   const searchResults: SearchResult[] = useMemo(() => {
     if (!hasQuery) return []
-    // lib 내부에 초성 검색 로직이 있더라도 UI에서 활용하지 않음
     return searchWordsAdvanced(debouncedQuery, searchMode)
   }, [debouncedQuery, hasQuery, searchMode])
 
@@ -164,7 +189,7 @@ export default function SearchPage() {
   const searchDescription = useMemo(() => {
     const q = debouncedQuery.trim()
     if (!q) return null
-    // 초성 검색 안내(regExp) 부분 삭제
+    if (/^[ㄱ-ㅎ]+$/.test(q)) return { text: `"${q}" 초성으로 검색`, icon: "🔡" }
     if (q.startsWith('"') && q.endsWith('"')) return { text: `정확한 구절 "${q.slice(1, -1)}" 검색`, icon: "💬" }
     const tokens = q.split(/\s+/).filter(Boolean)
     if (tokens.length > 1) {
@@ -175,8 +200,11 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-[#F2F2F7]">
+
+      {/* 헤더 */}
       <header className="sticky top-0 z-50 border-b border-black/5 px-6 py-4 bg-[#F2F2F7]/95 backdrop-blur-md">
         <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto space-y-3">
+
           <div className="flex items-center gap-3">
             <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,6 +214,7 @@ export default function SearchPage() {
             <h1 className="text-xl font-black tracking-tight">말씀 검색</h1>
           </div>
 
+          {/* 검색 모드 */}
           <div className="flex gap-2">
             {(["text", "source"] as const).map((mode) => (
               <button
@@ -202,6 +231,7 @@ export default function SearchPage() {
             ))}
           </div>
 
+          {/* 검색 입력창 */}
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
               {isTyping ? "⏳" : "🔍"}
@@ -211,14 +241,24 @@ export default function SearchPage() {
               autoFocus
               value={inputValue}
               onChange={(e) => handleInputChange(e.target.value)}
-              placeholder={searchMode === "text" ? '예: 사랑 축복' : '예: 타락론'}
+              placeholder={
+                searchMode === "text"
+                  ? '예: 사랑   또는   사랑 축복   또는   "하나님의 사랑"'
+                  : '예: 타락론   또는   재림론'
+              }
               className="w-full pl-12 pr-12 py-4 bg-white border border-black/5 rounded-3xl focus:border-[#0099FF] focus:ring-1 focus:ring-[#0099FF]/30 outline-none text-[17px] font-medium transition-all"
             />
             {inputValue && (
-              <button onClick={clearQuery} className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all">✕</button>
+              <button
+                onClick={clearQuery}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all"
+              >
+                ✕
+              </button>
             )}
           </div>
 
+          {/* 검색 조건 안내 */}
           {searchDescription && (
             <div className="bg-blue-50 text-blue-700 text-sm px-4 py-2.5 rounded-2xl flex items-center gap-2">
               <span>{searchDescription.icon}</span>
@@ -226,11 +266,29 @@ export default function SearchPage() {
             </div>
           )}
 
+          {/* 유사어 제안 */}
           {hasQuery && debouncedQuery.trim().length >= 2 && (
             <SynonymSuggestions query={debouncedQuery} onSelect={handleSynonymSelect} />
           )}
 
-          {/* 카테고리 탭 영역 생략 (기존과 동일) */}
+          {/* 관련도 필터 */}
+          {hasQuery && filteredResults.length > 5 && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => { setShowOnlyTopMatch(!showOnlyTopMatch); setCurrentPage(1) }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-semibold border transition-all
+                  ${showOnlyTopMatch
+                    ? "bg-emerald-500 text-white border-emerald-500"
+                    : "bg-white text-slate-500 border-gray-200 hover:border-gray-300"
+                  }`}
+              >
+                <span>{showOnlyTopMatch ? "✓" : "○"}</span>
+                관련도 높은 것만
+              </button>
+            </div>
+          )}
+
+          {/* 카테고리 탭 */}
           {Object.keys(categoryCounts).length > 0 && (
             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1">
               <button
@@ -263,7 +321,10 @@ export default function SearchPage() {
         </div>
       </header>
 
+      {/* 본문 */}
       <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 pt-8 pb-32 space-y-6">
+
+        {/* 타이핑 중 로딩 표시 */}
         {isTyping && inputValue.trim().length >= 1 && (
           <div className="py-6 text-center text-slate-400 text-sm">검색 중...</div>
         )}
@@ -273,8 +334,8 @@ export default function SearchPage() {
             <div className="text-5xl">✨</div>
             <p className="text-xl font-semibold text-slate-700">궁금한 말씀을 찾아보세요</p>
             <div className="text-slate-400 space-y-1 text-sm">
-              <p>여러 단어를 띄어쓰기로 입력하면 모두 포함된 결과를 보여드려요</p>
-              <p><code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">"따옴표"</code>를 쓰면 정확한 문장을 찾습니다</p>
+              <p>여러 단어를 띄어쓰기로 입력하면 AND 검색</p>
+              <p><code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">"따옴표"</code>로 묶으면 정확한 구절 검색</p>
             </div>
           </div>
         ) : !isTyping && filteredResults.length > 0 ? (
@@ -283,6 +344,9 @@ export default function SearchPage() {
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                 {selectedCategory || "전체"} · {filteredResults.length}개
               </p>
+              {hasQuery && (
+                <p className="text-[11px] text-slate-300 font-medium">관련도순 정렬</p>
+              )}
             </div>
 
             {visibleResults.map((result) =>
@@ -293,7 +357,7 @@ export default function SearchPage() {
               )
             )}
 
-            {/* 페이지네이션 UI */}
+            {/* 페이지네이션 */}
             {totalPages > 1 && (
               <div className="flex gap-2 mt-8 overflow-x-auto pb-4 justify-center">
                 <button
@@ -310,7 +374,10 @@ export default function SearchPage() {
                     key={num}
                     onClick={() => setCurrentPage(num)}
                     className={`min-w-[42px] h-10 rounded-2xl border-2 text-sm font-semibold transition-all
-                      ${currentPage === num ? "bg-[#0099FF] text-white border-[#0099FF]" : "bg-white text-slate-500 border-gray-200 hover:border-gray-300"}`}
+                      ${currentPage === num
+                        ? "bg-[#0099FF] text-white border-[#0099FF]"
+                        : "bg-white text-slate-500 border-gray-200 hover:border-gray-300"
+                      }`}
                   >{num}</button>
                 ))}
 
@@ -326,7 +393,10 @@ export default function SearchPage() {
           <div className="py-20 text-center space-y-5">
             <div className="text-5xl">🔭</div>
             <p className="text-xl font-semibold text-slate-700">검색 결과가 없습니다</p>
-            <p className="text-slate-400 text-sm">다른 단어나 표현으로 시도해보세요</p>
+            <div className="text-slate-400 text-sm space-y-1">
+              <p>다른 단어나 표현으로 시도해보세요</p>
+              <p>초성(예: ㅅㄹ)으로도 검색해보세요</p>
+            </div>
             <SynonymSuggestions query={debouncedQuery} onSelect={handleSynonymSelect} />
           </div>
         ) : null}

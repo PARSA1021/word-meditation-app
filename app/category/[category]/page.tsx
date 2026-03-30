@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getCategoryWords, Word } from "@/lib/words";
 import QuoteCard from "@/components/QuoteCard";
 
-const PAGE_SIZE = 30; // 한 페이지에 보여줄 단어 수
+const PAGE_SIZE = 50; // 한 페이지에 보여줄 단어 수
 
 export default function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
   // params를 React.use()로 해결 (Next.js 15+ 대응)
@@ -91,4 +91,4 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
       </main>
     </div>
   );
-}
+}

@@ -5,7 +5,7 @@ import { getAllWords, getWordStats, Word } from "@/lib/words"
 import Link from "next/link"
 import QuoteCard from "@/components/QuoteCard"
 
-const PAGE_SIZE = 30 // 한 페이지에 보여줄 단어 수
+const PAGE_SIZE = 50 // 한 페이지에 보여줄 단어 수
 
 export default function CategoryPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)

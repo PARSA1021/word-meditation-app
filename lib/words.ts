@@ -4,22 +4,26 @@ import wordsData from "@/data/words.json"
 import cheonseongData from "@/data/cheonseong_words.json"
 import wonliData from "@/data/wonligangnon_words.json"
 import pyeonghwashinkyungData from "@/data/pyeonghwashinkyung_words.json"
+// 경로가 @/인지 @인지 확인 필요 (보통 @/data/가 표준입니다)
+import CheonIlGukDdeutgilData from "@/data/Cheon Il Guk_ddeutgil_words.json"
 
 // -----------------------------
 // 1️⃣ 타입 정의
 // -----------------------------
+export type WordType = "general" | "cheonseong" | "wonli" | "pyeonghwashinkyung" | "Cheon Il Guk_ddeutgil"
+
 export type Word = {
   id: number
   text: string
   source: string
   category: string
   speaker?: string | null
-  type: "general" | "cheonseong" | "wonli" | "pyeonghwashinkyung"
+  type: WordType
 }
 
 export type WordStats = {
   total: number
-  byCategory: { [key: string]: number }
+  byCategory: Record<string, number>
 }
 
 export type SearchResult = {
@@ -30,19 +34,20 @@ export type SearchResult = {
 }
 
 // -----------------------------
-// 2️⃣ 데이터 합치기
+// 2️⃣ 데이터 합치기 (id 중복 방지 및 초기화)
 // -----------------------------
 export const allWords: Word[] = [
   ...wordsData.map((w) => ({ ...w, type: "general" } as Word)),
   ...cheonseongData.map((w, i) => ({ ...w, type: "cheonseong", id: 10000 + i } as Word)),
   ...wonliData.map((w, i) => ({ ...w, type: "wonli", id: 20000 + i } as Word)),
   ...pyeonghwashinkyungData.map((w, i) => ({ ...w, type: "pyeonghwashinkyung", id: 30000 + i } as Word)),
+  ...CheonIlGukDdeutgilData.map((w, i) => ({ ...w, type: "Cheon Il Guk_ddeutgil", id: 40000 + i } as Word))
 ]
 
 // -----------------------------
-// 3️⃣ 초성 추출
+// 3️⃣ 한글 처리 유틸리티 (초성 및 어근)
 // -----------------------------
-const CHOSUNG = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅹ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+const CHOSUNG = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
 
 export function extractChosung(text: string): string {
   let result = ""
@@ -57,15 +62,12 @@ export function extractChosung(text: string): string {
   return result
 }
 
-// -----------------------------
-// 4️⃣ 어근 정규화
-// -----------------------------
 const VERB_ENDINGS = [
   "하였습니다", "하였다", "하겠습니다", "하겠다", "합니다", "한다", "해야", "하여", "하는", "하고",
   "하지", "하면", "하니", "하여서", "하니라", "하리라", "하였으니", "하였으며", "하였고",
   "입니다", "이다", "이라", "이며", "이고", "이니", "이면", "으로", "로서", "에서", "에게",
   "습니다", "ㅂ니다", "았다", "었다", "겠다", "리라", "니라",
-  "되었다", "됩니다", "된다", "되어", "되니", "되고", "되면",
+  "되었습니다", "됩니다", "된다", "되어", "되니", "되고", "되면",
 ].sort((a, b) => b.length - a.length)
 
 export function stemKorean(word: string): string {
@@ -78,7 +80,7 @@ export function stemKorean(word: string): string {
 }
 
 // -----------------------------
-// 5️⃣ 유사어 사전
+// 4️⃣ 유의어 사전 (최적화)
 // -----------------------------
 const SYNONYM_MAP: Record<string, string[]> = {
   "사랑": ["애정", "자비", "은혜", "인애", "사모"],
@@ -108,21 +110,20 @@ const SYNONYM_MAP: Record<string, string[]> = {
   "충성": ["충심", "충직", "헌신"],
 }
 
-// 역방향 포함 전체 맵 — 모듈 로드 시 1회 빌드
 const FULL_SYNONYM_MAP: Record<string, string[]> = { ...SYNONYM_MAP }
-for (const [key, values] of Object.entries(SYNONYM_MAP)) {
-  for (const val of values) {
+Object.entries(SYNONYM_MAP).forEach(([key, values]) => {
+  values.forEach(val => {
     if (!FULL_SYNONYM_MAP[val]) FULL_SYNONYM_MAP[val] = []
     if (!FULL_SYNONYM_MAP[val].includes(key)) FULL_SYNONYM_MAP[val].push(key)
-  }
-}
+  })
+})
 
 export function getSynonyms(token: string): string[] {
   return FULL_SYNONYM_MAP[token] || []
 }
 
 // -----------------------------
-// 6️⃣ 🚀 사전 빌드 인덱스 — 모듈 로드 시 1회만 실행
+// 5️⃣ 사전 빌드 인덱스
 // -----------------------------
 type WordIndex = {
   textLower: string
@@ -132,14 +133,14 @@ type WordIndex = {
 }
 
 const wordIndex: WordIndex[] = allWords.map((w) => ({
-  textLower: w.text.toLowerCase(),
+  textLower: w.text.toLowerCase().replace(/\s+/g, ""), // 공백 제거 검색 대응
   sourceLower: w.source.toLowerCase(),
   speakerLower: (w.speaker || "").toLowerCase(),
-  textChosung: extractChosung(w.text),
+  textChosung: extractChosung(w.text).replace(/\s+/g, ""),
 }))
 
 // -----------------------------
-// 7️⃣ 하이라이트 범위 계산
+// 6️⃣ 하이라이트 범위 계산
 // -----------------------------
 export function getHighlightRanges(
   text: string,
@@ -148,52 +149,50 @@ export function getHighlightRanges(
   const ranges: Array<{ start: number; end: number }> = []
   const lowerText = text.toLowerCase()
 
-  for (const token of tokens) {
-    if (!token) continue
+  tokens.forEach(token => {
+    if (!token) return
     const lowerToken = token.toLowerCase()
-    let idx = 0
-    while (idx < lowerText.length) {
-      const found = lowerText.indexOf(lowerToken, idx)
-      if (found === -1) break
-      ranges.push({ start: found, end: found + token.length })
-      idx = found + 1
+    let idx = lowerText.indexOf(lowerToken)
+    while (idx !== -1) {
+      ranges.push({ start: idx, end: idx + token.length })
+      idx = lowerText.indexOf(lowerToken, idx + 1)
     }
-  }
+  })
 
-  ranges.sort((a, b) => a.start - b.start)
-  const merged: Array<{ start: number; end: number }> = []
-  for (const r of ranges) {
-    if (merged.length === 0 || merged[merged.length - 1].end < r.start) {
-      merged.push({ ...r })
-    } else {
-      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, r.end)
-    }
-  }
-  return merged
+  return ranges
+    .sort((a, b) => a.start - b.start)
+    .reduce((acc, curr) => {
+      if (acc.length === 0 || acc[acc.length - 1].end < curr.start) {
+        acc.push(curr)
+      } else {
+        acc[acc.length - 1].end = Math.max(acc[acc.length - 1].end, curr.end)
+      }
+      return acc
+    }, [] as Array<{ start: number; end: number }>)
 }
 
 // -----------------------------
-// 8️⃣ 🚀 핵심 검색 (사전 인덱스 활용)
+// 7️⃣ 핵심 검색 (Advanced)
 // -----------------------------
 export function searchWordsAdvanced(
   query: string,
   mode: "text" | "source" = "text",
-  type?: Word["type"]
+  type?: WordType
 ): SearchResult[] {
   const rawQuery = query.trim()
   if (!rawQuery) return []
 
   const isExactPhrase = rawQuery.startsWith('"') && rawQuery.endsWith('"')
   const phrase = isExactPhrase ? rawQuery.slice(1, -1).toLowerCase().trim() : null
-  const isChosung = !isExactPhrase && /^[ㄱ-ㅎ]+$/.test(rawQuery)
+  const isChosungSearch = !isExactPhrase && /^[ㄱ-ㅎ]+$/.test(rawQuery)
   const tokens = isExactPhrase ? [phrase!] : rawQuery.toLowerCase().split(/\s+/).filter(Boolean)
 
-  // 토큰 메타 — 루프 밖에서 1회 계산
   const tokenMeta = tokens.map((token) => ({
     token,
+    tokenNoSpace: token.replace(/\s+/g, ""),
     stem: stemKorean(token),
     synonyms: getSynonyms(token),
-    tokenChosung: extractChosung(token),
+    tokenChosung: extractChosung(token).replace(/\s+/g, ""),
   }))
 
   const results: SearchResult[] = []
@@ -202,10 +201,10 @@ export function searchWordsAdvanced(
     const word = allWords[i]
     if (type && word.type !== type) continue
 
-    const ix = wordIndex[i] // 사전 빌드된 인덱스 사용
+    const ix = wordIndex[i]
+    const originalTextLower = word.text.toLowerCase()
 
-    // 초성 전용 모드
-    if (isChosung) {
+    if (isChosungSearch) {
       if (ix.textChosung.includes(rawQuery)) {
         results.push({ word, score: 60, matchType: "chosung" })
       }
@@ -215,105 +214,105 @@ export function searchWordsAdvanced(
     let totalScore = 0
     let bestMatchType: SearchResult["matchType"] = "token"
     let allTokensMatched = true
+    const highlightTokens: string[] = []
 
-    for (const { token, stem, synonyms, tokenChosung } of tokenMeta) {
+    for (const { token, tokenNoSpace, stem, synonyms, tokenChosung } of tokenMeta) {
       let tokenScore = 0
       let tokenMatched = false
 
       const target = mode === "text" ? ix.textLower : `${ix.sourceLower} ${ix.speakerLower}`
+      const originalTarget = mode === "text" ? originalTextLower : `${ix.sourceLower} ${ix.speakerLower}`
 
-      if (target === token) { tokenScore = 200; tokenMatched = true; bestMatchType = "exact" }
-      else if (target.startsWith(token)) { tokenScore = 100; tokenMatched = true; bestMatchType = "phrase" }
-      else if (target.includes(token)) { tokenScore = 40; tokenMatched = true }
-
-      if (!tokenMatched && stem.length >= 2 && target.includes(stem)) {
-        tokenScore = 25; tokenMatched = true; bestMatchType = "stem"
+      // 1. 정확히 일치
+      if (originalTarget.includes(token)) {
+        tokenScore = originalTarget === token ? 200 : 40
+        tokenMatched = true
+        highlightTokens.push(token)
+      } 
+      // 2. 공백 무시 일치
+      else if (target.includes(tokenNoSpace)) {
+        tokenScore = 30
+        tokenMatched = true
       }
-
+      // 3. 어근 일치
+      if (!tokenMatched && stem.length >= 2 && originalTarget.includes(stem)) {
+        tokenScore = 25; tokenMatched = true; bestMatchType = "stem"
+        highlightTokens.push(stem)
+      }
+      // 4. 유의어 일치
       if (!tokenMatched) {
         for (const syn of synonyms) {
-          if (target.includes(syn)) { tokenScore = 15; tokenMatched = true; bestMatchType = "synonym"; break }
+          if (originalTarget.includes(syn)) {
+            tokenScore = 15; tokenMatched = true; bestMatchType = "synonym"
+            highlightTokens.push(syn)
+            break
+          }
         }
       }
-
+      // 5. 부분 초성 일치
       if (!tokenMatched && tokenChosung.length >= 2 && ix.textChosung.includes(tokenChosung)) {
         tokenScore = 10; tokenMatched = true; bestMatchType = "chosung"
       }
 
       if (!tokenMatched) { allTokensMatched = false; break }
-
       totalScore += tokenScore
-      if (mode === "text") {
-        if (ix.sourceLower.includes(token)) totalScore += 8
-        if (ix.speakerLower.includes(token)) totalScore += 5
-      }
     }
 
     if (!allTokensMatched) continue
 
+    // 점수 보정: 짧은 문장 우선 및 출처 점수
     totalScore *= (1 + Math.max(0, 1 - word.text.length / 2000) * 0.2)
+    if (mode === "text") {
+      tokens.forEach(t => {
+        if (ix.sourceLower.includes(t)) totalScore += 8
+        if (ix.speakerLower.includes(t)) totalScore += 5
+      })
+    }
 
     results.push({
       word,
       score: totalScore,
       matchType: bestMatchType,
-      highlightRanges: getHighlightRanges(word.text, tokens),
+      highlightRanges: getHighlightRanges(word.text, highlightTokens.length > 0 ? highlightTokens : tokens),
     })
   }
 
-  results.sort((a, b) => b.score - a.score)
-  return results
+  return results.sort((a, b) => b.score - a.score)
 }
 
 // -----------------------------
-// 9️⃣ 기존 API 호환 래퍼
+// 8️⃣ 유틸리티 및 API (호환성 유지)
 // -----------------------------
-export function getAllWords(): Word[] { return allWords }
-
-export function getRandomWord(): Word {
-  return allWords[Math.floor(Math.random() * allWords.length)]
-}
+export const getAllWords = () => allWords
+export const getRandomWord = () => allWords[Math.floor(Math.random() * allWords.length)]
 
 export function getRandomWordExcept(except?: number | number[] | null): Word {
-  if (allWords.length === 0) throw new Error("words 목록이 비어 있습니다.")
-  const excludedIds = new Set(
-    Array.isArray(except) ? except : typeof except === "number" ? [except] : []
-  )
+  const excludedIds = new Set(Array.isArray(except) ? except : except ? [except] : [])
   const candidates = allWords.filter((w) => !excludedIds.has(w.id))
-  return candidates.length === 0
-    ? getRandomWord()
-    : candidates[Math.floor(Math.random() * candidates.length)]
+  return candidates.length > 0 ? candidates[Math.floor(Math.random() * candidates.length)] : getRandomWord()
 }
 
 export function getDailyWord(): Word {
   const today = new Date().toISOString().slice(0, 10)
-  let hash = 0
-  for (let i = 0; i < today.length; i++) hash = today.charCodeAt(i) + ((hash << 5) - hash)
+  const hash = today.split("").reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0)
   return allWords[Math.abs(hash) % allWords.length]
 }
 
 export function getWordStats(): WordStats {
-  const byCategory: { [key: string]: number } = {}
-  allWords.forEach((w) => { byCategory[w.category] = (byCategory[w.category] || 0) + 1 })
+  const byCategory = allWords.reduce((acc, w) => {
+    acc[w.category] = (acc[w.category] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
   return { total: allWords.length, byCategory }
 }
 
-export function searchWords(query: string, type?: "general" | "cheonseong" | "wonli"): Word[] {
-  return searchWordsAdvanced(query, "text", type).map((r) => r.word)
-}
+export const searchWords = (query: string, type?: WordType) => 
+  searchWordsAdvanced(query, "text", type).map((r) => r.word)
 
-export function searchWordsPaged(
-  query: string, page: number, pageSize: number,
-  type?: "general" | "cheonseong" | "wonli"
-): Word[] {
-  const results = searchWords(query, type)
-  return results.slice((page - 1) * pageSize, page * pageSize)
-}
+export const searchWordsPaged = (query: string, page: number, pageSize: number, type?: WordType) => 
+  searchWords(query, type).slice((page - 1) * pageSize, page * pageSize)
 
-export function getCategoryWords(category: string): Word[] {
-  return allWords.filter((w) => w.category === decodeURIComponent(category))
-}
+export const getCategoryWords = (category: string) => 
+  allWords.filter((w) => w.category === decodeURIComponent(category))
 
-export function getGeneralWords(): Word[] { return allWords.filter((w) => w.type === "general") }
-export function getCheonseongWords(): Word[] { return allWords.filter((w) => w.type === "cheonseong") }
-export function getWonliWords(): Word[] { return allWords.filter((w) => w.type === "wonli") }
+export const getWordsByType = (type: WordType) => allWords.filter((w) => w.type === type)

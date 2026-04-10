@@ -40,7 +40,7 @@ export default function SearchInput({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-slate-100/40 border-2 border-transparent focus:bg-white focus:border-brand-primary/20 focus:ring-4 focus:ring-brand-primary/5 pl-12 pr-12 py-4 rounded-[24px] outline-none text-[16px] font-bold text-brand-deep transition-all duration-300 placeholder:text-slate-400 placeholder:font-medium shadow-sm focus:shadow-xl focus:shadow-brand-primary/5"
+        className="w-full bg-white/70 backdrop-blur-md border border-white/20 focus:bg-white focus:border-brand-primary/40 focus:ring-4 focus:ring-brand-primary/10 pl-12 pr-12 py-4 rounded-[24px] outline-none text-[16px] font-bold text-brand-deep transition-all duration-300 placeholder:text-slate-400 placeholder:font-medium shadow-[0_2px_10px_rgb(0,0,0,0.02)] focus:shadow-[0_8px_30px_rgb(0,153,255,0.12)]"
       />
       {value && (
         <button

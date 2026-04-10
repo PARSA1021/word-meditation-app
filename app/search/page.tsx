@@ -49,7 +49,7 @@ function SearchFeed() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* 1. Sticky Search Header */}
-      <header className="sticky top-0 z-50 glass-header px-6 py-4">
+      <header className="sticky top-0 z-50 bg-white/60 backdrop-blur-2xl border-b border-white/40 shadow-sm px-6 py-4">
         <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto space-y-4">
           <div className="flex items-center gap-4">
             <Link
@@ -68,15 +68,19 @@ function SearchFeed() {
 
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               {/* Search Mode Toggle */}
-              <div className="flex gap-2 min-w-[180px]">
+              <div className="relative flex p-1 bg-slate-100/50 backdrop-blur-md rounded-[16px] min-w-[180px] border border-white/60 shadow-inner">
+                <div
+                  className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100/50 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)"
+                  style={{ left: mode === 'text' ? '4px' : 'calc(50%)' }}
+                />
                 {(["text", "source"] as const).map((m) => (
                   <button
                     key={m}
                     onClick={() => setMode(m)}
-                    className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black transition-all border uppercase tracking-widest
+                    className={`relative z-10 flex-1 py-2 px-3 rounded-xl text-[11px] font-black transition-colors duration-300 uppercase tracking-widest
                           ${mode === m
-                        ? "bg-brand-deep text-white border-brand-deep shadow-button"
-                        : "bg-white text-slate-400 border-slate-100 hover:border-slate-200"
+                        ? "text-brand-deep"
+                        : "text-slate-400 hover:text-slate-600"
                       }`}
                   >
                     {m === "text" ? "본문" : "출처"}
@@ -195,14 +199,14 @@ function SearchFeed() {
                   <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">추천 검색어</h4>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2.5 justify-center md:justify-start">
                   {["사랑", "하나님", "참부모", "가정", "진리", "평화", "믿음", "기도", "생명", "축복", "회복", "심정"].map((tag) => (
                     <button
                       key={tag}
                       onClick={() => setQuery(tag)}
-                      className="px-5 py-3 rounded-2xl bg-white border border-slate-100 text-[14px] font-black text-slate-600 hover:border-brand-primary/20 hover:text-brand-primary hover:shadow-lg hover:shadow-brand-primary/5 transition-all active:scale-90"
+                      className="px-5 py-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200/80 shadow-sm text-[14px] font-bold text-slate-600 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary hover:shadow-md hover:shadow-brand-primary/10 hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
                     >
-                      #{tag}
+                      # {tag}
                     </button>
                   ))}
                 </div>

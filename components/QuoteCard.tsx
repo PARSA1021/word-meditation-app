@@ -61,6 +61,16 @@ export default function QuoteCard({
     />
     : displayText;
 
+  const renderedExpandedText = highlightRanges && highlightRanges.length > 0
+    ? <HighlightedByRanges
+      text={word.text}
+      ranges={highlightRanges
+        .filter((r) => r.start < word.text.length)
+        .map((r) => ({ start: r.start, end: Math.min(r.end, word.text.length) }))
+      }
+    />
+    : word.text;
+
   const copyToClipboard = async (e: React.MouseEvent) => {
     e.stopPropagation(); // 카드 클릭(확장) 방지
     try {
@@ -117,7 +127,7 @@ export default function QuoteCard({
         <span className="absolute -top-6 -left-4 text-7xl text-slate-100 font-serif pointer-events-none select-none">"</span>
         <div className="relative z-10">
           <p className={`${scriptureFont.className} scripture-text transition-all duration-500 ${isExpanded ? 'text-brand-deep !not-italic' : ''}`}>
-            {isExpanded ? word.text : renderedText}
+            {isExpanded ? renderedExpandedText : renderedText}
           </p>
         </div>
       </motion.div>

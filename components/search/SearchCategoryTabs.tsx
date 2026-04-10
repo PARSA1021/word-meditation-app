@@ -49,12 +49,12 @@ export default function SearchCategoryTabs({
                 onTypeChange(tab.id === "all" ? "" : tab.id);
                 setIsOtherOpen(false);
               }}
-              className="relative shrink-0 flex items-center gap-2 px-6 py-2.5 rounded-full transition-all duration-500 group"
+              className={`relative shrink-0 flex items-center gap-2 px-6 py-2.5 rounded-full transition-all duration-500 group ${!isActive ? 'hover:bg-slate-100/60' : ''}`}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-brand-primary shadow-lg shadow-brand-primary/20 rounded-full"
+                  className="absolute inset-0 bg-gradient-to-r from-brand-primary to-[#007acc] shadow-[0_4px_16px_rgba(0,153,255,0.3)] ring-1 ring-white/20 rounded-full"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
@@ -79,8 +79,8 @@ export default function SearchCategoryTabs({
               onClick={() => setIsOtherOpen(true)}
               className={`relative shrink-0 flex items-center gap-2 px-6 py-2.5 rounded-full transition-all duration-300 group
                 ${isOtherActive 
-                  ? "bg-brand-primary/10 text-brand-primary border border-brand-primary/20" 
-                  : "bg-white border border-slate-100 text-slate-400 hover:border-slate-200"}`}
+                  ? "bg-brand-primary/10 text-brand-primary ring-1 ring-brand-primary/30 shadow-inner" 
+                  : "bg-white/60 backdrop-blur-sm border border-slate-200/60 text-slate-400 hover:border-slate-300 hover:bg-slate-50"}`}
             >
               <span className="text-[14px] font-black tracking-tight">기타</span>
               <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md

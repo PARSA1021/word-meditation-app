@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useCallback } from "react";
 import { WordType } from "@/lib/words";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface SearchCategoryTabsProps {
   counts: Record<string, number>;
@@ -16,9 +16,6 @@ const MAIN_TABS = [
   { id: "wonli", name: "원리강론" },
   { id: "pyeonghwashinkyung", name: "평화신경" },
   { id: "Cheon Il Guk_ddeutgil", name: "천일국시대 뜻길" },
-];
-
-const OTHER_TABS = [
   { id: "general", name: "일반말씀" },
 ];
 
@@ -27,29 +24,77 @@ export default function SearchCategoryTabs({
   activeType,
   onTypeChange,
 }: SearchCategoryTabsProps) {
-  const [isOtherOpen, setIsOtherOpen] = useState(false);
-
   const formatCount = (num: number = 0) => num.toLocaleString();
 
-  const isOtherActive = OTHER_TABS.some(t => t.id === activeType);
-  const otherTotal = OTHER_TABS.reduce((sum, t) => sum + (counts[t.id] || 0), 0);
+  // Drag-to-scroll logic
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+  const dragDistance = useRef(0);
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    isDragging.current = true;
+    dragDistance.current = 0;
+    startX.current = e.pageX - el.offsetLeft;
+    scrollLeft.current = el.scrollLeft;
+    el.style.cursor = "grabbing";
+    el.style.userSelect = "none";
+  }, []);
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = scrollRef.current;
+    if (!isDragging.current || !el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    dragDistance.current = Math.abs(walk);
+    el.scrollLeft = scrollLeft.current - walk;
+  }, []);
+
+  const onMouseUpOrLeave = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    isDragging.current = false;
+    el.style.cursor = "";
+    el.style.userSelect = "";
+  }, []);
+
+  const handleTabClick = useCallback(
+    (tabId: string) => {
+      // If dragged more than 5px, treat as drag — not a click
+      if (dragDistance.current > 5) return;
+      onTypeChange(tabId === "all" ? "" : tabId);
+    },
+    [onTypeChange]
+  );
 
   return (
-    <div className="relative w-full group/tabs">
-      {/* 탭 컨테이너 */}
-      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none px-1 py-2 md:py-4 selection:bg-transparent">
+    <div className="relative w-full">
+      {/* Left fade hint */}
+      <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-white/80 to-transparent pointer-events-none z-10" />
+
+      {/* Tab container with drag scroll */}
+      <div
+        ref={scrollRef}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUpOrLeave}
+        onMouseLeave={onMouseUpOrLeave}
+        className="flex items-center gap-1.5 overflow-x-auto no-scrollbar px-3 py-2 md:py-3 selection:bg-transparent cursor-grab active:cursor-grabbing"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         {MAIN_TABS.map((tab) => {
           const isActive = activeType === tab.id || (tab.id === "all" && !activeType);
-          const count = counts[tab.id] || 0;
+          const count = tab.id === "all" ? (counts.all || 0) : (counts[tab.id] || 0);
 
           return (
             <button
               key={tab.id}
-              onClick={() => {
-                onTypeChange(tab.id === "all" ? "" : tab.id);
-                setIsOtherOpen(false);
-              }}
-              className={`relative shrink-0 flex items-center gap-1.5 px-4 md:px-6 py-2 rounded-full transition-all duration-300 active:scale-95 group ${!isActive ? 'hover:bg-slate-100/60' : ''}`}
+              onClick={() => handleTabClick(tab.id)}
+              className={`relative shrink-0 flex items-center gap-1.5 px-4 md:px-5 py-2 rounded-full transition-all duration-300 active:scale-95 select-none group ${!isActive ? 'hover:bg-slate-100/60' : ''}`}
             >
               {isActive && (
                 <motion.div
@@ -71,102 +116,9 @@ export default function SearchCategoryTabs({
             </button>
           );
         })}
-
-        {/* 기타 / 더보기 탭 */}
-        {OTHER_TABS.length > 0 && (
-          <div className="relative">
-            <button
-              onClick={() => setIsOtherOpen(true)}
-              className={`relative shrink-0 flex items-center gap-1.5 px-4 md:px-6 py-2 rounded-full transition-all duration-300 active:scale-95 group
-                ${isOtherActive 
-                  ? "bg-brand-primary/10 text-brand-primary ring-1 ring-brand-primary/20" 
-                  : "bg-white/60 backdrop-blur-sm border border-slate-200/60 text-slate-400 hover:border-slate-300 hover:bg-slate-50"}`}
-            >
-              <span className="text-[13px] md:text-[14px] font-black tracking-tight">기타</span>
-              <span className={`text-[10px] md:text-[11px] font-bold px-1.5 py-0.5 rounded-md
-                ${isOtherActive ? "bg-brand-primary/10" : "bg-slate-50 text-slate-300"}`}>
-                {formatCount(otherTotal)}
-              </span>
-              <svg
-                className={`w-3 h-3 transition-transform duration-300 ${isOtherOpen ? 'rotate-180' : ''}`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {/* Bottom Sheet Overlay */}
-            <AnimatePresence>
-              {isOtherOpen && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setIsOtherOpen(false)}
-                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100]"
-                  />
-                  <motion.div
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[32px] md:rounded-t-[40px] shadow-2xl z-[101] px-6 pt-3 pb-safe-offset-8 sm:max-w-xl sm:mx-auto"
-                  >
-                    {/* Handle Bar */}
-                    <div className="flex justify-center mb-6">
-                      <div className="w-10 h-1 bg-slate-200 rounded-full" />
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between pb-4 border-b border-slate-50">
-                        <div>
-                          <h3 className="text-lg md:text-xl font-black text-brand-deep tracking-tighter">추가 카테고리</h3>
-                          <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mt-0.5">Explore by source</p>
-                        </div>
-                        <button 
-                          onClick={() => setIsOtherOpen(false)}
-                          className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-brand-primary/10 hover:text-brand-primary transition-all active:scale-90"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-2.5 pb-6">
-                        {OTHER_TABS.map((tab) => (
-                          <button
-                            key={tab.id}
-                            onClick={() => {
-                              onTypeChange(tab.id);
-                              setIsOtherOpen(false);
-                            }}
-                            className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all duration-300
-                              ${activeType === tab.id 
-                                ? "bg-brand-primary/5 border-brand-primary/20 text-brand-primary shadow-sm" 
-                                : "bg-white border-slate-100 text-slate-600 hover:border-brand-primary/10 hover:bg-slate-50"}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-2 h-2 rounded-full ${activeType === tab.id ? 'bg-brand-primary shadow-[0_0_8px_rgba(0,153,255,0.4)]' : 'bg-slate-200'}`} />
-                              <span className="text-[15px] font-bold tracking-tight">{tab.name}</span>
-                            </div>
-                            <span className="text-xs font-black tabular-nums opacity-60 bg-slate-100 px-2 py-0.5 rounded-full">
-                              {formatCount(counts[tab.id])}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
       </div>
 
-      {/* 우측 그라데이션 힌트 (더 많은 탭이 있음을 알림) */}
+      {/* Right fade hint */}
       <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/80 to-transparent pointer-events-none z-10" />
     </div>
   );

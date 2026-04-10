@@ -3,7 +3,7 @@
 // -----------------------------
 // 1️⃣ 타입 정의
 // -----------------------------
-export type WordType = "general" | "cheonseong" | "wonli" | "pyeonghwashinkyung" | "Cheon Il Guk_ddeutgil"
+export type WordType = "general" | "cheonseong" | "wonli" | "pyeonghwashinkyung" | "Cheon Il Guk_ddeutgil" | "CheonSeongGyeong_en_words"
 
 export type Word = {
   id: number

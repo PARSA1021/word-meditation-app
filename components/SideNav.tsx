@@ -20,7 +20,7 @@ export default function SideNav() {
     fetch("/api/words/daily")
       .then(res => res.ok ? res.json() : null)
       .then(data => { if (data) setDailyWord(data) })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   const navItems = [
@@ -53,110 +53,109 @@ export default function SideNav() {
 
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-72 glass-sidebar z-50 transition-all duration-500 ease-in-out p-6">
-        {/* Branding */}
-        <div className="mb-10 lg:px-2">
-          <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/TP_LOGO.png"
-              alt="TruePath Logo"
-              width={44}
-              height={44}
-              className="rounded-xl shadow-lg shadow-brand-primary/20 shrink-0"
-              priority
-            />
-            <div className="hidden lg:block">
-              <h2 className="text-lg font-black text-brand-deep tracking-tighter">TruePath</h2>
-              <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mt-[-2px]">Words of Wisdom</p>
-            </div>
-          </Link>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 space-y-4 lg:space-y-2 w-full">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group relative flex items-center justify-center lg:justify-start gap-4 p-3 lg:px-4 lg:py-3.5 rounded-2xl transition-all duration-300 active:scale-95 ${
-                  isActive
-                    ? "bg-brand-primary/5 text-brand-primary shadow-sm"
-                    : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
-                }`}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeSideNav"
-                    className="absolute inset-0 border border-brand-primary/20 rounded-2xl"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-                <div className={`transition-transform duration-300 group-hover:scale-110 ${isActive ? "text-brand-primary" : ""}`}>
-                  {item.icon}
-                </div>
-                <span className={`hidden lg:block text-[15px] font-bold tracking-tight ${isActive ? "text-brand-primary" : ""}`}>
-                  {item.label}
-                </span>
-                
-                {isActive && (
-                  <div className="absolute right-0 lg:right-4 w-1.5 h-1.5 lg:w-1.5 lg:h-1.5 rounded-full bg-brand-primary shadow-[0_0_8px_rgba(0,153,255,0.6)] translate-x-1 lg:translate-x-0" />
-                )}
-
-                {/* Tooltip for Tablet Rail - Only show if hovering and no touch */}
-                {!isActive && (
-                  <div className="lg:hidden absolute left-full ml-2 px-2 py-1.5 bg-brand-deep/90 backdrop-blur-md text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 whitespace-nowrap z-[60] shadow-xl border border-white/10 translate-x-1 group-hover:translate-x-0">
-                    {item.label}
-                  </div>
-                )}
-              </Link>
-            )
-          })}
-        </nav>
-
-        {/* Bottom Card: 오늘의 한마디 */}
-        <div className="mt-auto w-full">
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest">오늘의 한마디</p>
-              <button
-                onClick={() => {
-                  setDailyWord(null)
-                  fetch("/api/words/daily")
-                    .then(res => res.ok ? res.json() : null)
-                    .then(data => { if (data) setDailyWord(data) })
-                    .catch(() => {})
-                }}
-                className="text-slate-300 hover:text-brand-primary transition-colors"
-                title="새 말씀"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
-            </div>
-            {dailyWord ? (
-              <>
-                <p className="text-[12px] text-brand-deep leading-relaxed font-medium line-clamp-4">
-                  {dailyWord.text}
-                </p>
-                {dailyWord.source && (
-                  <p className="text-[10px] text-slate-400 font-bold truncate pt-1 border-t border-slate-100">
-                    {dailyWord.source.split(">")[0]?.trim() || dailyWord.source}
-                  </p>
-                )}
-              </>
-            ) : (
-              <div className="space-y-1.5 animate-pulse">
-                <div className="h-2.5 bg-slate-200 rounded-full w-full" />
-                <div className="h-2.5 bg-slate-200 rounded-full w-4/5" />
-                <div className="h-2.5 bg-slate-200 rounded-full w-3/5" />
-              </div>
-            )}
+      {/* Branding */}
+      <div className="mb-10 lg:px-2">
+        <Link href="/" className="flex items-center gap-3">
+          <Image
+            src="/TP_LOGO_2.png"
+            alt="TruePath Logo"
+            width={44}
+            height={44}
+            className="rounded-xl shadow-lg shadow-brand-primary/20 shrink-0"
+            priority
+          />
+          <div className="hidden lg:block">
+            <h2 className="text-lg font-black text-brand-deep tracking-tighter">TruePath</h2>
+            <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mt-[-2px]">Words of Wisdom</p>
           </div>
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 space-y-4 lg:space-y-2 w-full">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`group relative flex items-center justify-center lg:justify-start gap-4 p-3 lg:px-4 lg:py-3.5 rounded-2xl transition-all duration-300 active:scale-95 ${isActive
+                  ? "bg-brand-primary/5 text-brand-primary shadow-sm"
+                  : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+                }`}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeSideNav"
+                  className="absolute inset-0 border border-brand-primary/20 rounded-2xl"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <div className={`transition-transform duration-300 group-hover:scale-110 ${isActive ? "text-brand-primary" : ""}`}>
+                {item.icon}
+              </div>
+              <span className={`hidden lg:block text-[15px] font-bold tracking-tight ${isActive ? "text-brand-primary" : ""}`}>
+                {item.label}
+              </span>
+
+              {isActive && (
+                <div className="absolute right-0 lg:right-4 w-1.5 h-1.5 lg:w-1.5 lg:h-1.5 rounded-full bg-brand-primary shadow-[0_0_8px_rgba(0,153,255,0.6)] translate-x-1 lg:translate-x-0" />
+              )}
+
+              {/* Tooltip for Tablet Rail - Only show if hovering and no touch */}
+              {!isActive && (
+                <div className="lg:hidden absolute left-full ml-2 px-2 py-1.5 bg-brand-deep/90 backdrop-blur-md text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 whitespace-nowrap z-[60] shadow-xl border border-white/10 translate-x-1 group-hover:translate-x-0">
+                  {item.label}
+                </div>
+              )}
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Bottom Card: 오늘의 한마디 */}
+      <div className="mt-auto w-full">
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest">오늘의 한마디</p>
+            <button
+              onClick={() => {
+                setDailyWord(null)
+                fetch("/api/words/daily")
+                  .then(res => res.ok ? res.json() : null)
+                  .then(data => { if (data) setDailyWord(data) })
+                  .catch(() => { })
+              }}
+              className="text-slate-300 hover:text-brand-primary transition-colors"
+              title="새 말씀"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+          {dailyWord ? (
+            <>
+              <p className="text-[12px] text-brand-deep leading-relaxed font-medium line-clamp-4">
+                {dailyWord.text}
+              </p>
+              {dailyWord.source && (
+                <p className="text-[10px] text-slate-400 font-bold truncate pt-1 border-t border-slate-100">
+                  {dailyWord.source.split(">")[0]?.trim() || dailyWord.source}
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="space-y-1.5 animate-pulse">
+              <div className="h-2.5 bg-slate-200 rounded-full w-full" />
+              <div className="h-2.5 bg-slate-200 rounded-full w-4/5" />
+              <div className="h-2.5 bg-slate-200 rounded-full w-3/5" />
+            </div>
+          )}
         </div>
-        
-        {/* Tablet Mini Indicator */}
+      </div>
+
+      {/* Tablet Mini Indicator */}
     </aside>
   )
 }

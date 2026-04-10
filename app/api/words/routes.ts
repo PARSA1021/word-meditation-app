@@ -1,6 +1,7 @@
 // app/api/words/route.ts
 import { NextRequest, NextResponse } from "next/server"
-import { allWords, Word } from "@/lib/words"
+import { getAllWordsServer } from "@/lib/words-server"
+import { Word } from "@/lib/words"
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1")
   const limit = parseInt(searchParams.get("limit") || "20")
 
-  let filtered: Word[] = allWords
+  let filtered: Word[] = getAllWordsServer()
 
   if (type) filtered = filtered.filter((w: Word) => w.type === type)
 

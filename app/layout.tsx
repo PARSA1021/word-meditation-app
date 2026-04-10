@@ -1,5 +1,6 @@
 import "./globals.css"
 import BottomNav from "@/components/BottomNav"
+import SideNav from "@/components/SideNav"
 import { uiFont } from "@/lib/fonts"
 
 export const metadata = {
@@ -34,9 +35,18 @@ export default function RootLayout({
           duration-300
         `}
       >
-        <main className="pb-20 min-h-[100dvh]">
-          {children}
-        </main>
+        <div className="flex min-h-[100dvh]">
+          {/* Desktop Side Navigation */}
+          <SideNav />
+          
+          <main className="flex-1 pb-24 lg:pb-0 lg:pl-72 min-h-screen max-w-full overflow-x-hidden">
+            <div className="max-w-[1600px] mx-auto">
+              {children}
+            </div>
+          </main>
+        </div>
+
+        {/* Mobile Bottom Navigation */}
         <BottomNav />
       </body>
     </html>

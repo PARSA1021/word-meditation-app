@@ -110,7 +110,7 @@ function SearchFeed() {
       </header>
 
       {/* 2. Results Feed */}
-      <main className="max-w-3xl mx-auto w-full px-4 md:px-6 pt-4 pb-40">
+      <main className="max-w-3xl mx-auto w-full px-4 md:px-6 pt-4 pb-24 lg:pb-12">
         <AnimatePresence mode="wait">
           {isLoading && !data && (
             <motion.div

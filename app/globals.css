@@ -43,10 +43,15 @@ html {
   -webkit-overflow-scrolling: touch;
   word-break: keep-all;
   overflow-wrap: break-word;
+  overflow-x: hidden;
 }
 
 body {
   @apply antialiased text-text-primary bg-brand-bg;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+  touch-action: pan-y; /* Prevent accidental horizontal swipe gestures from scrolling the page */
 }
 
 * {
@@ -67,6 +72,12 @@ body {
   @apply bg-white/60 backdrop-blur-lg border-r border-slate-200/40;
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   backdrop-filter: blur(16px) saturate(180%);
+}
+
+.glass-nav {
+  @apply bg-white/70 backdrop-blur-2xl border border-white/40 shadow-premium;
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
 }
 
 .premium-card {
@@ -119,4 +130,13 @@ body {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Safe Area Insets Utilities */
+.pb-safe-offset-20 {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+}
+
+.pb-safe-offset-2 {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
 }

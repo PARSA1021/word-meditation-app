@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { motion } from "framer-motion"
 
 export default function BottomNav() {
   const pathname = usePathname()
@@ -35,8 +36,8 @@ export default function BottomNav() {
   ]
 
   return (
-    <nav className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 sm:left-6 sm:right-6 z-50">
-      <div className="max-w-md mx-auto airbnb-nav border border-black/5 rounded-[32px] px-2 py-2 flex justify-around items-center shadow-lg shadow-black/5">
+    <nav className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 sm:left-6 sm:right-6 z-50 lg:hidden font-black">
+      <div className="max-w-md mx-auto glass-nav rounded-[32px] px-2 py-2 flex justify-around items-center">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (

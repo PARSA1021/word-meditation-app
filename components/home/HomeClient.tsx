@@ -31,7 +31,7 @@ export default function HomeClient({ stats }: HomeClientProps) {
   const sortedCategories = Object.entries(stats.byCategory).sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="min-h-screen bg-brand-bg pb-32 overflow-x-hidden">
+    <div className="min-h-screen bg-brand-bg pb-20 sm:pb-32 overflow-x-hidden">
       <motion.div 
         variants={containerVariants}
         initial="hidden"
@@ -39,7 +39,7 @@ export default function HomeClient({ stats }: HomeClientProps) {
         className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6"
       >
         {/* 1. HERO & BRANDING */}
-        <header className="pt-20 pb-12">
+        <header className="pt-12 md:pt-20 pb-8 md:pb-12">
           <motion.div variants={itemVariants} className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-primary/5 border border-brand-primary/10 text-[10px] font-black text-brand-primary uppercase tracking-[0.25em]">
               <span className="relative flex h-2 w-2">
@@ -86,7 +86,7 @@ export default function HomeClient({ stats }: HomeClientProps) {
         </motion.section>
 
         {/* 3. LIBRARY GRID */}
-        <motion.section variants={itemVariants} className="pt-20 space-y-10">
+        <motion.section variants={itemVariants} className="pt-12 md:pt-20 space-y-10">
           <div className="flex justify-between items-end px-2">
             <div className="space-y-2">
               <p className="text-[11px] font-black text-brand-primary uppercase tracking-[0.3em]">Curated Library</p>
@@ -117,7 +117,7 @@ export default function HomeClient({ stats }: HomeClientProps) {
         </motion.section>
 
         {/* 4. DAILY WORD SECTION */}
-        <motion.section variants={itemVariants} className="pt-24 space-y-8">
+        <motion.section variants={itemVariants} className="pt-16 md:pt-24 space-y-8">
           <div className="flex items-center gap-6 px-4">
             <div className="h-px bg-slate-100 flex-1"></div>
             <h3 className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em]">Daily Inspiration</h3>
@@ -132,7 +132,7 @@ export default function HomeClient({ stats }: HomeClientProps) {
         </motion.section>
 
         {/* 5. QUICK ACTIONS */}
-        <motion.section variants={itemVariants} className="pt-20 pb-10">
+        <motion.section variants={itemVariants} className="pt-12 md:pt-20 pb-10">
            <div className="flex justify-center gap-8 md:gap-12 flex-wrap">
             <QuickActionBtn href="/search" icon="🔭" text="검색" />
             <QuickActionBtn href="/category" icon="📁" text="주제별" />

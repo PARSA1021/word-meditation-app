@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
@@ -55,9 +56,14 @@ export default function SideNav() {
         {/* Branding */}
         <div className="mb-10 lg:px-2">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 lg:w-10 lg:h-10 rounded-xl bg-brand-primary flex items-center justify-center text-white shadow-lg shadow-brand-primary/20 shrink-0">
-              <span className="text-xl font-black">T</span>
-            </div>
+            <Image
+              src="/TP_LOGO.png"
+              alt="TruePath Logo"
+              width={44}
+              height={44}
+              className="rounded-xl shadow-lg shadow-brand-primary/20 shrink-0"
+              priority
+            />
             <div className="hidden lg:block">
               <h2 className="text-lg font-black text-brand-deep tracking-tighter">TruePath</h2>
               <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mt-[-2px]">Words of Wisdom</p>

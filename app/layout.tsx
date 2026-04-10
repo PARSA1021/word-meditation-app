@@ -12,6 +12,15 @@ export const metadata = {
     statusBarStyle: "default",
     title: "TruePath",
   },
+  icons: {
+    icon: [
+      { url: "/TP_192_192.png", sizes: "192x192", type: "image/png" },
+      { url: "/TP_512_512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 }
 
 export const viewport = {

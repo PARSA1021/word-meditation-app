@@ -78,7 +78,7 @@ export default function QuoteCard({
       layout
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+      transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] as const }}
       onClick={() => {
         // 텍스트 드래그/선택 중일 때는 확장이 트리거되지 않도록 처리
         const selection = window.getSelection();
@@ -164,7 +164,7 @@ export default function QuoteCard({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+            transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] as const }}
             className="overflow-hidden"
           >
             <div className="pt-10 mt-10 border-t-2 border-dashed border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-8">

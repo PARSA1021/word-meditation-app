@@ -14,7 +14,7 @@ export default function QuickActionBtn({ href, icon, text }: QuickActionBtnProps
     <motion.div
       whileHover={{ y: -4, scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
+      transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] as const }}
     >
       <Link
         href={href}

@@ -14,7 +14,7 @@ export default function CategoryCard({ name, count, href }: CategoryCardProps) {
     <motion.div
       whileHover={{ y: -6, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+      transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] as const }}
     >
       <Link
         href={href}

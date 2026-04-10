@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+export const runtime = 'nodejs';
 import { getRandomWordExceptServer } from "@/lib/words-server";
 
 export async function GET(req: NextRequest) {

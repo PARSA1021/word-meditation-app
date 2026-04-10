@@ -1,12 +1,14 @@
 // app/api/words/route.ts
-import { NextRequest, NextResponse } from "next/server"
-import { getAllWordsServer } from "@/lib/words-server"
-import { Word } from "@/lib/words"
+import { NextRequest, NextResponse } from "next/server";
+import { getAllWordsServer } from "@/lib/words-server";
+import { Word, WordType } from "@/lib/words";
+
+export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
 
-  const type = searchParams.get("type") as "general" | "cheonseong" | null
+  const type = searchParams.get("type") as WordType | null
   const query = searchParams.get("q") || ""
   const page = parseInt(searchParams.get("page") || "1")
   const limit = parseInt(searchParams.get("limit") || "20")

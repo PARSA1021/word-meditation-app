@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Word } from "@/lib/words"
-import QuoteCard from "./QuoteCard"
+import QuoteCard from "@/components/QuoteCard"
 
 export default function DailyWord() {
   const [word, setWord] = useState<Word | null>(null)

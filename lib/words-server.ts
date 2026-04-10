@@ -4,7 +4,7 @@ import cheonseongData from "@/data/cheonseong_words.json";
 import wonliData from "@/data/wonligangnon_words.json";
 import pyeonghwashinkyungData from "@/data/pyeonghwashinkyung_words.json";
 import CheonIlGukDdeutgilData from "@/data/Cheon Il Guk_ddeutgil_words.json";
-import { Word, WordType, WordStats, SearchResult, extractChosung, stemKorean, getSynonyms, getHighlightRanges } from "./words";
+import { Word, WordType, WordStats, SearchResult, extractChosung, stemKorean, getSynonyms, getHighlightRanges } from "@/lib/words";
 
 // -----------------------------
 // 1️⃣ 데이터 합치기 (id 중복 방지 및 초기화) - 서버에서만 수행

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+export const runtime = 'nodejs';
 import { searchWordsServer } from "@/lib/words-server";
 import { WordType } from "@/lib/words";
 

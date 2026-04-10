@@ -124,22 +124,22 @@ export default function QuoteCard({
 
       {/* 2. Scripture Text */}
       <motion.div layout className="relative">
-        <span className="absolute -top-6 -left-4 text-7xl text-slate-100 font-serif pointer-events-none select-none">"</span>
+        <span className="absolute -top-6 -left-4 text-6xl md:text-7xl text-slate-100 font-serif pointer-events-none select-none">"</span>
         <div className="relative z-10">
-          <p className={`${scriptureFont.className} scripture-text transition-all duration-500 ${isExpanded ? 'text-brand-deep !not-italic' : ''}`}>
+          <p className={`${scriptureFont.className} scripture-text transition-all duration-500 ${isExpanded ? 'text-brand-deep !not-italic' : ''} !leading-[1.7] md:!leading-[1.8]`}>
             {isExpanded ? renderedExpandedText : renderedText}
           </p>
         </div>
       </motion.div>
 
       {/* 3. Footer Info & Copy */}
-      <motion.div layout className="mt-10 pt-8 border-t border-slate-50 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-        <div className="space-y-1">
-          <p className="text-brand-deep font-extrabold text-[17px] md:text-[19px] tracking-tight">
+      <motion.div layout className="mt-8 md:mt-10 pt-6 md:pt-8 border-t border-slate-50 flex flex-row items-end justify-between gap-4">
+        <div className="space-y-0.5 md:space-y-1">
+          <p className="text-brand-deep font-extrabold text-[16px] md:text-[19px] tracking-tight leading-tight">
             {word.source}
           </p>
           {word.speaker && (
-            <p className="text-text-secondary text-sm font-medium">
+            <p className="text-text-secondary text-[13px] md:text-sm font-medium">
               {word.speaker}
             </p>
           )}

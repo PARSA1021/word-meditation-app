@@ -1,23 +1,21 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { NextRequest, NextResponse } from "next/server";
+import { getRandomWordExceptServer } from "@/lib/words-server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const except = searchParams.get("except");
+  
   try {
-    const filePath = path.join(process.cwd(), 'data', 'words.json');
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    const words = JSON.parse(fileContent);
-
-    if (!Array.isArray(words) || words.length === 0) {
-      return NextResponse.json({ error: 'No words found' }, { status: 404 });
+    const exceptIds = except ? except.split(",").map(id => parseInt(id)) : [];
+    const word = getRandomWordExceptServer(exceptIds);
+    
+    if (!word) {
+      return NextResponse.json({ error: "No words found" }, { status: 404 });
     }
-
-    // 랜덤으로 한 개 선택
-    const randomWord = words[Math.floor(Math.random() * words.length)];
-
-    return NextResponse.json(randomWord);
+    
+    return NextResponse.json(word);
   } catch (error) {
-    console.error('Fetch random word error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error("Random Word API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

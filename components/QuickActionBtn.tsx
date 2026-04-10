@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { motion } from "framer-motion"
 
 interface QuickActionBtnProps {
   href: string
@@ -10,16 +11,22 @@ interface QuickActionBtnProps {
 
 export default function QuickActionBtn({ href, icon, text }: QuickActionBtnProps) {
   return (
-    <Link
-      href={href}
-      className="flex flex-col items-center gap-3 group active:scale-95 transition-all"
+    <motion.div
+      whileHover={{ y: -4, scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
     >
-      <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-[24px] md:rounded-[32px] border border-black/[0.04] flex items-center justify-center text-3xl shadow-sm group-hover:shadow-2xl group-hover:border-[#0099FF]/20 group-hover:-translate-y-1 transition-all duration-500">
-        {icon}
-      </div>
-      <span className="text-[11px] md:text-[12px] font-black text-[#A0A0A0] tracking-[0.15em] uppercase group-hover:text-[#0099FF] transition-colors">
-        {text}
-      </span>
-    </Link>
+      <Link
+        href={href}
+        className="flex flex-col items-center gap-3 group"
+      >
+        <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center bg-white rounded-2xl shadow-premium border border-slate-100 group-hover:border-brand-primary/20 group-hover:shadow-active transition-all duration-500 text-2xl">
+          {icon}
+        </div>
+        <span className="text-[11px] md:text-[12px] font-black text-text-secondary group-hover:text-brand-primary uppercase tracking-widest transition-colors">
+          {text}
+        </span>
+      </Link>
+    </motion.div>
   )
 }

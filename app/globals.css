@@ -2,157 +2,121 @@
 @import "tailwindcss";
 
 /* -----------------------
-   Airbnb Design System (Blue Edition)
+   TruePath Premium Design System (Calm Edition)
 ----------------------- */
-:root {
-  --background: #ffffff;
-  --secondary-bg: #f7f7f7;
-  --foreground: #222222;
-  --secondary-text: #717171;
-  --primary: #0099ff;
-  --primary-hover: #0088ee;
-  --border: #dddddd;
-  --card-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  --active-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+@theme {
+  /* Colors */
+  --color-brand-primary: #0088EE;
+  --color-brand-primary-hover: #0077DD;
+  --color-brand-deep: #1E293B;
+  --color-brand-bg: #F8FAFC;
+  
+  --color-surface-white: #FFFFFF;
+  --color-surface-muted: #F1F5F9;
+  --color-border-subtle: #E2E8F0;
+  
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+
+  /* Radius */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 20px;
   --radius-lg: 32px;
+  --radius-xl: 40px;
+
+  /* Shadows */
+  --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+  --shadow-active: 0 20px 40px -12px rgba(0, 136, 238, 0.15);
+}
+
+:root {
+  --background: #F8FAFC;
+  --foreground: #1E293B;
+  --primary: var(--color-brand-primary);
+  --radius: var(--radius-lg);
 }
 
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  word-break: keep-all; /* Korean word-break optimization */
+  word-break: keep-all;
   overflow-wrap: break-word;
 }
 
 body {
-  @apply antialiased text-[#222222];
-  background: #ffffff;
+  @apply antialiased text-text-primary bg-brand-bg;
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
-h2,
-h3,
-h4 {
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
 /* -----------------------
-   Interactive Elements
+   Premium Utility Classes
 ----------------------- */
 
-.ios-card {
-  background: var(--card);
-  border-radius: var(--radius-md);
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  border: 1px solid var(--border);
-}
-
-.ios-card:active {
-  transform: scale(0.98);
-  background: #fafafa;
-}
-
-.ios-btn {
-  background: var(--primary);
-  color: white;
-  border-radius: 16px;
-  padding: 16px 24px;
-  font-weight: 600;
-  font-size: 17px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
-}
-
-.ios-btn:active {
-  transform: scale(0.96);
-  filter: brightness(0.95);
-}
-
-.ios-blur {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
+.glass-header {
+  @apply bg-white/70 backdrop-blur-xl border-b border-slate-200/50;
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-/* Airbnb style card */
-.airbnb-card {
-  background: #ffffff;
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  box-shadow: var(--card-shadow);
-  border: 1px solid var(--border);
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-  touch-action: manipulation;
-  /* better touch responsiveness */
-}
-
-.airbnb-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-/* Airbnb navigation blur */
-.airbnb-nav {
-  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+}
+
+.glass-sidebar {
+  @apply bg-white/60 backdrop-blur-lg border-r border-slate-200/40;
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+}
+
+.premium-card {
+  @apply bg-white rounded-xl border border-slate-100 shadow-premium transition-all duration-300;
+}
+
+.premium-card-hover {
+  @apply hover:shadow-active hover:border-brand-primary/20 hover:-translate-y-1;
+}
+
+.btn-primary {
+  @apply bg-brand-primary text-white rounded-md px-6 py-3 font-bold transition-all active:scale-95 shadow-lg shadow-brand-primary/20;
+}
+
+.btn-ghost {
+  @apply bg-slate-50 text-text-secondary rounded-md px-4 py-2 font-bold transition-all hover:bg-slate-100 active:scale-95;
 }
 
 /* -----------------------
-   Typography Focus
+   Typography Scales
 ----------------------- */
 
-.word-emphasis {
-  font-family: var(--font-serif);
-  font-size: clamp(22px, 4vw, 28px);
-  color: var(--text-primary);
-  line-height: 1.4;
-  font-weight: 700;
+.heading-xl {
+  @apply text-3xl md:text-4xl font-black tracking-tight text-brand-deep;
 }
 
-.label-tertiary {
-  color: var(--text-tertiary);
-  font-size: 13px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.heading-lg {
+  @apply text-xl md:text-2xl font-extrabold tracking-tight text-brand-deep;
+}
+
+.scripture-text {
+  @apply text-lg md:text-2xl leading-[1.8] text-brand-deep italic font-serif;
 }
 
 /* -----------------------
-   Utilities
+   Scrollbar Design
 ----------------------- */
-
-.pb-safe {
-  padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
-}
-
-/* Elegant Scrollbar for PC */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #dddddd;
-  border-radius: 10px;
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #bbbbbb;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

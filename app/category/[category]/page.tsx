@@ -1,90 +1,67 @@
-"use client";
-
-import React, { useState, useMemo } from "react";
+import React from "react";
 import Link from "next/link";
-import { getCategoryWords, Word } from "@/lib/words";
+import { getCategoryWordsServer } from "@/lib/words-server";
 import QuoteCard from "@/components/QuoteCard";
 
-const PAGE_SIZE = 50; // 한 페이지에 보여줄 단어 수
+const PAGE_SIZE = 50; 
 
-export default function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
-  // params를 React.use()로 해결 (Next.js 15+ 대응)
-  const resolvedParams = React.use(params);
+export default async function CategoryDetailPage({ params }: { params: Promise<{ category: string }> }) {
+  const resolvedParams = await params;
   const category = decodeURIComponent(resolvedParams.category);
-  // 페이지 상태
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // 카테고리 단어 가져오기
-  const words: Word[] = useMemo(() => getCategoryWords(category || ""), [category]);
-
-  // 페이지 계산
-  const totalPages = Math.ceil(words.length / PAGE_SIZE);
-  const visibleWords = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-    return words.slice(start, end);
-  }, [words, currentPage]);
+  
+  const words = getCategoryWordsServer(category || "");
+  const visibleWords = words.slice(0, PAGE_SIZE);
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7]">
-      {/* Sticky Header (Consistent with main category page) */}
-      <header className="sticky top-0 z-50 airbnb-nav border-b border-black/5 px-6 py-4 bg-[#F2F2F7]">
-        <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto flex items-center gap-3">
+    <div className="min-h-screen bg-brand-bg">
+      <header className="sticky top-0 z-50 glass-header px-6 py-5">
+        <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto flex items-center gap-4">
           <Link
-            href="/"
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-black/5 text-black active:scale-95 transition-transform"
+            href="/category"
+            className="w-11 h-11 flex items-center justify-center rounded-2xl bg-white/80 border border-slate-100 text-brand-deep hover:bg-brand-primary hover:text-white transition-all active:scale-95 shadow-sm"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <h1 className="text-xl font-black text-black">
-            {category}
-          </h1>
+          <div>
+            <h1 className="text-xl font-black text-brand-deep tracking-tight">
+              {category}
+            </h1>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-primary mt-0.5">Explore Topic</p>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 pt-6 pb-32 space-y-6">
+      <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 pt-10 pb-32 space-y-8">
         {words.length > 0 ? (
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">
-              &apos;{category}&apos; 결과 {words.length}개
-            </p>
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="flex items-center justify-between px-2">
+              <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em]">
+                Found {words.length} Verses
+              </p>
+            </div>
             {visibleWords.map((word) => (
-              <QuoteCard key={word.id} word={word} showCategory={true} />
+              <QuoteCard key={word.id} word={word} showCategory={false} />
             ))}
 
-            {/* 페이지 번호 버튼 */}
-            {totalPages > 1 && (
-              <div className="flex gap-2 mt-6 overflow-x-auto pb-2 no-scrollbar">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => {
-                      setCurrentPage(num);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className={`
-                      min-w-[38px] h-10 flex items-center justify-center
-                      rounded-full border-2 font-semibold text-sm transition-all
-                      ${currentPage === num
-                        ? "bg-[#0099FF] text-white border-[#0099FF] shadow-lg"
-                        : "bg-white text-slate-500 border-gray-200 hover:bg-[#E6F0FF] hover:text-[#0099FF]"
-                      }
-                      active:scale-95
-                    `}
-                  >
-                    {num}
-                  </button>
-                ))}
+            {words.length > PAGE_SIZE && (
+              <div className="py-20 text-center">
+                <p className="text-sm text-text-muted font-medium">검색 기능을 이용하시면 더 많은 말씀을 찾으실 수 있습니다.</p>
+                <Link href="/search" className="btn-ghost inline-flex mt-6 group">
+                  지혜의 탐색 시작하기 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                </Link>
               </div>
             )}
           </div>
         ) : (
-          <div className="text-center text-[#717171] mt-12 animate-in fade-in duration-500">
-            <p>이 카테고리에는 아직 말씀이 없습니다.</p>
-            <Link href="/" className="inline-block mt-4 text-[#0099FF] font-black hover:underline">
-              홈으로 돌아가기
+          <div className="text-center py-40 animate-in fade-in duration-700">
+             <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center text-4xl mx-auto mb-8 shadow-premium">
+                🍂
+              </div>
+            <p className="text-brand-deep font-black tracking-tight text-lg">이 카테고리에는 아직 말씀이 없습니다.</p>
+            <Link href="/category" className="btn-ghost mt-6">
+              카테고리 목록으로 돌아가기
             </Link>
           </div>
         )}

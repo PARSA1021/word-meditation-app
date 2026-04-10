@@ -1,147 +1,205 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Word } from "@/lib/words"
-import { scriptureFont } from "@/lib/fonts"
-import { highlightText } from "@/lib/highlight"
+import { useState } from "react";
+import { Word } from "@/lib/words";
+import { scriptureFont } from "@/lib/fonts";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface QuoteCardProps {
-    word: Word
-    showCategory?: boolean
-    highlightQuery?: string
-    highlightRanges?: Array<{ start: number; end: number }>
+  word: Word;
+  showCategory?: boolean;
+  highlightRanges?: Array<{ start: number; end: number }>;
 }
 
-// 범위 기반 하이라이트 렌더러
 function HighlightedByRanges({
-    text,
-    ranges,
+  text,
+  ranges,
 }: {
-    text: string
-    ranges: Array<{ start: number; end: number }>
+  text: string;
+  ranges: Array<{ start: number; end: number }>;
 }) {
-    const parts: React.ReactNode[] = []
-    let cursor = 0
+  const parts: React.ReactNode[] = [];
+  let cursor = 0;
 
-    for (const { start, end } of ranges) {
-        if (start > cursor) parts.push(<span key={`t-${cursor}`}>{text.slice(cursor, start)}</span>)
-        parts.push(
-            <mark
-                key={`h-${start}`}
-                className="bg-yellow-200 text-yellow-900 rounded-sm px-0.5 font-semibold not-italic"
-            >
-                {text.slice(start, end)}
-            </mark>
-        )
-        cursor = end
-    }
-    if (cursor < text.length) parts.push(<span key={`t-${cursor}`}>{text.slice(cursor)}</span>)
-    return <>{parts}</>
+  for (const { start, end } of ranges) {
+    if (start > cursor) parts.push(<span key={`t-${cursor}`}>{text.slice(cursor, start)}</span>);
+    parts.push(
+      <mark
+        key={`h-${start}`}
+        className="bg-brand-primary/10 text-brand-primary rounded-sm px-0.5 font-semibold not-italic"
+      >
+        {text.slice(start, end)}
+      </mark>
+    );
+    cursor = end;
+  }
+  if (cursor < text.length) parts.push(<span key={`t-${cursor}`}>{text.slice(cursor)}</span>);
+  return <>{parts}</>;
 }
 
 export default function QuoteCard({
-    word,
-    showCategory = false,
-    highlightQuery = "",
-    highlightRanges,
+  word,
+  showCategory = false,
+  highlightRanges,
 }: QuoteCardProps) {
-    const [isExpanded, setIsExpanded] = useState(false)
-    const [isCopied, setIsCopied] = useState(false)
-    const MAX_LENGTH = 120
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const MAX_LENGTH = 160;
 
-    const needsExpansion = word.text.length > MAX_LENGTH
-    const displayText = !isExpanded && needsExpansion
-        ? word.text.slice(0, MAX_LENGTH) + "..."
-        : word.text
+  const needsExpansion = word.text.length > MAX_LENGTH;
+  const displayText = !isExpanded && needsExpansion
+    ? word.text.slice(0, MAX_LENGTH) + "..."
+    : word.text;
 
-    // highlightRanges가 있으면 범위 기반 하이라이트 우선 사용
-    // 없으면 기존 highlightText 폴백
-    const renderedText = highlightRanges && highlightRanges.length > 0
-        ? <HighlightedByRanges text={displayText} ranges={
-            // 텍스트가 잘린 경우 범위도 잘라냄
-            highlightRanges
-                .filter((r) => r.start < displayText.length)
-                .map((r) => ({ start: r.start, end: Math.min(r.end, displayText.length) }))
-        } />
-        : highlightText(displayText, highlightQuery)
+  const renderedText = highlightRanges && highlightRanges.length > 0
+    ? <HighlightedByRanges 
+        text={displayText} 
+        ranges={highlightRanges
+          .filter((r) => r.start < displayText.length)
+          .map((r) => ({ start: r.start, end: Math.min(r.end, displayText.length) }))
+        } 
+      />
+    : displayText;
 
-    const copyToClipboard = async () => {
-        try {
-            const textToCopy = `"${word.text}"\n- ${word.source} ${word.speaker ? `(${word.speaker})` : ""}`
-            await navigator.clipboard.writeText(textToCopy)
-            setIsCopied(true)
-            setTimeout(() => setIsCopied(false), 2000)
-        } catch (err) {
-            console.error("복사 실패:", err)
-        }
+  const copyToClipboard = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // 카드 클릭(확장) 방지
+    try {
+      const textToCopy = `"${word.text}"\n- ${word.source} ${word.speaker ? `(${word.speaker})` : ""}`;
+      await navigator.clipboard.writeText(textToCopy);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error("복사 실패:", err);
     }
+  };
 
-    return (
-        <div className="group relative bg-white p-5 md:p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300 ease-in-out">
-
-            {/* 상단: 말씀 본문 */}
-            <div className="space-y-3">
-                <div className="relative">
-                    <span className="absolute -top-2 -left-2 text-4xl text-blue-50 opacity-10 font-serif">"</span>
-                    <p className={`${scriptureFont.className} text-[17px] md:text-[19px] leading-[1.8] text-slate-800 whitespace-pre-line break-keep`}>
-                        {renderedText}
-                    </p>
-                </div>
-
-                {needsExpansion && (
-                    <button
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="text-blue-500 hover:text-blue-700 text-sm font-medium transition-colors inline-flex items-center gap-1"
-                    >
-                        {isExpanded ? "접기 ▲" : "더보기 ▼"}
-                    </button>
-                )}
-            </div>
-
-            {/* 구분선 */}
-            <div className="my-5 border-t border-slate-50" />
-
-            {/* 하단: 정보 및 액션 */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-
-                <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    {showCategory && (
-                        <span className="bg-blue-50 px-2.5 py-1 rounded-lg text-[11px] font-bold text-blue-600 uppercase tracking-wider">
-                            {word.category}
-                        </span>
-                    )}
-
-                    <div className="text-sm md:text-base text-slate-600 font-medium">
-                        <span className="text-blue-900/70">#</span> {highlightText(word.source, highlightQuery)}
-                        {word.speaker && (
-                            <span className="text-slate-400 ml-1.5 font-normal text-sm">
-                                ({highlightText(word.speaker, highlightQuery)})
-                            </span>
-                        )}
-                    </div>
-                </div>
-
-                <button
-                    onClick={copyToClipboard}
-                    title="복사하기"
-                    className={`
-                        self-end sm:self-center w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-200
-                        ${isCopied
-                            ? "bg-green-500 text-white"
-                            : "bg-slate-50 text-slate-400 hover:bg-blue-500 hover:text-white active:scale-95"}
-                    `}
-                >
-                    {isCopied ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                    ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                        </svg>
-                    )}
-                </button>
-            </div>
+  return (
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+      onClick={() => {
+        // 텍스트 드래그/선택 중일 때는 확장이 트리거되지 않도록 처리
+        const selection = window.getSelection();
+        if (selection && selection.toString().length > 0) return;
+        setIsExpanded(!isExpanded);
+      }}
+      className={`premium-card premium-card-hover group p-6 md:p-10 cursor-default relative overflow-hidden
+        ${isExpanded ? 'ring-2 ring-brand-primary/10 shadow-active' : ''}`}
+    >
+      {/* 1. Header: Category & Hint */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          {showCategory && (
+            <span className="bg-slate-50 text-brand-primary text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border border-slate-100">
+              {word.category}
+            </span>
+          )}
         </div>
-    )
+        
+        {/* Subtle Expansion Hint */}
+        <div className="flex items-center gap-2 text-slate-200 group-hover:text-brand-primary transition-colors duration-500">
+           {!isExpanded && (
+             <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-0 group-hover:opacity-100 transition-opacity translate-x-1">Expand Wisdom</span>
+           )}
+           <svg 
+            className={`w-4 h-4 transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} 
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+           >
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+           </svg>
+        </div>
+      </div>
+
+      {/* 2. Scripture Text */}
+      <motion.div layout className="relative">
+        <span className="absolute -top-6 -left-4 text-7xl text-slate-100 font-serif pointer-events-none select-none">"</span>
+        <div className="relative z-10">
+          <p className={`${scriptureFont.className} scripture-text transition-all duration-500 ${isExpanded ? 'text-brand-deep !not-italic' : ''}`}>
+            {isExpanded ? word.text : renderedText}
+          </p>
+        </div>
+      </motion.div>
+
+      {/* 3. Footer Info & Copy */}
+      <motion.div layout className="mt-10 pt-8 border-t border-slate-50 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+        <div className="space-y-1">
+          <p className="text-brand-deep font-extrabold text-[17px] md:text-[19px] tracking-tight">
+            {word.source}
+          </p>
+          {word.speaker && (
+            <p className="text-text-secondary text-sm font-medium">
+              {word.speaker}
+            </p>
+          )}
+        </div>
+
+        <button
+          onClick={copyToClipboard}
+          className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-500 relative
+            ${isCopied 
+              ? "bg-green-500 text-white" 
+              : "bg-slate-50 text-slate-400 hover:bg-brand-primary hover:text-white active:scale-90"
+            }`}
+        >
+          <AnimatePresence mode="wait">
+            {isCopied ? (
+              <motion.svg key="check" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+              </motion.svg>
+            ) : (
+              <motion.svg key="copy" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </motion.svg>
+            )}
+          </AnimatePresence>
+        </button>
+      </motion.div>
+
+      {/* 4. Expanded Content: Meditation Guide & Practice */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="pt-10 mt-10 border-t-2 border-dashed border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-8">
+               <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-sm">💡</div>
+                    <h4 className="text-[11px] font-black text-brand-primary uppercase tracking-[0.2em]">묵상 제안</h4>
+                  </div>
+                  <p className="text-[14px] text-text-secondary leading-relaxed font-semibold break-keep pl-1">
+                    이 문장 속에 담긴 인도자의 본질적인 사랑을 느껴보세요. 당신이 처한 현재의 어려움이 이 말씀 안에서 어떻게 소화될 수 있을지 고요히 묵상해 봅니다.
+                  </p>
+               </div>
+               
+               <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-sm">🌱</div>
+                    <h4 className="text-[11px] font-black text-brand-primary uppercase tracking-[0.2em]">오늘의 실천</h4>
+                  </div>
+                  <p className="text-[14px] text-text-secondary leading-relaxed font-semibold break-keep pl-1">
+                    말씀 중 가장 와닿는 한 단어를 가슴에 품고, 오늘 만나는 가장 첫 번째 사람에게 그 가치를 실천하는 따뜻한 행동을 보여주세요.
+                  </p>
+               </div>
+            </div>
+
+            <div className="mt-8 flex justify-center">
+               <button 
+                onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
+                className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] hover:text-brand-primary transition-colors py-2 px-10"
+               >
+                 Close Wisdom
+               </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
 }

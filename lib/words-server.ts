@@ -101,7 +101,7 @@ export function searchWordsServer(
           tokenScore = 25; tokenMatched = true; bestMatchType = "stem";
           highlightTokens.push(stem);
         }
-        
+
         if (!tokenMatched) {
           for (const syn of synonyms) {
             if (originalTarget.includes(syn)) {

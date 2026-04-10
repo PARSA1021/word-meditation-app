@@ -52,13 +52,13 @@ export default function QuoteCard({
     : word.text;
 
   const renderedText = highlightRanges && highlightRanges.length > 0
-    ? <HighlightedByRanges 
-        text={displayText} 
-        ranges={highlightRanges
-          .filter((r) => r.start < displayText.length)
-          .map((r) => ({ start: r.start, end: Math.min(r.end, displayText.length) }))
-        } 
-      />
+    ? <HighlightedByRanges
+      text={displayText}
+      ranges={highlightRanges
+        .filter((r) => r.start < displayText.length)
+        .map((r) => ({ start: r.start, end: Math.min(r.end, displayText.length) }))
+      }
+    />
     : displayText;
 
   const copyToClipboard = async (e: React.MouseEvent) => {
@@ -74,7 +74,7 @@ export default function QuoteCard({
   };
 
   return (
-    <motion.div 
+    <motion.div
       layout
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
@@ -97,18 +97,18 @@ export default function QuoteCard({
             </span>
           )}
         </div>
-        
+
         {/* Subtle Expansion Hint */}
         <div className="flex items-center gap-2 text-slate-200 group-hover:text-brand-primary transition-colors duration-500">
-           {!isExpanded && (
-             <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-0 group-hover:opacity-100 transition-opacity translate-x-1">Expand Wisdom</span>
-           )}
-           <svg 
-            className={`w-4 h-4 transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} 
+          {!isExpanded && (
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-0 group-hover:opacity-100 transition-opacity translate-x-1">Expand Wisdom</span>
+          )}
+          <svg
+            className={`w-4 h-4 transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`}
             fill="none" stroke="currentColor" viewBox="0 0 24 24"
-           >
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
-           </svg>
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
 
@@ -138,8 +138,8 @@ export default function QuoteCard({
         <button
           onClick={copyToClipboard}
           className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-500 relative
-            ${isCopied 
-              ? "bg-green-500 text-white" 
+            ${isCopied
+              ? "bg-green-500 text-white"
               : "bg-slate-50 text-slate-400 hover:bg-brand-primary hover:text-white active:scale-90"
             }`}
         >
@@ -157,7 +157,7 @@ export default function QuoteCard({
         </button>
       </motion.div>
 
-      {/* 4. Expanded Content: Meditation Guide & Practice */}
+      {/* 4. Expanded Content: Simple Full Text View */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -167,35 +167,16 @@ export default function QuoteCard({
             transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] as const }}
             className="overflow-hidden"
           >
-            <div className="pt-10 mt-10 border-t-2 border-dashed border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-8">
-               <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-sm">💡</div>
-                    <h4 className="text-[11px] font-black text-brand-primary uppercase tracking-[0.2em]">묵상 제안</h4>
-                  </div>
-                  <p className="text-[14px] text-text-secondary leading-relaxed font-semibold break-keep pl-1">
-                    이 문장 속에 담긴 인도자의 본질적인 사랑을 느껴보세요. 당신이 처한 현재의 어려움이 이 말씀 안에서 어떻게 소화될 수 있을지 고요히 묵상해 봅니다.
-                  </p>
-               </div>
-               
-               <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-sm">🌱</div>
-                    <h4 className="text-[11px] font-black text-brand-primary uppercase tracking-[0.2em]">오늘의 실천</h4>
-                  </div>
-                  <p className="text-[14px] text-text-secondary leading-relaxed font-semibold break-keep pl-1">
-                    말씀 중 가장 와닿는 한 단어를 가슴에 품고, 오늘 만나는 가장 첫 번째 사람에게 그 가치를 실천하는 따뜻한 행동을 보여주세요.
-                  </p>
-               </div>
-            </div>
-
             <div className="mt-8 flex justify-center">
-               <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
-                className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] hover:text-brand-primary transition-colors py-2 px-10"
-               >
-                 Close Wisdom
-               </button>
+                className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] hover:text-brand-primary transition-colors py-4 px-10 flex items-center gap-2"
+              >
+                <svg className="w-3 h-3 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M19 9l-7 7-7-7" />
+                </svg>
+                Collapse Wisdom
+              </button>
             </div>
           </motion.div>
         )}

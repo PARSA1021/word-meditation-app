@@ -3,14 +3,25 @@ import Link from "next/link";
 import { getCategoryWordsServer } from "@/lib/words-server";
 import QuoteCard from "@/components/QuoteCard";
 
-const PAGE_SIZE = 50; 
+const PAGE_SIZE = 30;
 
-export default async function CategoryDetailPage({ params }: { params: Promise<{ category: string }> }) {
+export default async function CategoryDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ category: string }>;
+  searchParams: Promise<{ page?: string }>;
+}) {
   const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+
   const category = decodeURIComponent(resolvedParams.category);
-  
-  const words = getCategoryWordsServer(category || "");
-  const visibleWords = words.slice(0, PAGE_SIZE);
+  const currentPage = Math.max(1, parseInt(resolvedSearchParams.page || "1", 10));
+
+  const allWords = getCategoryWordsServer(category || "");
+  const totalPages = Math.ceil(allWords.length / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const visibleWords = allWords.slice(startIndex, startIndex + PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-brand-bg">
@@ -34,32 +45,82 @@ export default async function CategoryDetailPage({ params }: { params: Promise<{
       </header>
 
       <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 pt-10 pb-32 space-y-8">
-        {words.length > 0 ? (
+        {allWords.length > 0 ? (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
             <div className="flex items-center justify-between px-2">
               <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em]">
-                Found {words.length} Verses
+                Found {allWords.length} Verses
+              </p>
+              <p className="text-[11px] font-medium text-text-muted">
+                {currentPage} / {totalPages} 페이지
               </p>
             </div>
+
             {visibleWords.map((word) => (
               <QuoteCard key={word.id} word={word} showCategory={false} />
             ))}
 
-            {words.length > PAGE_SIZE && (
-              <div className="py-20 text-center">
-                <p className="text-sm text-text-muted font-medium">검색 기능을 이용하시면 더 많은 말씀을 찾으실 수 있습니다.</p>
-                <Link href="/search" className="btn-ghost inline-flex mt-6 group">
-                  지혜의 탐색 시작하기 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+            {/* 페이지네이션 */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-3 pt-12 pb-8">
+                {/* 이전 버튼 */}
+                <Link
+                  href={`/category/${encodeURIComponent(category)}?page=${Math.max(1, currentPage - 1)}`}
+                  className={`px-6 py-3.5 rounded-2xl text-sm font-medium transition-all flex items-center gap-2 border
+                    ${currentPage === 1
+                      ? "bg-slate-100 text-slate-400 border-slate-200 pointer-events-none"
+                      : "bg-white border-slate-200 hover:border-brand-primary hover:text-brand-primary active:scale-[0.97]"
+                    }`}
+                >
+                  ← 이전
+                </Link>
+
+                {/* 페이지 번호 */}
+                <div className="flex items-center gap-1.5 px-3">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((pageNum) => {
+                      // 간단하게 현재 페이지 주변 + 처음 + 마지막만 보여주기
+                      if (totalPages <= 7) return true;
+                      if (pageNum === 1 || pageNum === totalPages) return true;
+                      return Math.abs(pageNum - currentPage) <= 2;
+                    })
+                    .map((pageNum) => (
+                      <Link
+                        key={pageNum}
+                        href={`/category/${encodeURIComponent(category)}?page=${pageNum}`}
+                        className={`w-10 h-10 flex items-center justify-center rounded-2xl text-sm font-medium transition-all border
+                          ${currentPage === pageNum
+                            ? "bg-brand-primary text-white shadow-md border-brand-primary"
+                            : "bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                          }`}
+                      >
+                        {pageNum}
+                      </Link>
+                    ))}
+                </div>
+
+                {/* 다음 버튼 */}
+                <Link
+                  href={`/category/${encodeURIComponent(category)}?page=${Math.min(totalPages, currentPage + 1)}`}
+                  className={`px-6 py-3.5 rounded-2xl text-sm font-medium transition-all flex items-center gap-2 border
+                    ${currentPage === totalPages
+                      ? "bg-slate-100 text-slate-400 border-slate-200 pointer-events-none"
+                      : "bg-white border-slate-200 hover:border-brand-primary hover:text-brand-primary active:scale-[0.97]"
+                    }`}
+                >
+                  다음 →
                 </Link>
               </div>
             )}
           </div>
         ) : (
           <div className="text-center py-40 animate-in fade-in duration-700">
-             <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center text-4xl mx-auto mb-8 shadow-premium">
-                🍂
-              </div>
-            <p className="text-brand-deep font-black tracking-tight text-lg">이 카테고리에는 아직 말씀이 없습니다.</p>
+            <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center text-4xl mx-auto mb-8 shadow-premium">
+              🍂
+            </div>
+            <p className="text-brand-deep font-black tracking-tight text-lg">
+              이 카테고리에는 아직 말씀이 없습니다.
+            </p>
             <Link href="/category" className="btn-ghost mt-6">
               카테고리 목록으로 돌아가기
             </Link>

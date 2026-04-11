@@ -1,3 +1,4 @@
+// words-server.ts
 import "server-only";
 
 import rawWordsData from "@/data/words.json";
@@ -13,9 +14,10 @@ import {
   WordStats,
   SearchResult,
   extractChosung,
-  stemKorean,
+  stemWord,
   getSynonyms,
   getHighlightRanges,
+  hasHangul,
 } from "@/lib/words";
 
 // -----------------------------
@@ -61,13 +63,13 @@ export const allWords: Word[] = [
 
   ...CheonIlGukDdeutgilData.map((w, i) => ({
     ...w,
-    type: "CheonIlGukDdeutgil" as WordType,
+    type: "CheonIlGuk_ddeutgil" as WordType,
     id: 40000 + i,
   })),
 
   ...cheonseongDataEng.map((w, i) => ({
     ...w,
-    type: "CheonSeongGyeong_en" as WordType,
+    type: "CheonSeongGyeong_en_words" as WordType,
     id: 50000 + i,
   })),
 ];
@@ -86,11 +88,43 @@ const wordIndex: WordIndex[] = allWords.map((w) => ({
   textLower: w.text.toLowerCase().replace(/\s+/g, ""),
   sourceLower: w.source.toLowerCase(),
   speakerLower: (w.speaker || "").toLowerCase(),
-  textChosung: extractChosung(w.text).replace(/\s+/g, ""),
+  textChosung: extractChosung(w.text).toLowerCase().replace(/\s+/g, ""),
 }));
 
 // -----------------------------
-// 4️⃣ 핵심 검색 함수
+// 새로운 유틸: 문장 정규화 + 중복 제거
+// -----------------------------
+function normalizeTextForDeduplication(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s가-힣]/g, " ")   // 구두점 제거
+    .replace(/\s+/g, " ")            // 여러 공백 → 하나
+    .trim();
+}
+
+// 결과에서 반복되는 문장(또는 매우 유사한 문장)을 제거
+function deduplicateResults(results: SearchResult[]): SearchResult[] {
+  const seen = new Map<string, SearchResult>();
+
+  for (const res of results) {
+    const normalized = normalizeTextForDeduplication(res.word.text);
+    const existing = seen.get(normalized);
+
+    if (!existing) {
+      seen.set(normalized, res);
+    } else {
+      // 이미 있는 것보다 점수가 높으면 교체
+      if (res.score > existing.score) {
+        seen.set(normalized, res);
+      }
+    }
+  }
+
+  return Array.from(seen.values());
+}
+
+// -----------------------------
+// 4️⃣ 핵심 검색 함수 (중복 제거 + 영어 정확도 강화)
 // -----------------------------
 export function searchWordsServer(
   query: string,
@@ -110,6 +144,8 @@ export function searchWordsServer(
   const isChosungSearch =
     !isExactPhrase && /^[ㄱ-ㅎ]+$/.test(rawQuery);
 
+  const isKorean = hasHangul(rawQuery);
+
   const tokens = isExactPhrase
     ? [phrase!]
     : rawQuery.toLowerCase().split(/\s+/).filter(Boolean);
@@ -117,13 +153,23 @@ export function searchWordsServer(
   const tokenMeta = tokens.map((token) => ({
     token,
     tokenNoSpace: token.replace(/\s+/g, ""),
-    stem: stemKorean(token),
+    stem: stemWord(token),
     synonyms: getSynonyms(token),
     tokenChosung: extractChosung(token).replace(/\s+/g, ""),
   }));
 
-  const results: SearchResult[] = [];
+  let results: SearchResult[] = [];
   const counts: Record<string, number> = { all: 0 };
+
+  const useWholeWord = !isKorean && !isExactPhrase;
+
+  function tokenMatches(target: string, token: string): boolean {
+    if (!useWholeWord) return target.includes(token);
+
+    const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`\\b${escaped}\\b`, "i");
+    return regex.test(target);
+  }
 
   for (let i = 0; i < allWords.length; i++) {
     const word = allWords[i];
@@ -136,9 +182,6 @@ export function searchWordsServer(
     let score = 0;
     let highlightTokens: string[] = [];
 
-    // -----------------------------
-    // 초성 검색
-    // -----------------------------
     if (isChosungSearch) {
       if (ix.textChosung.includes(rawQuery)) {
         isMatch = true;
@@ -169,33 +212,33 @@ export function searchWordsServer(
             ? originalTextLower
             : `${ix.sourceLower} ${ix.speakerLower}`;
 
-        // 완전 포함
-        if (originalTarget.includes(token)) {
-          tokenScore = originalTarget === token ? 200 : 40;
+        // 1. Whole-Word 매칭 (텍스트 본문 중심으로 강화)
+        if (tokenMatches(originalTarget, token)) {
+          tokenScore = originalTarget === token.toLowerCase() ? 200 : 45; // 점수 약간 상향
           tokenMatched = true;
           highlightTokens.push(token);
         }
-        // 공백 제거 포함
+        // 2. 공백 제거 fallback
         else if (target.includes(tokenNoSpace)) {
-          tokenScore = 30;
+          tokenScore = 32;
           tokenMatched = true;
         }
 
-        // 어간 검색
+        // 3. Stem
         if (!tokenMatched && stem.length >= 2) {
-          if (originalTarget.includes(stem)) {
-            tokenScore = 25;
+          if (tokenMatches(originalTarget, stem)) {
+            tokenScore = 28;
             tokenMatched = true;
             bestMatchType = "stem";
             highlightTokens.push(stem);
           }
         }
 
-        // 동의어
+        // 4. Synonym
         if (!tokenMatched) {
           for (const syn of synonyms) {
-            if (originalTarget.includes(syn)) {
-              tokenScore = 15;
+            if (tokenMatches(originalTarget, syn.toLowerCase())) {
+              tokenScore = 18;
               tokenMatched = true;
               bestMatchType = "synonym";
               highlightTokens.push(syn);
@@ -204,13 +247,13 @@ export function searchWordsServer(
           }
         }
 
-        // 초성 fallback
+        // 5. Chosung fallback
         if (
           !tokenMatched &&
           tokenChosung.length >= 2 &&
           ix.textChosung.includes(tokenChosung)
         ) {
-          tokenScore = 10;
+          tokenScore = 12;
           tokenMatched = true;
           bestMatchType = "chosung";
         }
@@ -227,20 +270,15 @@ export function searchWordsServer(
         isMatch = true;
         score =
           totalScore *
-          (1 +
-            Math.max(0, 1 - word.text.length / 2000) * 0.2);
+          (1 + Math.max(0, 1 - word.text.length / 2500) * 0.25); // 긴 문장 페널티 완화
       }
     }
 
     if (!isMatch) continue;
 
-    // -----------------------------
-    // 통계
-    // -----------------------------
     counts.all++;
     counts[word.type] = (counts[word.type] || 0) + 1;
 
-    // 타입 필터
     if (type && word.type !== type) continue;
 
     results.push({
@@ -249,15 +287,19 @@ export function searchWordsServer(
       matchType: bestMatchType,
       highlightRanges: getHighlightRanges(
         word.text,
-        highlightTokens.length > 0
-          ? highlightTokens
-          : tokens
+        highlightTokens.length > 0 ? highlightTokens : tokens
       ),
     });
   }
 
+  // ★★★ 중복 문장 제거 ★★★
+  results = deduplicateResults(results);
+
+  // 점수 순 정렬
+  results.sort((a, b) => b.score - a.score);
+
   return {
-    results: results.sort((a, b) => b.score - a.score),
+    results,
     counts,
   };
 }

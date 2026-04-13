@@ -129,7 +129,7 @@ function deduplicateResults(results: SearchResult[]): SearchResult[] {
 export function searchWordsServer(
   query: string,
   mode: "text" | "source" = "text",
-  type?: WordType
+  type?: string
 ): { results: SearchResult[]; counts: Record<string, number> } {
   const rawQuery = query.trim();
   if (!rawQuery) return { results: [], counts: { all: 0 } };
@@ -159,7 +159,6 @@ export function searchWordsServer(
   }));
 
   let results: SearchResult[] = [];
-  const counts: Record<string, number> = { all: 0 };
 
   const useWholeWord = !isKorean && !isExactPhrase;
 
@@ -276,11 +275,6 @@ export function searchWordsServer(
 
     if (!isMatch) continue;
 
-    counts.all++;
-    counts[word.type] = (counts[word.type] || 0) + 1;
-
-    if (type && word.type !== type) continue;
-
     results.push({
       word,
       score,
@@ -292,14 +286,32 @@ export function searchWordsServer(
     });
   }
 
-  // ★★★ 중복 문장 제거 ★★★
-  results = deduplicateResults(results);
+  // ★★★ 중복 문장 제거 (전체 풀 대상) ★★★
+  let deduplicatedResults = deduplicateResults(results);
+
+  // 카운트 계산: 중복이 완전히 합쳐진(Deduplicated) 결과를 바탕으로 각 카테고리별 Count 집계
+  const counts: Record<string, number> = { all: 0 };
+  for (const res of deduplicatedResults) {
+    counts.all++;
+    counts[res.word.type] = (counts[res.word.type] || 0) + 1;
+  }
+
+  // 프론트엔드 SearchCategoryTabs.tsx 내의 하드코딩된 오타("Cheon Il Guk_ddeutgil") 대응용 Fallback Alias 주입
+  counts["Cheon Il Guk_ddeutgil"] = counts["CheonIlGuk_ddeutgil"] || 0;
+
+  // 타입 필터링: 탭(type) 선택 시 필터링 (아이디 공백 에러 방어 포함)
+  if (type) {
+    const normalizedType = type.replace(/\s+/g, "");
+    deduplicatedResults = deduplicatedResults.filter(
+      (r) => r.word.type.replace(/\s+/g, "") === normalizedType
+    );
+  }
 
   // 점수 순 정렬
-  results.sort((a, b) => b.score - a.score);
+  deduplicatedResults.sort((a, b) => b.score - a.score);
 
   return {
-    results,
+    results: deduplicatedResults,
     counts,
   };
 }

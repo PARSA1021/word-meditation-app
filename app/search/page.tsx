@@ -10,7 +10,10 @@ import QuoteCard from "@/components/QuoteCard";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then(async (res) => {
+  if (!res.ok) throw new Error("Search API failed");
+  return res.json();
+});
 
 function SearchFeed() {
   const router = useRouter();
@@ -43,14 +46,16 @@ function SearchFeed() {
     setPage(1);
   }, [query, mode, type]);
 
-  const { data, isLoading } = useSWR(
-    query ? `/api/words/search?q=${encodeURIComponent(query)}&mode=${mode}${type ? `&type=${type}` : ""}&page=${page}&limit=${limit}` : null,
+  const { data, isLoading, isValidating } = useSWR(
+    query ? `/api/words/search?q=${encodeURIComponent(query)}&mode=${mode}${type ? `&type=${encodeURIComponent(type)}` : ""}&page=${page}&limit=${limit}` : null,
     fetcher,
     { 
       keepPreviousData: true,
       revalidateOnFocus: false
     }
   );
+
+  const isFetching = isLoading || isValidating;
 
   const handleTypeChange = (newType: string) => {
     setType(newType);
@@ -112,7 +117,7 @@ function SearchFeed() {
       {/* 2. Results Feed */}
       <main className="max-w-3xl mx-auto w-full px-4 md:px-6 pt-4 pb-24 lg:pb-12">
         <AnimatePresence mode="wait">
-          {isLoading && !data && (
+          {isFetching && !data && (
             <motion.div
               key="loading"
               initial={{ opacity: 0 }}
@@ -206,7 +211,7 @@ function SearchFeed() {
                 </div>
               )}
 
-              {data.data.length < data.meta.total && totalPages <= 1 && (
+              {data?.data && (data.data.length ?? 0) < (data?.meta?.total ?? 0) && totalPages <= 1 && (
                 <div className="py-20 text-center">
                   <div className="w-1 h-12 bg-slate-200/50 mx-auto mb-6 rounded-full" />
                   <p className="text-[11px] text-slate-300 font-black uppercase tracking-[0.4em]">
@@ -215,7 +220,7 @@ function SearchFeed() {
                 </div>
               )}
             </motion.div>
-          ) : query && !isLoading ? (
+          ) : query && !isFetching ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, y: 10 }}

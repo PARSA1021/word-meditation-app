@@ -1,39 +1,14 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { Word } from "@/lib/words"
 import QuoteCard from "@/components/QuoteCard"
 import Link from "next/link"
+import { useRandomWord } from "@/hooks/useRandomWord"
 
 export default function TodayPage() {
-  const [word, setWord] = useState<Word | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  const fetchRandomWord = useCallback(async (exceptId?: number) => {
-    setLoading(true)
-    try {
-      const url = exceptId
-        ? `/api/words/random?except=${exceptId}`
-        : '/api/words/random'
-
-      const res = await fetch(url)
-      if (res.ok) {
-        const data = await res.json()
-        setWord(data)
-      }
-    } catch (error) {
-      console.error("Failed to fetch random word:", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchRandomWord()
-  }, [fetchRandomWord])
+  const { data: word, isLoading, isValidating, refreshWord } = useRandomWord()
 
   // 초기 로딩 화면
-  if (!word && loading) {
+  if (!word && isLoading) {
     return (
       <div className="min-h-screen bg-[#F2F2F7] flex flex-col items-center justify-center p-6">
         <div className="w-11 h-11 border-4 border-[#0099FF] border-t-transparent rounded-full animate-spin mb-6" />
@@ -74,17 +49,17 @@ export default function TodayPage() {
 
             {/* 새로고침 버튼 */}
             <button
-              onClick={() => fetchRandomWord(word?.id)}
-              disabled={loading}
+              onClick={() => refreshWord(word?.id)}
+              disabled={isValidating}
               className={`w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-300
-                ${loading
+                ${isValidating
                   ? 'bg-slate-100 text-slate-400'
                   : 'bg-white shadow-sm border border-slate-100 hover:border-[#0099FF] hover:text-[#0099FF] active:scale-95'
                 }`}
               aria-label="새로운 말씀 보기"
             >
               <svg
-                className={`w-5 h-5 transition-transform ${loading ? 'animate-spin' : ''}`}
+                className={`w-5 h-5 transition-transform ${isValidating ? 'animate-spin' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -119,7 +94,7 @@ export default function TodayPage() {
       </main>
 
       {/* Refresh Overlay */}
-      {loading && word && (
+      {isValidating && word && (
         <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-40 flex items-center justify-center">
           <div className="flex flex-col items-center">
             <div className="w-8 h-8 border-4 border-[#0099FF] border-t-transparent rounded-full animate-spin mb-4" />

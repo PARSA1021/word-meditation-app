@@ -20,19 +20,40 @@ function SearchFeed() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // URL에서 초기 상태 로드 및 상태 통합
-  const [query, setQuery] = useState(searchParams.get("q") || "");
-  const [mode, setMode] = useState<"text" | "source">((searchParams.get("mode") as "text" | "source") || "text" as const);
-  const [type, setType] = useState(searchParams.get("type") || "");
-  const [page, setPage] = useState(parseInt(searchParams.get("page") || "1"));
-  const limit = 30; // User requested 30-50 per page
+  // URL에서 초기 상태 로드 (없으면 sessionStorage에서 복원)
+  const [query, setQuery] = useState(() => {
+    return searchParams.get("q") || (typeof window !== "undefined" ? sessionStorage.getItem("last_search_query") : "") || "";
+  });
+  const [mode, setMode] = useState<"text" | "source">(() => {
+    return (searchParams.get("mode") as "text" | "source") || (typeof window !== "undefined" ? sessionStorage.getItem("last_search_mode") as "text" | "source" : "text") || "text";
+  });
+  const [type, setType] = useState(() => {
+    return searchParams.get("type") || (typeof window !== "undefined" ? sessionStorage.getItem("last_search_type") : "") || "";
+  });
+  const [page, setPage] = useState(() => {
+    return parseInt(searchParams.get("page") || "1");
+  });
+  
+  const limit = 30;
 
-  // 검색 상태 변경 시 URL 업데이트
+  // 검색 상태 변경 시 URL 및 sessionStorage 업데이트
   useEffect(() => {
     const params = new URLSearchParams();
-    if (query) params.set("q", query);
-    if (mode !== "text") params.set("mode", mode);
-    if (type) params.set("type", type);
+    if (query) {
+      params.set("q", query);
+      sessionStorage.setItem("last_search_query", query);
+    } else {
+      sessionStorage.removeItem("last_search_query");
+    }
+    
+    params.set("mode", mode);
+    sessionStorage.setItem("last_search_mode", mode);
+    
+    if (type) {
+      params.set("type", type);
+      sessionStorage.setItem("last_search_type", type);
+    }
+    
     if (page > 1) params.set("page", page.toString());
 
     const queryString = params.toString();
@@ -40,6 +61,22 @@ function SearchFeed() {
     
     router.replace(newUrl, { scroll: false });
   }, [query, mode, type, page, pathname, router]);
+
+  // 페이지 진입 시 이전 스크롤 위치 복원
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem("last_search_scroll");
+    if (savedScroll && !searchParams.get("q")) { // 신규 검색이 아닐 때만 복원
+       // 데이터 로딩 시간을 고려하여 약간의 지연 후 스크롤
+       setTimeout(() => {
+         window.scrollTo({ top: parseInt(savedScroll), behavior: "instant" });
+       }, 100);
+    }
+
+    // 페이지를 떠날 때 스크롤 위치 저장
+    return () => {
+      sessionStorage.setItem("last_search_scroll", window.scrollY.toString());
+    };
+  }, []);
 
   // 필터 변경 시 페이지 초기화
   useEffect(() => {

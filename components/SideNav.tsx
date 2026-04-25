@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
+import AccessibilitySettings from "./settings/AccessibilitySettings";
 
 interface DailyWordData {
   text: string;
@@ -64,8 +65,8 @@ export default function SideNav() {
       ),
     },
     {
-      href: "/category",
-      label: "주제별",
+      href: "/library",
+      label: "라이브러리",
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -167,6 +168,11 @@ export default function SideNav() {
           );
         })}
       </nav>
+
+      {/* Accessibility Settings */}
+      <div className="mt-8 mb-6">
+        <AccessibilitySettings />
+      </div>
 
       {/* 오늘의 한마디 */}
       <div className="mt-auto w-full pt-6">

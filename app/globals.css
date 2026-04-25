@@ -5,11 +5,11 @@
    TruePath Premium Design System (Calm Edition)
 ----------------------- */
 @theme {
-  /* Colors */
-  --color-brand-primary: #0088EE;
+  /* Colors - TruePath Premium Palette */
+  --color-brand-primary: #0088EE;         /* Faith Blue */
   --color-brand-primary-hover: #0077DD;
-  --color-brand-deep: #1E293B;
-  --color-brand-bg: #F8FAFC;
+  --color-brand-deep: #1E293B;            /* Slate 800 for contrast */
+  --color-brand-bg: #F8FAFC;              /* Light Slate for depth */
   
   --color-surface-white: #FFFFFF;
   --color-surface-muted: #F1F5F9;
@@ -19,6 +19,13 @@
   --color-text-secondary: #64748B;
   --color-text-muted: #94A3B8;
 
+  /* Spacing System (Standardized) */
+  --spacing-8: 8px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-40: 40px;
+  --spacing-64: 64px;
+
   /* Radius */
   --radius-xs: 8px;
   --radius-sm: 12px;
@@ -26,9 +33,10 @@
   --radius-lg: 32px;
   --radius-xl: 40px;
 
-  /* Shadows */
+  /* Shadows - Layered for Premium Feel */
   --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
   --shadow-active: 0 20px 40px -12px rgba(0, 136, 238, 0.15);
+  --shadow-inner-soft: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
 }
 
 :root {
@@ -108,8 +116,27 @@ body {
   @apply text-xl md:text-2xl font-extrabold tracking-tight text-brand-deep;
 }
 
+/* -----------------------
+   Accessibility & Font Scaling
+----------------------- */
+
+.font-zoom-lg {
+  --font-scale: 1.15;
+}
+
+.font-zoom-xl {
+  --font-scale: 1.30;
+}
+
 .scripture-text {
   @apply text-lg md:text-2xl leading-[1.8] text-brand-deep italic font-serif;
+  font-size: calc(1.125rem * var(--font-scale) * 1.1); /* Slightly larger for scripture */
+}
+
+@media (min-width: 768px) {
+  .scripture-text {
+    font-size: calc(1.5rem * var(--font-scale) * 1.1);
+  }
 }
 
 /* -----------------------

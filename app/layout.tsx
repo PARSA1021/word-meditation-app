@@ -2,6 +2,8 @@ import "./globals.css"
 import BottomNav from "@/components/BottomNav"
 import SideNav from "@/components/SideNav"
 import { uiFont } from "@/lib/fonts"
+import { BookmarkProvider } from "@/context/BookmarkContext"
+import { SettingsProvider } from "@/context/SettingsContext"
 
 export const metadata = {
   title: "TruePath",
@@ -44,19 +46,23 @@ export default function RootLayout({
           duration-300
         `}
       >
-        <div className="flex min-h-[100dvh]">
-          {/* Desktop Side Navigation */}
-          <SideNav />
-          
-          <main className="flex-1 pb-24 lg:pb-0 lg:pl-72 min-h-screen max-w-full overflow-x-hidden">
-            <div className="max-w-[1600px] mx-auto">
-              {children}
+        <SettingsProvider>
+          <BookmarkProvider>
+            <div className="flex min-h-[100dvh]">
+              {/* Desktop Side Navigation */}
+              <SideNav />
+              
+              <main className="flex-1 pb-24 lg:pb-0 lg:pl-72 min-h-screen max-w-full overflow-x-hidden">
+                <div className="max-w-[1600px] mx-auto">
+                  {children}
+                </div>
+              </main>
             </div>
-          </main>
-        </div>
 
-        {/* Mobile Bottom Navigation */}
-        <BottomNav />
+            {/* Mobile Bottom Navigation */}
+            <BottomNav />
+          </BookmarkProvider>
+        </SettingsProvider>
       </body>
     </html>
   )

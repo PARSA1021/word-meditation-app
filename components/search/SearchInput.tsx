@@ -6,20 +6,35 @@ interface SearchInputProps {
   onSearch: (query: string) => void;
   placeholder?: string;
   initialValue?: string;
+  autoFocus?: boolean;
 }
 
 export default function SearchInput({
   onSearch,
   placeholder = "키워드를 입력하세요...",
   initialValue = "",
+  autoFocus = false,
 }: SearchInputProps) {
   const [value, setValue] = useState(initialValue);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  // Sync with initialValue (important for back navigation)
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  // Handle focus
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
 
   // Debounce effect
   useEffect(() => {
     const handler = setTimeout(() => {
       onSearch(value);
-    }, 300); // 300ms debounce
+    }, 400); // 400ms debounce for smoother feeling
 
     return () => clearTimeout(handler);
   }, [value, onSearch]);
@@ -36,6 +51,7 @@ export default function SearchInput({
         </svg>
       </div>
       <input
+        ref={inputRef}
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}

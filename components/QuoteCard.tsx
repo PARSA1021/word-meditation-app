@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Word } from "@/lib/words";
 import { scriptureFont } from "@/lib/fonts";
 import { motion, AnimatePresence } from "framer-motion";
+import { useBookmarks } from "@/context/BookmarkContext";
 
 interface QuoteCardProps {
   word: Word;
   showCategory?: boolean;
   highlightRanges?: Array<{ start: number; end: number }>;
+  id?: string;
 }
 
 function HighlightedByRanges({
@@ -41,10 +43,19 @@ export default function QuoteCard({
   word,
   showCategory = false,
   highlightRanges,
+  id,
 }: QuoteCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const { toggleBookmark, isBookmarked } = useBookmarks();
+  
+  const bookmarked = isBookmarked(word.id);
   const MAX_LENGTH = 160;
+
+  const handleToggleBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleBookmark(word);
+  };
 
   const needsExpansion = word.text.length > MAX_LENGTH;
   const displayText = !isExpanded && needsExpansion
@@ -145,26 +156,38 @@ export default function QuoteCard({
           )}
         </div>
 
-        <button
-          onClick={copyToClipboard}
-          className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-500 relative
-            ${isCopied
-              ? "bg-green-500 text-white"
-              : "bg-slate-50 text-slate-400 hover:bg-brand-primary hover:text-white active:scale-90"
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileTap={{ scale: 0.8 }}
+            onClick={handleToggleBookmark}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
+              bookmarked ? "bg-red-50 text-red-500" : "bg-slate-50 text-slate-400 hover:text-red-400"
             }`}
-        >
-          <AnimatePresence mode="wait">
-            {isCopied ? (
-              <motion.svg key="check" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-              </motion.svg>
-            ) : (
-              <motion.svg key="copy" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-              </motion.svg>
-            )}
-          </AnimatePresence>
-        </button>
+          >
+            <svg className="w-5 h-5" fill={bookmarked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </motion.button>
+
+          <button
+            onClick={copyToClipboard}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 ${
+              isCopied ? "bg-green-50 text-green-600" : "bg-slate-50 text-slate-400 hover:text-brand-primary"
+            }`}
+          >
+            <AnimatePresence mode="wait">
+              {isCopied ? (
+                <motion.svg key="check" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                </motion.svg>
+              ) : (
+                <motion.svg key="copy" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </motion.svg>
+              )}
+            </AnimatePresence>
+          </button>
+        </div>
       </motion.div>
 
       {/* 4. Expanded Content: Simple Full Text View */}

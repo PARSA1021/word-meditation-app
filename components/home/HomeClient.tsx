@@ -104,14 +104,14 @@ export default function HomeClient({ stats }: HomeClientProps) {
                 key={category}
                 name={category}
                 count={count as number}
-                href={`/category/${encodeURIComponent(category)}`}
+                href={`/library`}
               />
             ))}
           </div>
 
           <div className="text-center pt-2">
-            <Link href="/category" className="text-sm font-black text-text-secondary hover:text-brand-primary transition-all flex items-center justify-center gap-2 group">
-              전체 카테고리 보기 <span className="group-hover:translate-x-1.5 transition-transform duration-300">→</span>
+            <Link href="/library" className="text-sm font-black text-text-secondary hover:text-brand-primary transition-all flex items-center justify-center gap-2 group">
+              전체 라이브러리 보기 <span className="group-hover:translate-x-1.5 transition-transform duration-300">→</span>
             </Link>
           </div>
         </motion.section>
@@ -135,7 +135,7 @@ export default function HomeClient({ stats }: HomeClientProps) {
         <motion.section variants={itemVariants} className="pt-12 md:pt-20 pb-10">
            <div className="flex justify-center gap-8 md:gap-12 flex-wrap">
             <QuickActionBtn href="/search" icon="🔭" text="검색" />
-            <QuickActionBtn href="/category" icon="📁" text="주제별" />
+            <QuickActionBtn href="/library" icon="📁" text="주제별" />
             <QuickActionBtn href="/quiz" icon="✨" text="퀴즈" />
             <QuickActionBtn href="/donate" icon="🤍" text="후원" />
             <QuickActionBtn href="/today" icon="🌅" text="묵상" />

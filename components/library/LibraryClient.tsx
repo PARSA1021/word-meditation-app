@@ -80,197 +80,351 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-      {/* 📱 Mobile Toggle Button */}
-      <div className="md:hidden sticky top-0 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between">
-        <button 
-          onClick={() => setIsSidebarOpen(true)}
-          className="flex items-center gap-2 text-primary font-medium"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          목차 열기
-        </button>
-        <div className="text-xs font-semibold text-slate-400 truncate max-w-[200px]">
-          {selectedPath.join(" > ") || "말씀 카테고리 선택"}
+    <div className="flex flex-col md:flex-row min-h-screen bg-brand-bg dark:bg-slate-950 text-text-primary dark:text-slate-100 transition-colors duration-500">
+      
+      {/* 🖥️ Desktop Sidebar */}
+      <aside className="hidden md:flex sticky top-0 left-0 w-85 h-screen overflow-hidden flex-col glass-sidebar z-30">
+        <div className="p-10 pb-6 flex items-center justify-between">
+          <h2 className="heading-lg !text-2xl">말씀 도서관</h2>
         </div>
-      </div>
 
-      {/* 🖥️ Desktop Sidebar / 📱 Mobile Drawer Overlay */}
-      <AnimatePresence>
-        {(isSidebarOpen || true) && (
-          <motion.aside
-            initial={false}
-            animate={{ x: 0 }}
-            className={`
-              fixed md:sticky top-0 left-0 z-50
-              w-72 h-screen overflow-hidden flex flex-col
-              bg-slate-50 dark:bg-slate-900/50
-              border-r border-slate-200 dark:border-slate-800
-              transition-transform duration-300 ease-in-out
-              ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-            `}
-          >
-            <div className="p-6 pb-0 flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold tracking-tight">말씀 라이브러리</h2>
-              <button 
-                className="md:hidden"
-                onClick={() => setIsSidebarOpen(false)}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+        {/* 🔍 Search Input */}
+        <div className="px-8 mb-8">
+          <div className="relative group">
+            <input
+              type="text"
+              placeholder="목차 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white dark:bg-slate-800 border border-border-subtle dark:border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all placeholder:text-text-muted font-bold shadow-sm"
+            />
+            <svg className="absolute left-4.5 top-4.5 w-4.5 h-4.5 text-text-muted group-focus-within:text-brand-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
 
-            {/* 🔍 Search Input */}
-            <div className="px-6 mb-6">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="목차 검색..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+        {/* 📑 Mode Switcher Tabs */}
+        <div className="px-5 mb-8 flex gap-1 bg-slate-200/40 dark:bg-slate-800/40 p-1.5 rounded-[22px] mx-8 border border-white dark:border-slate-700/50 shadow-inner-soft">
+          {[
+            { id: "hierarchy", label: "계층", color: "text-brand-primary" },
+            { id: "topics", label: "주제", color: "text-brand-primary" },
+            { id: "bookmarks", label: "저장", color: "text-red-500" }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all duration-500 ${activeTab === tab.id ? `bg-white dark:bg-slate-700 shadow-premium ${tab.color}` : "text-text-muted hover:text-text-secondary"}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <nav className="flex-1 overflow-y-auto px-8 pb-16 space-y-1.5 custom-scrollbar">
+          {activeTab === "hierarchy" ? (
+            Object.values(filteredTOC.children).length > 0 ? (
+              Object.values(filteredTOC.children).map((categoryNode) => (
+                <TOCAccordion
+                  key={categoryNode.name}
+                  node={categoryNode}
+                  level={0}
+                  onSelect={handleSelectSection}
+                  selectedPath={selectedPath}
+                  searchQuery={searchQuery}
                 />
-                <svg className="absolute left-3 top-3 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+              ))
+            ) : (
+              <div className="py-24 text-center space-y-4 opacity-40">
+                <span className="text-4xl block">🔍</span>
+                <p className="text-xs font-black uppercase tracking-widest text-text-muted">No Results Found</p>
               </div>
+            )
+          ) : activeTab === "topics" ? (
+            <div className="grid gap-3">
+               {topics.map((topic) => (
+                 <button
+                    key={topic.name}
+                    onClick={() => handleSelectSection([topic.name])}
+                    className={`group w-full text-left p-5 rounded-[24px] text-sm transition-all flex items-center gap-4 border ${selectedPath[0] === topic.name ? 'bg-white dark:bg-slate-800 border-brand-primary/20 text-brand-primary font-black shadow-premium' : 'bg-white/40 dark:bg-slate-800/40 border-transparent hover:border-border-subtle'}`}
+                 >
+                    <span className="text-2xl group-hover:scale-110 transition-transform duration-500">📁</span>
+                    <div>
+                      <p className="font-bold tracking-tight">{topic.name}</p>
+                      <p className="text-[10px] text-text-muted mt-1 uppercase font-black tracking-widest">Explore Folder</p>
+                    </div>
+                 </button>
+               ))}
             </div>
-
-            {/* 📑 Mode Switcher Tabs */}
-            <div className="px-5 mb-4 flex gap-1 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-xl mx-5">
-              <button
-                onClick={() => setActiveTab("hierarchy")}
-                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === "hierarchy" ? "bg-white dark:bg-slate-700 shadow-sm text-primary" : "text-slate-400"}`}
-              >
-                계층
-              </button>
-              <button
-                onClick={() => setActiveTab("topics")}
-                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === "topics" ? "bg-white dark:bg-slate-700 shadow-sm text-primary" : "text-slate-400"}`}
-              >
-                주제
-              </button>
-              <button
-                onClick={() => setActiveTab("bookmarks")}
-                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === "bookmarks" ? "bg-white dark:bg-slate-700 shadow-sm text-red-500" : "text-slate-400"}`}
-              >
-                저장
-              </button>
-            </div>
-
-            <nav className="flex-1 overflow-y-auto px-6 pb-6 space-y-1">
-              {activeTab === "hierarchy" ? (
-                Object.values(filteredTOC.children).length > 0 ? (
-                  Object.values(filteredTOC.children).map((categoryNode) => (
-                    <TOCAccordion
-                      key={categoryNode.name}
-                      node={categoryNode}
-                      level={0}
-                      onSelect={handleSelectSection}
-                      selectedPath={selectedPath}
-                      searchQuery={searchQuery}
-                    />
+          ) : (
+            <div className="py-4 space-y-8">
+              <div className="flex items-center justify-between px-2">
+                <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em]">Saved Wisdom</p>
+                <span className="bg-red-50 dark:bg-red-900/20 text-red-500 text-[10px] font-black px-3 py-1 rounded-full">{bookmarks.length}</span>
+              </div>
+              <div className="grid gap-3">
+                {bookmarks.length > 0 ? (
+                  bookmarks.map(word => (
+                    <button
+                      key={word.id}
+                      onClick={() => {
+                        setActiveTab("bookmarks");
+                        // Smooth scroll to top when switching to bookmarks
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="group w-full text-left p-5 rounded-[24px] text-[13px] font-bold text-text-primary dark:text-slate-300 bg-white/40 dark:bg-slate-800/40 border border-transparent hover:border-red-100 transition-all flex items-center gap-4"
+                    >
+                      <span className="text-xl group-hover:scale-120 transition-transform duration-500">❤️</span>
+                      <span className="line-clamp-1 flex-1 font-bold">{word.text}</span>
+                    </button>
                   ))
                 ) : (
-                  <div className="py-10 text-center text-xs text-slate-400">
-                    검색 결과가 없습니다.
+                  <div className="py-20 text-center">
+                    <p className="text-xs font-black uppercase tracking-widest text-text-muted">No Saved Items</p>
                   </div>
-                )
-              ) : activeTab === "topics" ? (
-                <div className="grid gap-2">
-                   {topics.map((topic) => (
-                     <button
-                        key={topic.name}
-                        onClick={() => {
-                          setSelectedPath([topic.name]);
-                          setIsSidebarOpen(false);
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        className={`w-full text-left p-3 rounded-xl text-sm transition-all flex items-center gap-3 border ${selectedPath[0] === topic.name ? 'bg-primary/5 border-primary/20 text-primary font-bold' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-800 hover:border-primary/20'}`}
-                     >
-                        <span className="text-lg">📁</span>
-                        {topic.name}
-                     </button>
-                   ))}
-                </div>
-              ) : (
-                <div className="py-4 space-y-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Saved Verses ({bookmarks.length})</p>
-                  <div className="grid gap-2">
-                    {bookmarks.length > 0 ? (
-                      bookmarks.map(word => (
-                        <button
-                          key={word.id}
-                          onClick={() => {
-                            setSelectedPath([]); // Clear path to show search results or dedicated view
-                            // We might need a "View All Bookmarks" mode in WordListViewer
-                            setIsSidebarOpen(false);
-                          }}
-                          className="w-full text-left p-3 rounded-xl text-[13px] font-bold text-slate-600 bg-white border border-slate-100 hover:border-red-200 transition-all line-clamp-1"
-                        >
-                          ❤️ {word.text}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="py-10 text-center">
-                        <p className="text-xs text-slate-400">저장된 말씀이 없습니다.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </nav>
-          </motion.aside>
-        )}
-      </AnimatePresence>
+                )}
+              </div>
+            </div>
+          )}
+        </nav>
+      </aside>
 
-      {/* 📱 Mobile Drawer Backdrop */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+      {/* 📱 Mobile UI: Top Navigation & Quick TOC */}
+      <div className="md:hidden">
+         {/* Main Sticky Header */}
+         <div className="sticky top-0 z-50 glass-header transition-all duration-500">
+            <div className="p-6 flex items-center justify-between">
+               <div className="flex items-center gap-4">
+                 <button 
+                   onClick={() => setIsSidebarOpen(true)}
+                   className="w-12 h-12 rounded-2xl bg-brand-deep dark:bg-white text-white dark:text-brand-deep flex items-center justify-center shadow-active active:scale-90 transition-all"
+                 >
+                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 6h16M4 12h16M4 18h16" />
+                   </svg>
+                 </button>
+                 <h1 className="heading-lg">도서관</h1>
+               </div>
+               
+               <div className="flex items-center gap-2">
+                 <button 
+                    onClick={() => setActiveTab("bookmarks")}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-90 ${activeTab === "bookmarks" ? "bg-red-50 text-red-500 shadow-premium" : "bg-white/40 dark:bg-slate-800/40 text-text-muted border border-slate-100"}`}
+                 >
+                    <span className="text-xl">❤️</span>
+                 </button>
+               </div>
+            </div>
+
+            {/* Horizontal Quick-Nav (Level 1 Categories) */}
+            <div className="px-6 pb-6 overflow-x-auto no-scrollbar flex items-center gap-3">
+               <button
+                 onClick={() => {
+                   setSelectedPath([]);
+                   setActiveTab("hierarchy");
+                 }}
+                 className={`flex-shrink-0 px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all border ${selectedPath.length === 0 ? "bg-brand-deep text-white border-brand-deep shadow-active" : "bg-white dark:bg-slate-900 text-text-muted border-border-subtle dark:border-slate-800"}`}
+               >
+                 ALL
+               </button>
+               {Object.values(toc.children).map((node) => (
+                 <button
+                   key={node.name}
+                   onClick={() => handleSelectSection([node.name])}
+                   className={`flex-shrink-0 px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.2em] border transition-all ${selectedPath[0] === node.name ? "bg-brand-primary/5 text-brand-primary border-brand-primary/20 shadow-sm font-black" : "bg-white dark:bg-slate-900 text-text-muted border-border-subtle dark:border-slate-800"}`}
+                 >
+                   {node.name}
+                 </button>
+               ))}
+            </div>
+         </div>
+
+         {/* Bottom Drawer */}
+         <AnimatePresence>
+            {isSidebarOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="fixed inset-0 bg-brand-deep/30 backdrop-blur-md z-[100]"
+                />
+                <motion.div
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                  className="fixed inset-x-0 bottom-0 bg-brand-bg dark:bg-slate-900 rounded-t-[48px] shadow-2xl z-[101] flex flex-col h-[88vh] border-t border-white dark:border-slate-800"
+                >
+                  <div className="flex justify-center p-5">
+                    <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full opacity-50" />
+                  </div>
+                  
+                  <div className="flex-1 flex flex-col min-h-0">
+                    <div className="px-10 flex items-center justify-between mb-8">
+                      <div>
+                        <h2 className="heading-lg">도서관 탐색</h2>
+                        <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mt-1">Explore Word Wisdom</p>
+                      </div>
+                      <button 
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-text-muted active:scale-90 transition-all font-black text-2xl shadow-sm"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="px-10 flex-1 overflow-hidden flex flex-col">
+                      <div className="relative mb-8">
+                        <input
+                          type="text"
+                          placeholder="어떤 말씀을 찾으시나요?"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full bg-white dark:bg-slate-800 border-none rounded-3xl py-5 pl-14 pr-6 text-base focus:ring-4 focus:ring-brand-primary/10 transition-all font-bold placeholder:text-text-muted shadow-inner-soft"
+                        />
+                        <svg className="absolute left-5 top-5 w-6 h-6 text-text-muted font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+
+                      <div className="flex gap-1.5 bg-slate-200/50 dark:bg-slate-800/50 p-2 rounded-3xl mb-8 border border-white/50 dark:border-slate-700/50">
+                        {[
+                          { id: "hierarchy", label: "계층", color: "text-brand-primary" },
+                          { id: "topics", label: "주제", color: "text-brand-primary" },
+                          { id: "bookmarks", label: "저장", color: "text-red-500" }
+                        ].map((tab) => (
+                          <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={`flex-1 py-4 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all duration-500 ${activeTab === tab.id ? `bg-white dark:bg-slate-700 shadow-premium ${tab.color}` : "text-text-muted"}`}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <nav className="flex-1 overflow-y-auto pb-20 space-y-2 custom-scrollbar">
+                        {activeTab === "hierarchy" ? (
+                          Object.values(filteredTOC.children).map((node) => (
+                            <TOCAccordion
+                              key={node.name}
+                              node={node}
+                              level={0}
+                              onSelect={handleSelectSection}
+                              selectedPath={selectedPath}
+                              searchQuery={searchQuery}
+                            />
+                          ))
+                        ) : activeTab === "topics" ? (
+                          <div className="grid gap-4">
+                            {topics.map((topic) => (
+                              <button
+                                key={topic.name}
+                                onClick={() => handleSelectSection([topic.name])}
+                                className="w-full text-left p-6 rounded-[32px] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center gap-5 active:scale-95 transition-all shadow-premium group"
+                              >
+                                <span className="text-3xl group-hover:rotate-12 transition-transform duration-500">📁</span>
+                                <span className="text-base font-black text-brand-deep dark:text-white tracking-tight">{topic.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="space-y-4 pb-12">
+                            {bookmarks.map(word => (
+                              <button
+                                key={word.id}
+                                onClick={() => {
+                                  setActiveTab("bookmarks");
+                                  setIsSidebarOpen(false);
+                                }}
+                                className="w-full text-left p-6 rounded-[32px] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center gap-5 active:scale-95 transition-all shadow-premium group"
+                              >
+                                <span className="text-2xl group-hover:scale-120 transition-transform duration-500">❤️</span>
+                                <span className="text-[15px] font-bold text-brand-deep dark:text-white line-clamp-1 flex-1">{word.text}</span>
+                              </button>
+                            ))}
+                            {bookmarks.length === 0 && (
+                              <div className="py-24 text-center">
+                                <span className="text-4xl block mb-4 opacity-50">💝</span>
+                                <p className="text-sm font-black uppercase tracking-widest text-text-muted">Empty Collection</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </nav>
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
+         </AnimatePresence>
+      </div>
 
       {/* 📄 Main Content Area */}
-      <main className="flex-1 w-full max-w-4xl mx-auto px-6 py-8 md:py-12">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10 md:py-20 pb-safe-offset-20">
         {activeTab === "bookmarks" ? (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <div className="flex items-center justify-between mb-8">
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-12 duration-1000 pt-8 md:pt-0">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-12">
               <div>
-                <h2 className="text-2xl font-black text-brand-deep tracking-tight">저장된 말씀</h2>
-                <p className="text-[11px] font-bold text-text-muted uppercase tracking-widest mt-1">
-                  Saved Verses ({bookmarks.length})
+                <p className="text-[12px] font-black text-brand-primary uppercase tracking-[0.4em] mb-3">Collection</p>
+                <h2 className="heading-xl">저장된 말씀</h2>
+                <p className="text-text-muted font-bold mt-2">
+                  Total of {bookmarks.length} verses saved for your meditation.
                 </p>
               </div>
             </div>
             
             {bookmarks.length > 0 ? (
-              <div className="grid gap-6">
+              <div className="grid gap-10 md:gap-14 pb-32">
                 {bookmarks.map((word) => (
                   <QuoteCard key={word.id} word={word} showCategory={true} />
                 ))}
               </div>
             ) : (
-              <div className="py-20 text-center space-y-4">
-                <div className="text-5xl">💝</div>
+              <div className="py-32 text-center space-y-8">
+                <div className="text-8xl animate-pulse">💝</div>
                 <div>
-                  <p className="text-lg font-bold text-slate-700">아직 저장된 말씀이 없습니다.</p>
-                  <p className="text-sm text-slate-400 mt-1">마음에 드는 말씀의 하트 아이콘을 눌러 저장해보세요.</p>
+                  <p className="heading-lg">아직 저장된 말씀이 없습니다</p>
+                  <p className="text-text-muted font-bold mt-4 max-w-sm mx-auto leading-relaxed">
+                    마음에 울림을 주는 말씀들을 <br/>나만의 보물함에 담아보세요.
+                  </p>
                 </div>
               </div>
             )}
           </div>
+        ) : selectedNode ? (
+          <div className="pt-8 md:pt-0">
+            <WordListViewer 
+              node={selectedNode} 
+              isLoading={false} 
+            />
+          </div>
         ) : (
-          <WordListViewer 
-            node={selectedNode} 
-            isLoading={false} 
-          />
+          <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-12 animate-in fade-in duration-1000 pt-16 md:pt-0">
+             <div className="relative">
+                <div className="w-40 h-40 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-[56px] flex items-center justify-center text-7xl shadow-premium border border-white/80">📖</div>
+                <div className="absolute -top-4 -right-4 w-14 h-14 bg-brand-primary text-white rounded-full shadow-active flex items-center justify-center animate-bounce text-2xl font-black">★</div>
+             </div>
+             <div className="space-y-6">
+                <h2 className="text-4xl md:text-5xl font-black text-brand-deep dark:text-white tracking-tighter italic leading-[1.2]">
+                  진리의 빛으로 <br/>마음을 밝히는 묵상
+                </h2>
+                <p className="text-text-secondary dark:text-slate-400 font-bold max-w-md mx-auto leading-loose text-[15px] uppercase tracking-widest">
+                  Select a category above <br/>
+                  to begin your journey of wisdom.
+                </p>
+             </div>
+             <button
+               onClick={() => setIsSidebarOpen(true)}
+               className="px-14 py-6 bg-brand-deep dark:bg-white text-white dark:text-brand-deep rounded-[32px] font-black shadow-active active:scale-95 transition-all text-[13px] uppercase tracking-[0.3em] border border-white/20 hover:shadow-premium"
+             >
+               Explore Full Index
+             </button>
+          </div>
         )}
       </main>
     </div>

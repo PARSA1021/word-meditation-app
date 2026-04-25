@@ -14,7 +14,7 @@ export default async function LibraryPage() {
 
   // 2. TOC 생성 (O(n) 성능)
   const tocTree = generateTOC(allWords);
-
+  
   // 3. 클라이언트 컴포넌트로 전달을 위해 직렬화
   const serializedTOC = serializeTOC(tocTree);
 

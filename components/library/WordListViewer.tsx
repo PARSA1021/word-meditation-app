@@ -41,31 +41,33 @@ export default function WordListViewer({ node, isLoading }: WordListViewerProps)
   const words = node.words || [];
 
   return (
-    <div className="space-y-8">
-      {/* 🧭 Breadcrumbs */}
-      <nav className="flex items-center text-xs md:text-sm text-slate-400 overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+    <div className="space-y-12 pb-32">
+      {/* 🧭 Premium Breadcrumbs */}
+      <nav className="flex items-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-text-muted overflow-x-auto no-scrollbar py-2">
         {node.path.map((segment, index) => (
           <div key={index} className="flex items-center">
             {index > 0 && (
-              <svg className="w-3 h-3 mx-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              <span className="mx-3 opacity-30 select-none">/</span>
             )}
-            <span className={index === node.path.length - 1 ? "text-primary font-bold" : ""}>
+            <span className={index === node.path.length - 1 ? "text-brand-primary" : ""}>
               {segment}
             </span>
           </div>
         ))}
       </nav>
 
-      {/* 📄 Header */}
-      <div className="border-b border-slate-100 dark:border-slate-800 pb-6">
-        <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+      {/* 📄 Elegant Header */}
+      <div className="relative">
+        <div className="absolute -left-4 top-0 w-1 h-full bg-brand-primary rounded-full opacity-50 hidden md:block" />
+        <h1 className="heading-xl leading-tight text-slate-900 dark:text-white">
           {node.name}
         </h1>
-        <p className="mt-2 text-slate-500 dark:text-slate-400">
-          총 {words.length}개의 말씀이 있습니다.
-        </p>
+        <div className="flex items-center gap-2 mt-4">
+          <span className="w-8 h-px bg-slate-200 dark:bg-slate-800" />
+          <p className="text-[11px] font-black text-brand-primary uppercase tracking-widest">
+            {words.length} Divine Verses
+          </p>
+        </div>
       </div>
 
       {/* 📜 Word List */}
@@ -75,7 +77,7 @@ export default function WordListViewer({ node, isLoading }: WordListViewerProps)
             <QuoteCard key={word.id} word={word} />
           ))
         ) : (
-          <div className="p-12 text-center bg-slate-50 dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+          <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm rounded-[32px] border border-dashed border-slate-200 dark:border-slate-800">
             <p className="text-slate-400">이 섹션에는 직접적인 말씀이 없습니다. 하위 항목을 선택해주세요.</p>
           </div>
         )}

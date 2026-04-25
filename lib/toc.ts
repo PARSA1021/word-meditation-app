@@ -15,7 +15,6 @@ export type ParsedSource = {
 export function parseSource(source: string, defaultCategory: string = "기타"): ParsedSource {
   if (!source) return { category: defaultCategory };
 
-  // 1. 카테고리와 본문 계층 분리 (컴마 기준)
   const firstCommaIndex = source.indexOf(",");
   let category = defaultCategory;
   let remaining = source;
@@ -24,26 +23,18 @@ export function parseSource(source: string, defaultCategory: string = "기타"):
     category = source.substring(0, firstCommaIndex).trim();
     remaining = source.substring(firstCommaIndex + 1).trim();
   } else if (!source.includes(">")) {
-    // 컴마도 없고 '>'도 없으면 전체를 카테고리로 간주
-    return { category: source.trim() };
+    return { category: defaultCategory };
   }
 
-  // 2. 계층 분리 (> 기준)
   const levels = remaining.split(">").map((s) => s.trim()).filter(Boolean);
-
-  // 3. 필드 매핑 (편, 장, 절 순서)
-  // 데이터에 따라 "편"이 없을 수도 있으므로 유연하게 처리
   const result: ParsedSource = { category };
 
   if (levels.length === 1) {
-    // 예: "원리강론, 총서" -> Level 1만 있음
     result.part = levels[0];
   } else if (levels.length === 2) {
-    // 예: "범주, 편 > 장"
     result.part = levels[0];
     result.chapter = levels[1];
   } else if (levels.length >= 3) {
-    // 예: "범주, 편 > 장 > 절"
     result.part = levels[0];
     result.chapter = levels[1];
     result.section = levels[2];
@@ -56,7 +47,7 @@ export type TOCNode = {
   name: string;
   children: Map<string, TOCNode>;
   words?: Word[];
-  path: string[]; // 이동 및 브레드크럼용 경로
+  path: string[];
 };
 
 /**
@@ -70,8 +61,18 @@ export function generateTOC(words: Word[]): TOCNode {
     path: [],
   };
 
+  // [DEBUG] console.log(`[TOC] Generating TOC for ${words.length} words...`);
+
   for (const word of words) {
-    const parsed = parseSource(word.source, word.category);
+    let parsed: ParsedSource;
+    
+    // general 말씀이거나 계층 구분이 없는 경우 category 필드로 강제 그룹화
+    if (word.type === "general" || (!word.source.includes(",") && !word.source.includes(">"))) {
+      parsed = { category: word.category };
+    } else {
+      parsed = parseSource(word.source, word.category);
+    }
+    
     const path = [parsed.category];
     if (parsed.part) path.push(parsed.part);
     if (parsed.chapter) path.push(parsed.chapter);

@@ -74,31 +74,37 @@ const TOCAccordion = memo(function TOCAccordion({
   const paddingLeft = level === 0 ? 0 : 16;
 
   return (
-    <div className="w-full">
-      <button
+    <div className="md:px-2">
+      <motion.button
+        whileTap={{ scale: 0.97 }}
         onClick={handleClick}
         className={`
-          w-full flex items-center justify-between py-2 px-3 rounded-lg text-sm transition-all text-left
+          w-full flex items-center justify-between py-4 px-5 rounded-[24px] text-[14px] transition-all text-left group
           ${isSelected 
-            ? "bg-primary/10 text-primary font-bold border-l-4 border-primary" 
-            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
+            ? "bg-brand-primary/5 text-brand-primary font-black shadow-inner-soft" 
+            : "text-text-secondary dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 hover:text-brand-deep dark:hover:text-white"
           }
         `}
-        style={{ paddingLeft: `${paddingLeft + 12}px` }}
+        style={{ paddingLeft: `${paddingLeft + 20}px` }}
       >
-        <span className="truncate">{renderName()}</span>
+        <div className="flex items-center gap-3 truncate">
+           <span className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${isSelected ? "bg-brand-primary scale-150" : "bg-slate-200 group-hover:bg-slate-300"}`} />
+           <span className="truncate">{renderName()}</span>
+        </div>
         
         {hasChildren && (
-          <svg
-            className={`w-4 h-4 transition-transform duration-200 flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <div className={`p-1 rounded-full transition-all duration-300 ${isOpen ? "bg-primary/10 text-primary rotate-180" : "bg-slate-100 dark:bg-slate-800 text-slate-400"}`}>
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         )}
-      </button>
+      </motion.button>
 
       <AnimatePresence initial={false}>
         {isOpen && hasChildren && (

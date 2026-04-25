@@ -50,6 +50,26 @@ export type TOCNode = {
   path: string[];
 };
 
+export function getWordPath(word: Word): string[] {
+  let parsed: ParsedSource;
+    
+  if (word.type === "general" || (!word.source.includes(",") && !word.source.includes(">"))) {
+    parsed = { 
+      category: word.category,
+      part: word.source.trim() 
+    };
+  } else {
+    parsed = parseSource(word.source, word.category);
+  }
+  
+  const path = [parsed.category];
+  if (parsed.part) path.push(parsed.part);
+  if (parsed.chapter) path.push(parsed.chapter);
+  if (parsed.section) path.push(parsed.section);
+  
+  return path;
+}
+
 /**
  * Word 배열을 받아 계층형 TOC 트리를 생성합니다.
  * O(n) 성능 최적화 (Map 기반)
@@ -61,26 +81,8 @@ export function generateTOC(words: Word[]): TOCNode {
     path: [],
   };
 
-  // [DEBUG] console.log(`[TOC] Generating TOC for ${words.length} words...`);
-
   for (const word of words) {
-    let parsed: ParsedSource;
-    
-    // general 말씀이거나 계층 구분이 없는 경우 category 필드로 우선 그룹화하고, source를 하위 계층(part)으로 사용
-    if (word.type === "general" || (!word.source.includes(",") && !word.source.includes(">"))) {
-      parsed = { 
-        category: word.category,
-        part: word.source.trim() 
-      };
-    } else {
-      parsed = parseSource(word.source, word.category);
-    }
-    
-    const path = [parsed.category];
-    if (parsed.part) path.push(parsed.part);
-    if (parsed.chapter) path.push(parsed.chapter);
-    if (parsed.section) path.push(parsed.section);
-
+    const path = getWordPath(word);
     let currentNode = root;
 
     for (let i = 0; i < path.length; i++) {

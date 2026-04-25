@@ -1,16 +1,17 @@
-"use client";
-
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Word } from "@/lib/words";
+import { getWordPath } from "@/lib/toc";
 import { scriptureFont } from "@/lib/fonts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBookmarks } from "@/context/BookmarkContext";
+import Link from "next/link";
 
 interface QuoteCardProps {
   word: Word;
   showCategory?: boolean;
   highlightRanges?: Array<{ start: number; end: number }>;
   id?: string;
+  isHighlighted?: boolean;
 }
 
 function HighlightedByRanges({
@@ -39,15 +40,27 @@ function HighlightedByRanges({
   return <>{parts}</>;
 }
 
-export default function QuoteCard({
+const QuoteCard = React.memo(function QuoteCard({
   word,
   showCategory = false,
   highlightRanges,
   id,
+  isHighlighted = false,
 }: QuoteCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { toggleBookmark, isBookmarked } = useBookmarks();
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // --- Highlighting & Scroll-into-view Logic ---
+  useEffect(() => {
+    if (isHighlighted) {
+      const timer = setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 600); 
+      return () => clearTimeout(timer);
+    }
+  }, [isHighlighted]);
   
   const bookmarked = isBookmarked(word.id);
   const MAX_LENGTH = 160;
@@ -97,6 +110,7 @@ export default function QuoteCard({
   return (
     <motion.div
       layout
+      ref={cardRef}
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] as const }}
@@ -106,14 +120,17 @@ export default function QuoteCard({
         if (selection && selection.toString().length > 0) return;
         setIsExpanded(!isExpanded);
       }}
-      className={`premium-card premium-card-hover group p-6 md:p-10 cursor-default relative overflow-hidden
-        ${isExpanded ? 'ring-2 ring-brand-primary/10 shadow-active' : ''}`}
+      className={`premium-card premium-card-hover group p-6 md:p-10 cursor-default relative overflow-hidden transition-all duration-700
+        ${isExpanded ? 'ring-2 ring-brand-primary/10 shadow-active' : ''}
+        ${isHighlighted ? 'ring-4 ring-brand-primary/50 shadow-premium !border-brand-primary bg-brand-primary/[0.02] scale-[1.02]' : ''}`}
     >
       {/* 1. Header: Category & Hint */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           {showCategory && (
-            <span className="bg-slate-50 text-brand-primary text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border border-slate-100">
+            <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
+              isHighlighted ? 'bg-brand-primary text-white border-brand-primary' : 'bg-slate-50 text-brand-primary border-slate-100'
+            }`}>
               {word.category}
             </span>
           )}
@@ -169,6 +186,17 @@ export default function QuoteCard({
             </svg>
           </motion.button>
 
+          <Link
+            href={`/library?path=${encodeURIComponent(JSON.stringify(getWordPath(word)))}&highlight=${word.id}`}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-brand-primary transition-all active:scale-95 group/lib"
+            title="말씀 도서관에서 보기"
+          >
+            <svg className="w-5 h-5 group-hover/lib:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </Link>
+
           <button
             onClick={copyToClipboard}
             className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 ${
@@ -216,4 +244,6 @@ export default function QuoteCard({
       </AnimatePresence>
     </motion.div>
   );
-}
+});
+
+export default QuoteCard;

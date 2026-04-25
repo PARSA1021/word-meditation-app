@@ -62,21 +62,26 @@ function SearchFeed() {
     router.replace(newUrl, { scroll: false });
   }, [query, mode, type, page, pathname, router]);
 
-  // 페이지 진입 시 이전 스크롤 위치 복원
-  useEffect(() => {
-    const savedScroll = sessionStorage.getItem("last_search_scroll");
-    if (savedScroll && !searchParams.get("q")) { // 신규 검색이 아닐 때만 복원
-       // 데이터 로딩 시간을 고려하여 약간의 지연 후 스크롤
-       setTimeout(() => {
-         window.scrollTo({ top: parseInt(savedScroll), behavior: "instant" });
-       }, 100);
-    }
+    // 페이지 진입 시 이전 스크롤 위치 복원
+    useEffect(() => {
+        const savedScroll = sessionStorage.getItem("last_search_scroll");
+        const savedQuery = sessionStorage.getItem("last_search_query");
 
-    // 페이지를 떠날 때 스크롤 위치 저장
-    return () => {
-      sessionStorage.setItem("last_search_scroll", window.scrollY.toString());
-    };
-  }, []);
+        // 만약 넘어온 검색어가 이전 세션의 검색어와 동일하다면 (뒤로가기 등) 스크롤을 복원
+        if (savedScroll && query === savedQuery) {
+            // SWR이 캐시에서 데이터를 렌더링할 시간을 충분히 확보
+            setTimeout(() => {
+                window.scrollTo({ top: parseInt(savedScroll), behavior: "instant" });
+            }, 300);
+        }
+
+        const handleScroll = () => {
+            sessionStorage.setItem("last_search_scroll", window.scrollY.toString());
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [query]);
 
   // 필터 변경 시 페이지 초기화
   useEffect(() => {

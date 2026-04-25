@@ -53,10 +53,12 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
  setSelectedPath(decodedPath);
  setActiveTab("hierarchy");
  
- // 데이터가 로드된 후 스크롤 이동 (상단으로)
+ if (!highlightParam) {
+ // 하이라이팅 아이디가 없을 때만 최상단으로 스크롤 (있을 경우 QuoteCard에서 스크롤 담당)
  setTimeout(() => {
- window.scrollTo({ top: 0, behavior:"smooth"});
-}, 100);
+ window.scrollTo({ top: 0, behavior: "smooth" });
+ }, 100);
+ }
 }
 }
 } catch (err) {
@@ -131,13 +133,16 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
  <div className="flex flex-col md:flex-row min-h-screen bg-brand-bg text-text-primary transition-colors duration-500">
  
  {/* 🖥️ Desktop Sidebar */}
- <aside className="hidden md:flex sticky top-0 left-0 w-85 h-screen overflow-hidden flex-col glass-sidebar z-30">
- <div className="p-10 pb-6 flex items-center justify-between">
- <h2 className="heading-lg !text-2xl">말씀 도서관</h2>
+ <aside className="hidden md:flex sticky top-0 left-0 w-85 lg:w-96 h-screen overflow-hidden flex-col bg-white/80 backdrop-blur-xl border-r border-slate-100/50 z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+ <div className="p-8 pb-6 flex items-center justify-between">
+ <h2 className="text-2xl font-black tracking-tight text-brand-deep">
+ <span className="text-brand-primary mr-2">/</span>
+ 말씀 도서관
+ </h2>
  </div>
 
  {/* 🔍 Search Input */}
- <div className="px-8 mb-8">
+ <div className="px-6 mb-8">
  <div className="relative group">
  <input
  type="text"
@@ -220,21 +225,23 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
  </nav>
  </aside>
 
- {/* 📱 Mobile UI: Top Navigation & Quick TOC */}
- <div className="md:hidden">
- {/* Main Sticky Header */}
- <div className="sticky top-0 z-50 glass-header transition-all duration-500">
- <div className="p-6 flex items-center justify-between">
+            {/* 📱 Mobile UI: Top Navigation & Quick TOC */}
+            <div className="md:hidden">
+                {/* Main Sticky Header */}
+                <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 shadow-sm transition-all duration-500 pt-safe-top">
+                    <div className="p-5 flex items-center justify-between">
  <div className="flex items-center gap-4">
  <button 
  onClick={() => setIsSidebarOpen(true)}
- className="w-12 h-12 rounded-2xl bg-brand-deep text-white flex items-center justify-center shadow-active active:scale-90 transition-all"
+ className="w-11 h-11 rounded-2xl bg-brand-deep text-white flex items-center justify-center shadow-active active:scale-95 transition-all"
  >
- <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 6h16M4 12h16M4 18h16" />
  </svg>
  </button>
- <h1 className="heading-lg">도서관</h1>
+ <h1 className="text-xl font-black tracking-tight text-brand-deep">
+ <span className="text-brand-primary mr-1.5">/</span>도서관
+ </h1>
  </div>
  
  <div className="flex items-center gap-2">
@@ -248,21 +255,21 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
  </div>
 
  {/* Horizontal Quick-Nav (Level 1 Categories) */}
- <div className="px-6 pb-6 overflow-x-auto no-scrollbar flex items-center gap-3">
+ <div className="px-5 pb-5 overflow-x-auto no-scrollbar flex items-center gap-2">
  <button
  onClick={() => {
  setSelectedPath([]);
  setActiveTab("hierarchy");
 }}
- className={`flex-shrink-0 px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all border ${selectedPath.length === 0 ?"bg-brand-deep text-white border-brand-deep shadow-active" :"bg-white text-text-muted border-border-subtle"}`}
+ className={`flex-shrink-0 px-5 py-2.5 rounded-2xl text-[12px] font-black uppercase tracking-[0.15em] transition-all border ${selectedPath.length === 0 ?"bg-brand-deep text-white border-brand-deep shadow-md" :"bg-white text-text-muted border-slate-200 hover:border-slate-300"}`}
  >
- ALL
+ ★ 첫 화면
  </button>
  {Object.values(toc.children).map((node) => (
  <button
  key={node.name}
  onClick={() => handleSelectSection([node.name])}
- className={`flex-shrink-0 px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.2em] border transition-all ${selectedPath[0] === node.name ?"bg-brand-primary/5 text-brand-primary border-brand-primary/20 shadow-sm font-black" :"bg-white text-text-muted border-border-subtle"}`}
+ className={`flex-shrink-0 px-5 py-2.5 rounded-2xl text-[12px] font-black uppercase tracking-[0.1em] border transition-all ${selectedPath[0] === node.name ?"bg-brand-primary/10 text-brand-primary border-brand-primary/30 shadow-sm" :"bg-white text-text-muted border-slate-200 hover:border-slate-300"}`}
  >
  {node.name}
  </button>
@@ -413,23 +420,27 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
  )}
  </div>
  ) : selectedNode ? (
- <div className="pt-8 md:pt-0 space-y-8">
- <div className="flex items-center justify-between bg-white p-6 md:p-8 rounded-[32px] border border-slate-100 shadow-premium group">
- <div className="flex items-center gap-6">
- <div className="w-14 h-14 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary text-2xl group-hover:scale-110 transition-transform">
+ <div className="pt-6 md:pt-0 space-y-6 md:space-y-8">
+ <div className="relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between bg-white p-6 md:p-8 rounded-[32px] border border-slate-100 shadow-premium group">
+ <div className="absolute top-0 right-0 w-48 h-48 bg-brand-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-brand-primary/10 transition-colors duration-1000" />
+ <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 mb-6 md:mb-0">
+ <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-brand-primary/10 to-brand-primary/5 rounded-[20px] flex items-center justify-center text-brand-primary text-2xl md:text-3xl border border-brand-primary/10 group-hover:scale-110 transition-transform duration-500 shadow-sm">
  📁
  </div>
  <div>
- <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] mb-1">Current Section</p>
- <h3 className="text-xl md:text-2xl font-black text-brand-deep tracking-tight">{selectedNode.name}</h3>
+ <p className="text-[10px] md:text-[11px] font-black text-brand-primary uppercase tracking-[0.3em] mb-1.5 flex items-center gap-2">
+ <span className="w-2 h-2 rounded-full bg-brand-primary/40 animate-pulse" />
+ Current Section
+ </p>
+ <h3 className="text-2xl md:text-3xl font-black text-brand-deep tracking-tight">{selectedNode.name}</h3>
  </div>
  </div>
  
  <Link 
  href={`/search?mode=source&q=${encodeURIComponent(selectedNode.name)}`}
- className="flex items-center gap-3 px-6 py-3 bg-slate-900 border border-slate-800 text-white rounded-2xl text-[12px] font-black uppercase tracking-wider hover:bg-brand-primary hover:border-brand-primary transition-all active:scale-95 shadow-lg"
+ className="inline-flex items-center justify-center gap-3 px-6 py-4 md:py-3.5 bg-brand-deep border border-brand-deep text-white rounded-2xl md:rounded-full text-[13px] font-black uppercase tracking-widest hover:bg-brand-primary hover:border-brand-primary transition-all active:scale-95 shadow-xl w-full md:w-auto text-center"
  >
- 🔍 <span className="hidden md:inline">섹션 내 검색</span>
+ 🔍 <span>섹션 내 검색</span>
  </Link>
  </div>
 
@@ -440,25 +451,43 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
  />
  </div>
  ) : (
- <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-12 animate-in fade-in duration-1000 pt-16 md:pt-0">
- <div className="relative">
- <div className="w-40 h-40 bg-white/60 backdrop-blur-xl rounded-[56px] flex items-center justify-center text-7xl shadow-premium border border-white/80">📖</div>
- <div className="absolute -top-4 -right-4 w-14 h-14 bg-brand-primary text-white rounded-full shadow-active flex items-center justify-center animate-bounce text-2xl font-black">★</div>
+ <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-10 animate-in fade-in duration-1000 pt-16 md:pt-0 pb-16">
+ <div className="relative z-10 w-32 h-32 md:w-36 md:h-36 bg-white/60 backdrop-blur-xl rounded-[40px] md:rounded-[48px] flex items-center justify-center text-6xl md:text-7xl shadow-premium border border-white/80">
+ 📖
  </div>
- <div className="space-y-6">
- <h2 className="text-4xl md:text-5xl font-black text-brand-deep tracking-tighter italic leading-[1.2]">
- 진리의 빛으로 <br/>마음을 밝히는 묵상
+ 
+ <div className="space-y-6 md:space-y-8 relative px-4">
+ <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl -z-10" />
+ <h2 className="text-[34px] md:text-[56px] font-black tracking-tighter leading-[1.2] drop-shadow-sm">
+ <span className="block text-slate-400 text-xl md:text-2xl mb-2 font-medium tracking-tight">당신을 위한 편지,</span>
+ <span className="bg-gradient-to-r from-brand-deep via-[#00adef] to-brand-deep bg-clip-text text-transparent italic pr-2 pb-2">
+ 진리의 빛으로
+ </span>
+ <br />
+ <span className="text-brand-deep">
+ 마음을 밝히는 묵상
+ </span>
  </h2>
- <p className="text-text-secondary font-bold max-w-md mx-auto leading-loose text-[15px] uppercase tracking-widest">
- Select a category above <br/>
- to begin your journey of wisdom.
+ <div className="flex flex-col items-center gap-4 pt-2">
+ <span className="w-10 md:w-12 h-1 bg-brand-primary/20 rounded-full" />
+ <p className="text-text-secondary font-bold max-w-[280px] md:max-w-sm mx-auto leading-relaxed text-[15px] md:text-[16px] tracking-widest break-keep">
+ 도서관의 카테고리를 선택하여<br />
+ <span className="text-brand-primary/80">지혜의 여정을 시작해 보세요.</span>
  </p>
  </div>
+ </div>
+
  <button
  onClick={() => setIsSidebarOpen(true)}
- className="px-14 py-6 bg-brand-deep text-white rounded-[32px] font-black shadow-active active:scale-95 transition-all text-[13px] uppercase tracking-[0.3em] border border-white/20 hover:shadow-premium"
+ className="group relative px-10 py-5 md:px-12 md:py-6 bg-brand-deep text-white rounded-[32px] font-black shadow-premium active:scale-95 transition-all text-[14px] md:text-[15px] uppercase tracking-widest overflow-hidden"
  >
- Explore Full Index
+ <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+ <span className="relative z-10 flex items-center gap-3">
+ 전체 도서관 둘러보기
+ <svg className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+ </svg>
+ </span>
  </button>
  </div>
  )}

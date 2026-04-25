@@ -16,7 +16,7 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"hierarchy" | "topics" | "bookmarks">("hierarchy");
+  const [activeTab, setActiveTab] = useState<"hierarchy" | "bookmarks">("hierarchy");
   const { bookmarks } = useBookmarks();
 
   // --- Search Logic: Recursive tree filtering ---
@@ -109,9 +109,8 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
         {/* 📑 Mode Switcher Tabs */}
         <div className="px-5 mb-8 flex gap-1 bg-slate-200/40 dark:bg-slate-800/40 p-1.5 rounded-[22px] mx-8 border border-white dark:border-slate-700/50 shadow-inner-soft">
           {[
-            { id: "hierarchy", label: "계층", color: "text-brand-primary" },
-            { id: "topics", label: "주제", color: "text-brand-primary" },
-            { id: "bookmarks", label: "저장", color: "text-red-500" }
+            { id: "hierarchy", label: "말씀 도서관", color: "text-brand-primary" },
+            { id: "bookmarks", label: "저장된 말씀", color: "text-red-500" }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -142,22 +141,6 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
                 <p className="text-xs font-black uppercase tracking-widest text-text-muted">No Results Found</p>
               </div>
             )
-          ) : activeTab === "topics" ? (
-            <div className="grid gap-3">
-               {topics.map((topic) => (
-                 <button
-                    key={topic.name}
-                    onClick={() => handleSelectSection([topic.name])}
-                    className={`group w-full text-left p-5 rounded-[24px] text-sm transition-all flex items-center gap-4 border ${selectedPath[0] === topic.name ? 'bg-white dark:bg-slate-800 border-brand-primary/20 text-brand-primary font-black shadow-premium' : 'bg-white/40 dark:bg-slate-800/40 border-transparent hover:border-border-subtle'}`}
-                 >
-                    <span className="text-2xl group-hover:scale-110 transition-transform duration-500">📁</span>
-                    <div>
-                      <p className="font-bold tracking-tight">{topic.name}</p>
-                      <p className="text-[10px] text-text-muted mt-1 uppercase font-black tracking-widest">Explore Folder</p>
-                    </div>
-                 </button>
-               ))}
-            </div>
           ) : (
             <div className="py-4 space-y-8">
               <div className="flex items-center justify-between px-2">
@@ -293,9 +276,8 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
 
                       <div className="flex gap-1.5 bg-slate-200/50 dark:bg-slate-800/50 p-2 rounded-3xl mb-8 border border-white/50 dark:border-slate-700/50">
                         {[
-                          { id: "hierarchy", label: "계층", color: "text-brand-primary" },
-                          { id: "topics", label: "주제", color: "text-brand-primary" },
-                          { id: "bookmarks", label: "저장", color: "text-red-500" }
+                          { id: "hierarchy", label: "말씀 도서관", color: "text-brand-primary" },
+                          { id: "bookmarks", label: "저장된 말씀", color: "text-red-500" }
                         ].map((tab) => (
                           <button
                             key={tab.id}
@@ -319,19 +301,6 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
                               searchQuery={searchQuery}
                             />
                           ))
-                        ) : activeTab === "topics" ? (
-                          <div className="grid gap-4">
-                            {topics.map((topic) => (
-                              <button
-                                key={topic.name}
-                                onClick={() => handleSelectSection([topic.name])}
-                                className="w-full text-left p-6 rounded-[32px] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center gap-5 active:scale-95 transition-all shadow-premium group"
-                              >
-                                <span className="text-3xl group-hover:rotate-12 transition-transform duration-500">📁</span>
-                                <span className="text-base font-black text-brand-deep dark:text-white tracking-tight">{topic.name}</span>
-                              </button>
-                            ))}
-                          </div>
                         ) : (
                           <div className="space-y-4 pb-12">
                             {bookmarks.map(word => (

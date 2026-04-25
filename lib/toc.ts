@@ -66,9 +66,12 @@ export function generateTOC(words: Word[]): TOCNode {
   for (const word of words) {
     let parsed: ParsedSource;
     
-    // general 말씀이거나 계층 구분이 없는 경우 category 필드로 강제 그룹화
+    // general 말씀이거나 계층 구분이 없는 경우 category 필드로 우선 그룹화하고, source를 하위 계층(part)으로 사용
     if (word.type === "general" || (!word.source.includes(",") && !word.source.includes(">"))) {
-      parsed = { category: word.category };
+      parsed = { 
+        category: word.category,
+        part: word.source.trim() 
+      };
     } else {
       parsed = parseSource(word.source, word.category);
     }

@@ -10,6 +10,7 @@ type Step = 'intro' | 'form' | 'amount' | 'guide' | 'done';
 
 const ACCOUNT = {
   bank: 'KB국민은행',
+  bankCode: '004', // 국민은행 코드
   number: '02060204230715',
   holder: '문성민',
 };
@@ -26,8 +27,6 @@ export default function DonationSection() {
   const [step, setStep] = useState<Step>('intro');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [verse, setVerse] = useState('');
-  const [verseSource, setVerseSource] = useState('');
 
   const [amount, setAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>('');
@@ -42,6 +41,19 @@ export default function DonationSection() {
   const [hasDonated, setHasDonated] = useState(false);
   const [isSupportPath, setIsSupportPath] = useState(false);
 
+  // 기기 체크 및 QR 상태
+  const [isMobile, setIsMobile] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrUrl, setQrUrl] = useState('');
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      setIsMobile(/iphone|ipad|ipod|android|blackberry|windows phone/g.test(userAgent));
+    };
+    checkMobile();
+  }, []);
+
   const goBack = () => {
     if (step === 'form') setStep('intro');
     if (step === 'amount') setStep('form');
@@ -54,17 +66,22 @@ export default function DonationSection() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const fetchFinalVerse = async () => {
-    try {
-      const res = await fetch('/api/words/random');
-      if (res.ok) {
-        const data = await res.json();
-        setVerse(data.text);
-        setVerseSource(data.source || '');
-      }
-    } catch {
-      setVerse('네 재물과 네 소산물의 처음 익은 열매로 여호와를 공경하라');
-      setVerseSource('잠언 3:9');
+  // 앱 딥링크 실행 및 QR 생성
+  const openApp = (app: 'toss' | 'kakao') => {
+    const finalAmt = isCustom ? (parseInt(customAmount.replace(/[^0-9]/g, '')) || 0) : amount;
+    const tossScheme = `supertoss://send?bankCode=${ACCOUNT.bankCode}&accountNo=${ACCOUNT.number}&amount=${finalAmt}`;
+    
+    if (!isMobile) {
+      const encodedScheme = encodeURIComponent(tossScheme);
+      setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodedScheme}`);
+      setShowQrModal(true);
+      return;
+    }
+
+    if (app === 'toss') {
+      window.location.href = tossScheme;
+    } else {
+      window.location.href = 'kakaotalk://kakaopay/home';
     }
   };
 
@@ -96,7 +113,6 @@ export default function DonationSection() {
       });
 
       if (res.ok) {
-        await fetchFinalVerse();
         setStep('done');
       } else {
         const data = await res.json();
@@ -115,7 +131,6 @@ export default function DonationSection() {
     }
   }, [formData.anonymous]);
 
-  // 스텝 인디케이터 구성
   const stepIndicators = [
     { id: 'form', label: '1', sub: 'Heart' },
     { id: 'amount', label: '2', sub: 'Support' },
@@ -135,7 +150,6 @@ export default function DonationSection() {
         <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-blue-300/10 rounded-full blur-[180px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[700px] h-[700px] bg-indigo-300/10 rounded-full blur-[160px]" />
         
-        {/* 완료 시 배경 효과 */}
         <AnimatePresence>
           {step === 'done' && (
             <motion.div 
@@ -146,6 +160,50 @@ export default function DonationSection() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* QR 코드 모달 (PC 전용) */}
+      <AnimatePresence>
+        {showQrModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowQrModal(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-white rounded-[48px] p-10 max-w-[400px] w-full shadow-2xl text-center relative overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="absolute top-0 left-0 w-full h-2 bg-brand-primary" />
+              <button 
+                onClick={() => setShowQrModal(false)}
+                className="absolute top-6 right-8 text-2xl text-gray-300 hover:text-gray-900 transition-colors"
+              >
+                ✕
+              </button>
+              
+              <h3 className="text-2xl font-black text-gray-900 mb-2">휴대폰으로 스캔하세요</h3>
+              <p className="text-sm text-gray-400 mb-8 font-medium">카메라 또는 송금 앱으로 스캔하면<br />바로 송금 화면으로 연결됩니다.</p>
+              
+              <div className="bg-gray-50 rounded-3xl p-6 mb-8 inline-block shadow-inner border border-gray-100">
+                {qrUrl ? (
+                  <img src={qrUrl} alt="Donation QR Code" className="w-48 h-48 mix-blend-multiply" />
+                ) : (
+                  <div className="w-48 h-48 flex items-center justify-center text-gray-300">Loading...</div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-xs font-black text-brand-primary uppercase tracking-widest">Toss / Kakao / Camera</div>
+                <p className="text-[10px] text-gray-300 font-bold">스캔 시 금액과 계좌가 자동 입력됩니다.</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="relative z-10 w-full h-full flex items-center justify-center px-6 overflow-hidden pb-[safe-area-inset-bottom]">
         
@@ -413,25 +471,45 @@ export default function DonationSection() {
                       <span className="text-xs font-black text-amber-800 uppercase tracking-widest">{ACCOUNT.bank}</span>
                     </div>
                     
-                    <div className="mb-6 md:mb-8">
+                    <div className="mb-4">
                       <p className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">{ACCOUNT.holder}</p>
                     </div>
 
-                    <div className="w-full bg-gray-50/50 rounded-2xl md:rounded-3xl p-6 md:p-8 mb-6 md:mb-8 border border-gray-100">
+                    <div className="w-full bg-gray-50/50 rounded-2xl p-6 md:p-8 mb-6 border border-gray-100">
                       <p className="text-2xl md:text-3xl font-mono font-black tracking-wider text-brand-deep">
                         {ACCOUNT.number}
                       </p>
                     </div>
 
-                    <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={copyAccount}
-                      className={`w-full py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all ${copied ? 'bg-emerald-500 text-white' : 'bg-gray-900 text-white'
-                        }`}
-                    >
-                      {copied ? '✓ 복사되었습니다' : '📋 계좌번호 복사하기'}
-                    </motion.button>
+                    <div className="grid grid-cols-1 gap-2 w-full">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={copyAccount}
+                        className={`w-full py-4 rounded-xl font-black text-xs flex items-center justify-center gap-2 transition-all ${copied ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600'}`}
+                      >
+                        {copied ? '✓ 계좌번호 복사완료' : '📋 계좌번호 복사하기'}
+                      </motion.button>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => openApp('toss')}
+                          className="py-4 rounded-xl bg-[#0064FF] text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10"
+                        >
+                          {isMobile ? 'Toss 열기' : 'Toss QR'}
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => openApp('kakao')}
+                          className="py-4 rounded-xl bg-[#FAE100] text-[#3C1E1E] font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10"
+                        >
+                          KakaoPay
+                        </motion.button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -457,65 +535,31 @@ export default function DonationSection() {
               </motion.div>
             )}
 
-            {/* 5. DONE - 사용자 친화적으로 고도화 (인터랙티브 카드 추가) */}
+            {/* 5. DONE - 말씀 제거 및 심플한 완료 화면 */}
             {step === 'done' && (
               <motion.div
                 key="done"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center space-y-10 md:space-y-12 flex flex-col items-center select-auto touch-auto"
+                className="text-center space-y-8 md:space-y-12 flex flex-col items-center"
               >
                 <div className="flex flex-col items-center">
                    <motion.div 
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", damping: 12, stiffness: 200 }}
-                    className="text-[120px] leading-none mb-4"
+                    className="text-[140px] leading-none mb-6 drop-shadow-xl"
                   >
                     🕊️
                   </motion.div>
-                  <h2 className={`${scriptureFont.className} text-4xl md:text-7xl font-bold leading-tight text-gray-900 tracking-tight`}>
+                  <h2 className={`${scriptureFont.className} text-5xl md:text-8xl font-bold leading-tight text-gray-900 tracking-tight`}>
                     귀한 마음이<br />잘 전달되었습니다
                   </h2>
+                  <p className="mt-6 text-xl md:text-2xl text-gray-400 font-medium">따뜻한 동행에 진심으로 감사드립니다</p>
                 </div>
 
-                {verse && (
-                  <motion.div 
-                    drag
-                    dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                    dragElastic={0.1}
-                    whileDrag={{ scale: 1.05, rotate: 1 }}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="group bg-white rounded-[40px] md:rounded-[56px] p-12 md:p-16 shadow-premium border border-blue-50/50 relative overflow-hidden max-w-[640px] cursor-grab active:cursor-grabbing transition-shadow hover:shadow-2xl"
-                  >
-                    {/* 상단 포인트 데코레이션 */}
-                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand-primary via-indigo-400 to-blue-400" />
-                    
-                    {/* 미세한 패턴 배경 */}
-                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#4F46E5 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-
-                    <div className="relative z-10 flex flex-col items-center">
-                      <p className={`${scriptureFont.className} text-2xl md:text-4xl leading-relaxed text-blue-950 font-bold tracking-tight`}>
-                        "{verse}"
-                      </p>
-                      {verseSource && (
-                        <div className="mt-10 flex flex-col items-center gap-3">
-                          <div className="w-8 h-0.5 bg-brand-primary/20 rounded-full" />
-                          <p className="text-[10px] md:text-xs text-gray-400 font-black uppercase tracking-[0.4em]">{verseSource}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 구석의 장식용 하트 */}
-                    <div className="absolute bottom-6 right-8 text-2xl opacity-10 group-hover:opacity-30 transition-opacity">💝</div>
-                  </motion.div>
-                )}
-
-                <div className="flex flex-col gap-4 w-full max-w-[300px] pb-10">
-                   <p className="text-xs font-bold text-gray-300 mb-2 animate-pulse">카드를 잡고 움직여보세요</p>
-                  <Link href="/" className="inline-flex items-center justify-center gap-3 px-10 py-6 bg-brand-primary text-white font-black rounded-2xl shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all text-base">
+                <div className="flex flex-col gap-4 w-full max-w-[320px] pt-8 pb-10">
+                  <Link href="/" className="inline-flex items-center justify-center gap-3 px-10 py-6 bg-brand-primary text-white font-black rounded-3xl shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all text-lg">
                     홈으로 돌아가기
                   </Link>
                   <button
@@ -524,13 +568,11 @@ export default function DonationSection() {
                       setFormData({ name: '', message: '', anonymous: false });
                       setHasDonated(false);
                       setIsSupportPath(false);
-                      setVerse('');
-                      setVerseSource('');
                       setAmount(0);
                       setCustomAmount('');
                       setIsCustom(false);
                     }}
-                    className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] hover:text-brand-primary transition-colors py-3"
+                    className="text-xs font-black text-gray-300 uppercase tracking-[0.4em] hover:text-brand-primary transition-colors py-4"
                   >
                     다시 전하기
                   </button>

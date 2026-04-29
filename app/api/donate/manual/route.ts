@@ -1,124 +1,95 @@
 // app/api/donate/manual/route.ts
 import { NextResponse } from 'next/server';
-import { sendSlackNotification } from '@/lib/notifications';
+import { sendDonationNotification } from '@/lib/notifications';
 import { z } from 'zod';
+import { randomUUID } from 'crypto';
 
+// -----------------------------
+// 1️⃣ 타입 정의 (다른 모듈에서 사용 가능하도록 export)
+// -----------------------------
+export interface DonationRecord {
+  id: string;           // randomUUID()
+  donorName: string | null;
+  isAnonymous: boolean;
+  message: string;
+  amount: number;       // 0 = 미입력
+  status: 'CONFIRMED' | 'MESSAGE_ONLY';
+  hasDonated: boolean;
+  createdAt: string;    // ISO 8601
+}
+
+// -----------------------------
+// 2️⃣ 유효성 검사 스키마
+// -----------------------------
 const donationSchema = z.object({
   name: z.string().trim().max(50).optional().default(''),
-  message: z.string().trim().max(800).optional().default(''),
+  message: z.string().trim().max(800).min(1, '마음을 한마디라도 남겨주세요.'),
+  amount: z.number().nonnegative().default(0),
   anonymous: z.boolean().optional().default(false),
   hasDonated: z.boolean().optional().default(false),
 });
 
+// -----------------------------
+// 3️⃣ 핵심 비즈니스 로직
+// -----------------------------
+
+/**
+ * 데이터베이스 저장 로직 (현재는 Mock)
+ * 추후 Prisma 연동 시 이 내부만 교체하면 됨
+ */
+async function saveDonation(record: DonationRecord) {
+  // TODO: db.donation.create({ data: record })
+  console.info('[Donation Save Mock]:', JSON.stringify(record, null, 2));
+  return true;
+}
+
+// -----------------------------
+// 4️⃣ 메인 핸들러 (POST)
+// -----------------------------
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, message, anonymous, hasDonated } = donationSchema.parse(body);
+    const parsed = donationSchema.parse(body);
 
-    // 이름 처리
-    const finalName = (!anonymous && name?.trim())
-      ? name.trim()
-      : '익명 후원자';
-
-    const finalMessage = message?.trim() || '';
-
-    // 시간 포맷 (관리자가 보기 편하게)
-    const now = new Date();
-    const formattedTime = now.toLocaleString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
-
-    // 후원 상태 표시 (가장 중요!)
-    const donationStatus = hasDonated
-      ? '✅ 실제 송금 완료'
-      : '💌 메시지만 보냄 (송금 예정)';
-
-    const slackPayload = {
-      blocks: [
-        {
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: '✨ 새로운 나눔의 마음이 도착했습니다',
-            emoji: true,
-          },
-        },
-        { type: 'divider' },
-
-        // 기본 정보 (이름 + 시간 + 후원 상태)
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*🙏 후원자*\n${finalName}`,
-            },
-            {
-              type: 'mrkdwn',
-              text: `*⏰ 시간*\n${formattedTime}`,
-            },
-          ],
-        },
-
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*📌 후원 상태*\n${donationStatus}`,
-          },
-        },
-
-        { type: 'divider' },
-
-        // 메시지 본문 (가장 중요하게 강조)
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: finalMessage
-              ? `💬 *남겨주신 마음*\n${finalMessage.replace(/\n/g, '\n> ')}`
-              : '_메시지가 없습니다._',
-          },
-        },
-
-        { type: 'divider' },
-
-        // 감성 푸터
-        {
-          type: 'context',
-          elements: [
-            {
-              type: 'mrkdwn',
-              text: '🕊️ 지금 이 순간에도 하나님의 사랑이 여러분을 통해 흘러가고 있습니다',
-            },
-          ],
-        },
-      ],
+    const id = randomUUID();
+    const record: DonationRecord = {
+      id,
+      donorName: (parsed.anonymous || !parsed.name) ? null : parsed.name,
+      isAnonymous: parsed.anonymous || !parsed.name,
+      message: parsed.message,
+      amount: parsed.amount,
+      hasDonated: parsed.hasDonated,
+      status: parsed.hasDonated ? 'CONFIRMED' : 'MESSAGE_ONLY',
+      createdAt: new Date().toISOString(),
     };
 
-    await sendSlackNotification(slackPayload);
+    // 🚀 저장과 알림 전송을 병렬로 처리 (Slack 전송 지연이 응답에 영향을 주지 않도록 함)
+    // 알림 전송에 실패해도 메인 흐름(성공 응답)은 유지
+    Promise.allSettled([
+      saveDonation(record),
+      sendDonationNotification(record)
+    ]).then((results) => {
+      results.forEach((res, i) => {
+        if (res.status === 'rejected') {
+          console.error(`[Donation Background Process ${i === 0 ? 'Save' : 'Notify'} Failed]:`, res.reason);
+        }
+      });
+    });
 
     return NextResponse.json({
       success: true,
+      id,
       message: '감사합니다. 따뜻한 마음이 잘 전달되었습니다.',
     });
 
   } catch (error: any) {
-    console.error('Manual donation API error:', {
-      message: error.message,
-      ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
-    });
+    console.error('Manual donation API error:', error.message);
 
-    if (error.name === 'ZodError') {
+    if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
           success: false,
-          error: '입력값이 올바르지 않습니다.',
+          error: error.issues[0]?.message || '입력값이 올바르지 않습니다.',
         },
         { status: 400 }
       );
@@ -132,4 +103,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
+}

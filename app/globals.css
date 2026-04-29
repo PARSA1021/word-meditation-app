@@ -37,6 +37,13 @@
   --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
   --shadow-active: 0 20px 40px -12px rgba(0, 136, 238, 0.15);
   --shadow-inner-soft: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+
+  /* Animations */
+  @keyframes bounce-subtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  --animate-bounce-subtle: bounce-subtle 2s infinite ease-in-out;
 }
 
 :root {

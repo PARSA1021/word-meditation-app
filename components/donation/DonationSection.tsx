@@ -3,14 +3,24 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { uiFont, scriptureFont } from '@/lib/fonts';
+import Link from 'next/link';
 
-type Step = 'intro' | 'guide' | 'form' | 'done';
+// Step order: intro -> form (message) -> amount -> guide -> done
+type Step = 'intro' | 'form' | 'amount' | 'guide' | 'done';
 
 const ACCOUNT = {
-  bank: '국민은행',
+  bank: 'KB국민은행',
   number: '02060204230715',
   holder: '문성민',
 };
+
+const AMOUNT_PRESETS = [
+  { label: '따뜻한 커피 한 잔', value: 3000, emoji: '☕', sub: '작은 응원의 시작' },
+  { label: '든든한 점심 식사', value: 10000, emoji: '🍱', sub: '귀한 사역의 거름' },
+  { label: '꽃 한 송이의 마음', value: 5000, emoji: '🌸', sub: '향기로운 나눔' },
+  { label: '함께 걷는 발걸음', value: 30000, emoji: '👟', sub: '든든한 동행의 힘' },
+  { label: '직접 정할게요', value: 0, emoji: '💛', sub: '자유로운 마음' },
+];
 
 export default function DonationSection() {
   const [step, setStep] = useState<Step>('intro');
@@ -19,6 +29,10 @@ export default function DonationSection() {
   const [verse, setVerse] = useState('');
   const [verseSource, setVerseSource] = useState('');
 
+  const [amount, setAmount] = useState<number>(0);
+  const [customAmount, setCustomAmount] = useState<string>('');
+  const [isCustom, setIsCustom] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     message: '',
@@ -26,10 +40,12 @@ export default function DonationSection() {
   });
 
   const [hasDonated, setHasDonated] = useState(false);
+  const [isSupportPath, setIsSupportPath] = useState(false);
 
   const goBack = () => {
-    if (step === 'guide') setStep('intro');
-    if (step === 'form') setStep('guide');
+    if (step === 'form') setStep('intro');
+    if (step === 'amount') setStep('form');
+    if (step === 'guide') setStep('amount');
   };
 
   const copyAccount = async () => {
@@ -62,6 +78,10 @@ export default function DonationSection() {
       return;
     }
 
+    const finalAmount = isSupportPath 
+      ? (isCustom ? (parseInt(customAmount.replace(/[^0-9]/g, '')) || 0) : amount)
+      : 0;
+
     setLoading(true);
     try {
       const res = await fetch('/api/donate/manual', {
@@ -69,6 +89,7 @@ export default function DonationSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          amount: finalAmount,
           anonymous: formData.anonymous || !formData.name.trim(),
           hasDonated: isRealDonation && hasDonated,
         }),
@@ -78,7 +99,8 @@ export default function DonationSection() {
         await fetchFinalVerse();
         setStep('done');
       } else {
-        alert('전송 중 오류가 발생했습니다.');
+        const data = await res.json();
+        alert(data.error || '전송 중 오류가 발생했습니다.');
       }
     } catch {
       alert('연결에 실패했습니다. 다시 시도해주세요.');
@@ -93,260 +115,431 @@ export default function DonationSection() {
     }
   }, [formData.anonymous]);
 
+  // 스텝 인디케이터 구성
+  const stepIndicators = [
+    { id: 'form', label: '1', sub: 'Heart' },
+    { id: 'amount', label: '2', sub: 'Support' },
+    { id: 'guide', label: '3', sub: 'Send' },
+  ];
+
+  const currentStepIndex = step === 'intro' ? -1 : step === 'form' ? 0 : step === 'amount' ? 1 : step === 'guide' ? 2 : 3;
+
+  const isActionStep = step === 'form' || step === 'amount' || step === 'guide';
+
   return (
-    <section className={`min-h-[100dvh] bg-[#F8F7F4] overflow-x-hidden ${uiFont.className}`}>
+    <section className={`fixed inset-0 bg-[#F8F7F4] overflow-hidden flex flex-col touch-none select-none ${uiFont.className}`}>
 
       {/* 배경 */}
-      <div className="absolute inset-0 -z-10 pointer-events-none">
+      <div className="fixed inset-0 -z-10 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-indigo-50/70 to-amber-50/50" />
-        <div className="absolute top-[-15%] left-[-10%] w-[700px] h-[700px] bg-blue-300/20 rounded-full blur-[160px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-300/20 rounded-full blur-[150px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-blue-300/10 rounded-full blur-[180px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[700px] h-[700px] bg-indigo-300/10 rounded-full blur-[160px]" />
+        
+        {/* 완료 시 배경 효과 */}
+        <AnimatePresence>
+          {step === 'done' && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute inset-0 bg-white/30 backdrop-blur-[2px]"
+            />
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="max-w-[440px] mx-auto px-5 pt-16 pb-20">
+      <div className="relative z-10 w-full h-full flex items-center justify-center px-6 overflow-hidden pb-[safe-area-inset-bottom]">
+        
+        {/* 통합 메인 컨테이너 */}
+        <motion.div 
+          layout
+          className={`w-full flex flex-col justify-center transition-all duration-700 ease-in-out overflow-hidden pb-12 ${isActionStep ? 'max-w-[500px]' : 'max-w-[720px]'}`}
+        >
+          
+          {/* 상단 네비게이션 */}
+          {isActionStep && (
+            <div className="absolute top-10 left-0 right-0 z-50 flex items-center justify-between px-6 pointer-events-none">
+              <div className="pointer-events-auto">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={goBack}
+                  className="bg-white/80 backdrop-blur-lg shadow-premium border border-white px-4 py-2.5 rounded-2xl text-xs font-bold text-gray-700 transition-all"
+                >
+                  ←
+                </motion.button>
+              </div>
 
-        {/* 상단 네비게이션 */}
-        {step !== 'done' && (
-          <div className="fixed top-5 left-5 z-50 flex items-center gap-3">
-            {step !== 'intro' && (
-              <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
-                onClick={goBack}
-                className="flex items-center gap-2 bg-white shadow-sm hover:shadow border border-gray-100 px-5 py-3 rounded-2xl text-sm font-medium text-gray-700 active:bg-gray-50 transition-all"
+              <div className="flex gap-2 bg-white/90 backdrop-blur-lg px-5 py-3 rounded-full shadow-premium border border-white pointer-events-auto">
+                {stepIndicators.map((s, idx) => {
+                  const isActive = currentStepIndex === idx;
+                  const isCompleted = currentStepIndex > idx;
+                  
+                  return (
+                    <div key={idx} className="flex items-center gap-1">
+                      <div 
+                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black transition-all duration-500
+                          ${isActive ? 'bg-brand-primary text-white scale-110' : 
+                            isCompleted ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-300'}`}
+                      >
+                        {isCompleted ? '✓' : s.label}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="w-12 h-10 invisible" />
+            </div>
+          )}
+
+          <AnimatePresence mode="wait">
+
+            {/* 1. INTRO */}
+            {step === 'intro' && (
+              <motion.div
+                key="intro"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                className="text-center flex flex-col items-center"
               >
-                ← 이전으로
-              </motion.button>
+                <motion.div 
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-[120px] mb-8 leading-none"
+                >
+                  🕊️
+                </motion.div>
+
+                <h1 className={`${scriptureFont.className} text-6xl md:text-8xl font-bold leading-tight tracking-tighter text-gray-900 mb-6`}>
+                  당신의 마음을<br />기다립니다
+                </h1>
+
+                <p className="text-xl md:text-2xl text-gray-400 mb-14 font-medium tracking-tight">
+                  작은 나눔, 큰 울림
+                </p>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setStep('form')}
+                  className="group relative w-full max-w-[360px] py-7 text-xl font-black text-white bg-brand-primary rounded-[36px] shadow-2xl shadow-brand-primary/40 overflow-hidden"
+                >
+                  <span className="relative z-10">시작하기</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                </motion.button>
+              </motion.div>
             )}
 
-            <div className="flex gap-2 bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow border border-gray-100">
-              {(['intro', 'guide', 'form'] as const).map((s) => (
-                <motion.div
-                  key={s}
-                  onClick={() => setStep(s)}
-                  className={`h-2.5 rounded-full transition-all cursor-pointer ${step === s
-                      ? 'w-10 bg-gradient-to-r from-blue-500 to-indigo-600'
-                      : 'w-6 bg-gray-200 hover:bg-gray-300'
-                    }`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        <AnimatePresence mode="wait">
-
-          {/* INTRO */}
-          {step === 'intro' && (
-            <motion.div
-              key="intro"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              className="pt-8 pb-16 text-center"
-            >
-              <div className="text-[96px] mb-10">🤝</div>
-
-              <h1 className={`${scriptureFont.className} text-5xl md:text-6xl font-bold leading-none tracking-tighter text-gray-900 mb-6`}>
-                함께 나누는<br />동행
-              </h1>
-
-              <p className="text-xl text-gray-600 mb-16 max-w-[310px] mx-auto">
-                몇 번의 클릭으로<br />따뜻한 나눔을 시작할 수 있어요
-              </p>
-
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => setStep('guide')}
-                className="w-full py-7 text-xl font-bold text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 rounded-3xl shadow-xl shadow-blue-500/40"
+            {/* 2. FORM (Message First) */}
+            {step === 'form' && (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6 md:space-y-10"
               >
-                지금 바로 시작하기
-              </motion.button>
-
-              <p className="mt-10 text-sm text-gray-400">송금 → 한마디 남기기 · 30초면 충분해요</p>
-            </motion.div>
-          )}
-
-          {/* GUIDE */}
-          {step === 'guide' && (
-            <motion.div
-              key="guide"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="pt-12 pb-16 space-y-10"
-            >
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-gray-900 mb-3">KB 국민은행으로 송금하기</h2>
-                <p className="text-gray-500">아래 계좌로 송금 후 다음 단계로 넘어가 주세요</p>
-              </div>
-
-              <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                <div className="flex items-center justify-center gap-3 mb-7">
-                  <img
-                    src="/kb-logo.jpg"
-                    alt="KB 국민은행"
-                    className="h-11 w-auto"
-                  />
-                  <span className="text-2xl font-semibold text-gray-800">국민은행</span>
+                <div className="text-center">
+                  <div className="inline-block px-4 py-1.5 bg-blue-50 text-brand-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-3 md:mb-4">
+                    Send Your Heart
+                  </div>
+                  <h2 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight leading-tight">마음 담기</h2>
                 </div>
 
-                <div className="text-center mb-7">
-                  <p className="text-sm text-gray-500 mb-1">예금주</p>
-                  <p className="text-2xl font-medium text-gray-900">{ACCOUNT.holder}</p>
-                </div>
+                <div className="space-y-5 md:space-y-6">
+                  <div className="bg-white rounded-[32px] md:rounded-[40px] p-1.5 shadow-premium border border-white focus-within:shadow-2xl transition-all duration-500">
+                    <div className="bg-gray-50/50 rounded-[28px] md:rounded-[34px] p-6 md:p-8 relative overflow-hidden">
+                      <textarea
+                        placeholder="사역을 향한 응원, 기도, 하고 싶은 이야기를 자유롭게 적어주세요..."
+                        value={formData.message}
+                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        className="w-full h-32 md:h-44 bg-transparent outline-none text-lg md:text-xl font-medium resize-none placeholder:text-gray-300 leading-relaxed scrollbar-hide"
+                        maxLength={500}
+                      />
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="text-[9px] font-black text-gray-300 uppercase tracking-widest">💌 Word Meditation</div>
+                        <div className="text-[9px] font-black text-gray-300 tracking-widest">{formData.message.length}/500</div>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className="bg-gray-50 rounded-2xl p-6 text-center">
-                  <p className="text-sm text-gray-500 mb-2">계좌번호</p>
-                  <p className="text-3xl font-mono font-semibold tracking-[2px] text-gray-900 break-all">
-                    {ACCOUNT.number}
-                  </p>
-                </div>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={copyAccount}
-                className={`w-full py-6 rounded-3xl font-semibold text-lg flex items-center justify-center gap-3 transition-all ${copied ? 'bg-emerald-500 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'
-                  }`}
-              >
-                {copied ? '✅ 계좌번호 복사 완료!' : '📋 계좌번호 복사하기'}
-              </motion.button>
-
-              <button
-                onClick={() => setStep('form')}
-                className="w-full py-5 text-base text-blue-600 font-medium hover:text-blue-700 transition-colors"
-              >
-                송금 완료했어요 → 메시지 남기기 →
-              </button>
-            </motion.div>
-          )}
-
-          {/* FORM */}
-          {step === 'form' && (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="pt-12 pb-16 space-y-10"
-            >
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-gray-900">마음 전하기</h2>
-                <p className="text-gray-500 mt-2">당신의 따뜻한 한마디를 남겨주세요</p>
-              </div>
-
-              <div className="space-y-8">
-                <div className="bg-white rounded-3xl p-7 shadow-sm border border-gray-100 relative">
-                  <textarea
-                    placeholder="이 사역을 응원하는 당신의 마음을 자유롭게 적어주세요..."
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full h-52 bg-transparent outline-none text-base resize-y placeholder:text-gray-400 leading-relaxed"
-                    maxLength={500}
-                  />
-                  <div className="absolute bottom-4 right-6 text-xs text-gray-400">
-                    {formData.message.length}/500
+                  <div className="grid grid-cols-1 gap-3 md:gap-4">
+                    <input
+                      placeholder="누구의 마음인가요? (성함/닉네임)"
+                      disabled={formData.anonymous}
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full p-5 md:p-6 rounded-2xl md:rounded-3xl bg-white/60 border border-white/80 focus:border-brand-primary/30 outline-none text-base font-bold disabled:bg-gray-50/50 transition-all shadow-sm"
+                    />
+                    <div className="flex justify-end px-2">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${formData.anonymous ? 'bg-indigo-500 border-indigo-500' : 'border-gray-200'}`}>
+                          {formData.anonymous && <span className="text-white text-[8px]">✓</span>}
+                        </div>
+                        <input type="checkbox" checked={formData.anonymous} onChange={(e) => setFormData({ ...formData, anonymous: e.target.checked })} className="hidden" />
+                        <span className="text-xs font-bold text-gray-400 group-hover:text-gray-600 transition-colors">익명으로 남길게요</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
-                <input
-                  placeholder="이름 또는 닉네임 (선택)"
-                  disabled={formData.anonymous}
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full p-6 rounded-3xl bg-white border border-gray-100 focus:border-blue-300 outline-none text-base disabled:bg-gray-50"
-                />
+                <div className="flex flex-col gap-3 pt-2">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setIsSupportPath(true);
+                      setStep('amount');
+                    }}
+                    disabled={!formData.message.trim()}
+                    className="w-full py-6 md:py-7 rounded-[28px] md:rounded-[32px] font-black text-lg md:text-xl text-white bg-brand-primary shadow-xl shadow-brand-primary/25 transition-all"
+                  >
+                    💝 정성도 함께 보낼게요
+                  </motion.button>
 
-                <label className="flex gap-4 items-start cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hasDonated}
-                    onChange={() => setHasDonated(!hasDonated)}
-                    className="w-6 h-6 mt-1 accent-blue-600 rounded"
-                  />
-                  <div className="text-base text-gray-700">
-                    송금을 이미 완료했습니다
-                    <p className="text-sm text-gray-500 mt-1">체크하지 않아도 메시지는 보낼 수 있어요</p>
-                  </div>
-                </label>
+                  <button
+                    onClick={() => {
+                      setIsSupportPath(false);
+                      handleSubmit(false);
+                    }}
+                    disabled={loading || !formData.message.trim()}
+                    className="w-full py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-brand-primary transition-all bg-white/40 hover:bg-white/80 rounded-2xl border border-white/50"
+                  >
+                    💌 메시지만 보낼게요
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
-                <label className="flex items-center gap-3 text-base text-gray-600 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.anonymous}
-                    onChange={(e) => setFormData({ ...formData, anonymous: e.target.checked })}
-                    className="w-5 h-5 accent-indigo-600"
-                  />
-                  익명으로 참여할게요
-                </label>
-              </div>
+            {/* 3. AMOUNT SELECTION */}
+            {step === 'amount' && (
+              <motion.div
+                key="amount"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6 md:space-y-8"
+              >
+                <div className="text-center">
+                  <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">정성 나누기</h2>
+                  <p className="text-base text-gray-400 mt-2 font-medium">부담 없이, 기쁜 마음으로 선택해주세요</p>
+                </div>
 
-              <div className="grid gap-4 pt-6">
+                <div className="grid grid-cols-1 gap-2.5 md:gap-3">
+                  {AMOUNT_PRESETS.map((p) => (
+                    <motion.button
+                      key={p.label}
+                      whileHover={{ x: 5 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        if (p.value === 0) {
+                          setIsCustom(true);
+                        } else {
+                          setAmount(p.value);
+                          setIsCustom(false);
+                        }
+                      }}
+                      className={`flex items-center gap-4 p-4 md:p-5 rounded-[24px] md:rounded-3xl border-2 text-left transition-all duration-300 relative
+                        ${((!isCustom && amount === p.value && p.value !== 0) || (isCustom && p.value === 0))
+                          ? 'border-brand-primary bg-white shadow-md' 
+                          : 'border-white bg-white/60 hover:border-gray-100 shadow-sm'}`}
+                    >
+                      <div className="text-2xl md:text-3xl">{p.emoji}</div>
+                      <div className="flex-1">
+                        <div className={`text-sm md:text-base font-black tracking-tight ${((!isCustom && amount === p.value && p.value !== 0) || (isCustom && p.value === 0)) ? 'text-brand-primary' : 'text-gray-900'}`}>
+                          {p.label} {p.value > 0 && <span className="opacity-40 text-[10px] md:text-sm font-bold ml-1">({p.value.toLocaleString()}원)</span>}
+                        </div>
+                        <div className="text-[10px] md:text-[11px] font-bold text-gray-400">{p.sub}</div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+
+                {isCustom && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-[24px] p-1 shadow-sm border border-gray-100"
+                  >
+                    <input
+                      type="text"
+                      placeholder="원하시는 금액을 입력해주세요"
+                      value={customAmount}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setCustomAmount(val ? parseInt(val).toLocaleString() + '원' : '');
+                      }}
+                      className="w-full p-4 md:p-5 bg-transparent outline-none text-lg md:text-xl font-black text-center"
+                    />
+                  </motion.div>
+                )}
+
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => handleSubmit(true)}
-                  disabled={!hasDonated || loading || !formData.message.trim()}
-                  className="w-full py-7 rounded-3xl font-bold text-xl text-white bg-gradient-to-r from-[#0066FF] to-indigo-600 disabled:opacity-50 shadow-xl transition-all"
+                  onClick={() => setStep('guide')}
+                  disabled={!isCustom && amount === 0}
+                  className="w-full py-6 md:py-7 rounded-[28px] font-black text-xl text-white bg-brand-deep disabled:bg-gray-200 transition-all shadow-xl"
                 >
-                  {loading ? '전송 중...' : '✅ 마음 전하기'}
+                  선택 완료
                 </motion.button>
+              </motion.div>
+            )}
 
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => handleSubmit(false)}
-                  disabled={loading || !formData.message.trim()}
-                  className="w-full py-6 rounded-3xl font-medium text-base border-2 border-gray-200 hover:border-gray-300 text-gray-700 transition-all"
-                >
-                  💌 메시지만 먼저 보내기
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* DONE */}
-          {step === 'done' && (
-            <motion.div
-              key="done"
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="pt-12 pb-20 text-center space-y-12"
-            >
-              <div className="text-[118px]">🕊️</div>
-
-              <h2 className={`${scriptureFont.className} text-4xl md:text-5xl font-bold leading-tight text-gray-900`}>
-                당신의 마음이<br />이미 누군가에게 닿았습니다
-              </h2>
-
-              {verse && (
-                <div className="bg-white rounded-3xl p-9 shadow border border-blue-100">
-                  <p className={`${scriptureFont.className} text-2xl leading-relaxed text-blue-950`}>
-                    "{verse}"
-                  </p>
-                  {verseSource && (
-                    <p className="mt-7 text-sm text-gray-400 tracking-wide">{verseSource}</p>
-                  )}
-                </div>
-              )}
-
-              <button
-                onClick={() => {
-                  setStep('intro');
-                  setFormData({ name: '', message: '', anonymous: false });
-                  setHasDonated(false);
-                  setVerse('');
-                  setVerseSource('');
-                }}
-                className="mt-8 px-12 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-2xl transition-colors"
+            {/* 4. GUIDE (BANK INFO) */}
+            {step === 'guide' && (
+              <motion.div
+                key="guide"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6 md:space-y-8"
               >
-                다시 후원하기
-              </button>
-            </motion.div>
-          )}
+                <div className="text-center">
+                  <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">송금하기</h2>
+                  <p className="text-base text-gray-400 mt-2 font-medium">마음을 전해주셔서 감사합니다</p>
+                </div>
 
-        </AnimatePresence>
+                <div className="bg-white rounded-[32px] md:rounded-[40px] p-8 md:p-10 shadow-premium border border-white relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+                  
+                  <div className="flex flex-col items-center text-center relative z-10">
+                    <div className="flex items-center gap-2 mb-6 bg-amber-50 px-4 py-1.5 rounded-full border border-amber-100">
+                      <div className="w-6 h-6 bg-amber-400 rounded-lg flex items-center justify-center shadow-lg shadow-amber-400/20">
+                        <span className="text-white text-[8px] font-black">KB</span>
+                      </div>
+                      <span className="text-xs font-black text-amber-800 uppercase tracking-widest">{ACCOUNT.bank}</span>
+                    </div>
+                    
+                    <div className="mb-6 md:mb-8">
+                      <p className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">{ACCOUNT.holder}</p>
+                    </div>
+
+                    <div className="w-full bg-gray-50/50 rounded-2xl md:rounded-3xl p-6 md:p-8 mb-6 md:mb-8 border border-gray-100">
+                      <p className="text-2xl md:text-3xl font-mono font-black tracking-wider text-brand-deep">
+                        {ACCOUNT.number}
+                      </p>
+                    </div>
+
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={copyAccount}
+                      className={`w-full py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all ${copied ? 'bg-emerald-500 text-white' : 'bg-gray-900 text-white'
+                        }`}
+                    >
+                      {copied ? '✓ 복사되었습니다' : '📋 계좌번호 복사하기'}
+                    </motion.button>
+                  </div>
+                </div>
+
+                <div className="space-y-4 md:space-y-5">
+                  <label className="flex items-center justify-center gap-4 p-5 bg-white/50 rounded-2xl border border-white/50 cursor-pointer hover:bg-white/80 transition-all">
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${hasDonated ? 'bg-brand-primary border-brand-primary' : 'border-gray-200'}`}>
+                      {hasDonated && <span className="text-white text-[10px]">✓</span>}
+                    </div>
+                    <input type="checkbox" checked={hasDonated} onChange={() => setHasDonated(!hasDonated)} className="hidden" />
+                    <span className="text-base font-bold text-gray-700">송금을 완료했습니다</span>
+                  </label>
+
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => handleSubmit(true)}
+                    disabled={!hasDonated || loading}
+                    className="w-full py-7 rounded-[36px] font-black text-2xl text-white bg-gradient-to-r from-brand-primary to-indigo-600 disabled:opacity-30 shadow-2xl shadow-brand-primary/30 transition-all"
+                  >
+                    {loading ? '전송 중...' : '확인 완료'}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* 5. DONE - 사용자 친화적으로 고도화 (인터랙티브 카드 추가) */}
+            {step === 'done' && (
+              <motion.div
+                key="done"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center space-y-10 md:space-y-12 flex flex-col items-center select-auto touch-auto"
+              >
+                <div className="flex flex-col items-center">
+                   <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", damping: 12, stiffness: 200 }}
+                    className="text-[120px] leading-none mb-4"
+                  >
+                    🕊️
+                  </motion.div>
+                  <h2 className={`${scriptureFont.className} text-4xl md:text-7xl font-bold leading-tight text-gray-900 tracking-tight`}>
+                    귀한 마음이<br />잘 전달되었습니다
+                  </h2>
+                </div>
+
+                {verse && (
+                  <motion.div 
+                    drag
+                    dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                    dragElastic={0.1}
+                    whileDrag={{ scale: 1.05, rotate: 1 }}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="group bg-white rounded-[40px] md:rounded-[56px] p-12 md:p-16 shadow-premium border border-blue-50/50 relative overflow-hidden max-w-[640px] cursor-grab active:cursor-grabbing transition-shadow hover:shadow-2xl"
+                  >
+                    {/* 상단 포인트 데코레이션 */}
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand-primary via-indigo-400 to-blue-400" />
+                    
+                    {/* 미세한 패턴 배경 */}
+                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#4F46E5 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+
+                    <div className="relative z-10 flex flex-col items-center">
+                      <p className={`${scriptureFont.className} text-2xl md:text-4xl leading-relaxed text-blue-950 font-bold tracking-tight`}>
+                        "{verse}"
+                      </p>
+                      {verseSource && (
+                        <div className="mt-10 flex flex-col items-center gap-3">
+                          <div className="w-8 h-0.5 bg-brand-primary/20 rounded-full" />
+                          <p className="text-[10px] md:text-xs text-gray-400 font-black uppercase tracking-[0.4em]">{verseSource}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 구석의 장식용 하트 */}
+                    <div className="absolute bottom-6 right-8 text-2xl opacity-10 group-hover:opacity-30 transition-opacity">💝</div>
+                  </motion.div>
+                )}
+
+                <div className="flex flex-col gap-4 w-full max-w-[300px] pb-10">
+                   <p className="text-xs font-bold text-gray-300 mb-2 animate-pulse">카드를 잡고 움직여보세요</p>
+                  <Link href="/" className="inline-flex items-center justify-center gap-3 px-10 py-6 bg-brand-primary text-white font-black rounded-2xl shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all text-base">
+                    홈으로 돌아가기
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setStep('intro');
+                      setFormData({ name: '', message: '', anonymous: false });
+                      setHasDonated(false);
+                      setIsSupportPath(false);
+                      setVerse('');
+                      setVerseSource('');
+                      setAmount(0);
+                      setCustomAmount('');
+                      setIsCustom(false);
+                    }}
+                    className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] hover:text-brand-primary transition-colors py-3"
+                  >
+                    다시 전하기
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+        </motion.div>
       </div>
     </section>
   );

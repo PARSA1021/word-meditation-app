@@ -340,8 +340,10 @@ export function getCategoryWordsServer(category: string): Word[] {
   return allWords.filter((w) => w.category === category);
 }
 
-export const getRandomWordServer = (): Word =>
-  allWords[Math.floor(Math.random() * allWords.length)];
+export const getRandomWordServer = (): Word => {
+  const candidates = allWords.filter(w => w.type !== "CheonSeongGyeong_en_words");
+  return candidates[Math.floor(Math.random() * candidates.length)];
+};
 
 export function getRandomWordExceptServer(
   except?: number | number[] | null
@@ -351,7 +353,7 @@ export function getRandomWordExceptServer(
   );
 
   const candidates = allWords.filter(
-    (w) => !excludedIds.has(w.id)
+    (w) => !excludedIds.has(w.id) && w.type !== "CheonSeongGyeong_en_words"
   );
 
   return candidates.length > 0

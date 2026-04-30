@@ -1,7 +1,7 @@
 // components/library/WordListViewer.tsx
 "use client";
 
-import { useState, useEffect, useRef, useCallback} from"react";
+import { useState, useEffect, useRef, useCallback, useMemo} from"react";
 import { SerializedTOCNode} from"@/lib/toc";
 import QuoteCard from"../QuoteCard";
 import { motion} from"framer-motion";
@@ -82,7 +82,16 @@ export default function WordListViewer({ node, isLoading, highlightId}: WordList
  );
 }
 
- const words = node.words || [];
+  const words = useMemo(() => {
+    const gatherWords = (n: SerializedTOCNode): any[] => {
+      let res = [...(n.words || [])];
+      Object.values(n.children || {}).forEach(child => {
+        res = res.concat(gatherWords(child));
+      });
+      return res;
+    };
+    return gatherWords(node);
+  }, [node]);
 
     return (
         <div className="space-y-8 md:space-y-12 pb-32">

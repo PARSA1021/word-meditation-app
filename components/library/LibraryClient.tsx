@@ -451,45 +451,45 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
  />
  </div>
  ) : (
- <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-10 animate-in fade-in duration-1000 pt-16 md:pt-0 pb-16">
- <div className="relative z-10 w-32 h-32 md:w-36 md:h-36 bg-white/60 backdrop-blur-xl rounded-[40px] md:rounded-[48px] flex items-center justify-center text-6xl md:text-7xl shadow-premium border border-white/80">
- 📖
- </div>
- 
- <div className="space-y-6 md:space-y-8 relative px-4">
- <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl -z-10" />
- <h2 className="text-[34px] md:text-[56px] font-black tracking-tighter leading-[1.2] drop-shadow-sm">
- <span className="block text-slate-400 text-xl md:text-2xl mb-2 font-medium tracking-tight">당신을 위한 편지,</span>
- <span className="bg-gradient-to-r from-brand-deep via-[#00adef] to-brand-deep bg-clip-text text-transparent italic pr-2 pb-2">
- 진리의 빛으로
- </span>
- <br />
- <span className="text-brand-deep">
- 마음을 밝히는 묵상
- </span>
- </h2>
- <div className="flex flex-col items-center gap-4 pt-2">
- <span className="w-10 md:w-12 h-1 bg-brand-primary/20 rounded-full" />
- <p className="text-text-secondary font-bold max-w-[280px] md:max-w-sm mx-auto leading-relaxed text-[15px] md:text-[16px] tracking-widest break-keep">
- 도서관의 카테고리를 선택하여<br />
- <span className="text-brand-primary/80">지혜의 여정을 시작해 보세요.</span>
- </p>
- </div>
- </div>
+  <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 animate-in fade-in duration-1000 pt-12 md:pt-0 pb-16">
+  <div className="space-y-6 md:space-y-8 relative px-4 w-full">
+  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl -z-10" />
+  <h2 className="text-[34px] md:text-[56px] font-black tracking-tighter leading-[1.2] drop-shadow-sm">
+  <span className="block text-slate-400 text-xl md:text-2xl mb-2 font-medium tracking-tight">당신을 위한 편지,</span>
+  <span className="bg-gradient-to-r from-brand-deep via-[#00adef] to-brand-deep bg-clip-text text-transparent italic pr-2 pb-2">
+  진리의 빛으로
+  </span>
+  <br />
+  <span className="text-brand-deep">
+  마음을 밝히는 묵상
+  </span>
+  </h2>
+  </div>
 
- <button
- onClick={() => setIsSidebarOpen(true)}
- className="group relative px-10 py-5 md:px-12 md:py-6 bg-brand-deep text-white rounded-[32px] font-black shadow-premium active:scale-95 transition-all text-[14px] md:text-[15px] uppercase tracking-widest overflow-hidden"
- >
- <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
- <span className="relative z-10 flex items-center gap-3">
- 전체 도서관 둘러보기
- <svg className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
- </svg>
- </span>
- </button>
- </div>
+  <div className="w-full max-w-3xl mx-auto pt-8 px-4 text-left">
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-1.5 h-6 bg-brand-primary rounded-full"></div>
+      <h3 className="text-xl font-black text-brand-deep tracking-tight">도서관 탐색하기</h3>
+    </div>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
+      {Object.values(toc.children).map(node => (
+        <button
+          key={node.name}
+          onClick={() => handleSelectSection([node.name])}
+          className="flex flex-col items-start p-6 bg-white/80 backdrop-blur-sm rounded-[24px] border border-slate-100 shadow-sm hover:border-brand-primary hover:shadow-md transition-all active:scale-95 group text-left"
+        >
+          <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand-primary/10 rounded-[16px] flex items-center justify-center text-2xl mb-4 transition-colors">
+            📁
+          </div>
+          <span className="text-base font-black text-brand-deep group-hover:text-brand-primary transition-colors">{node.name}</span>
+          <span className="text-[11px] font-bold text-text-muted mt-1 uppercase tracking-widest">
+            {node.words?.length || Object.values(node.children || {}).reduce((acc, child) => acc + (child.words?.length || 0), 0)} Verses
+          </span>
+        </button>
+      ))}
+    </div>
+  </div>
+  </div>
  )}
  </main>
  </div>

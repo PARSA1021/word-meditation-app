@@ -35,8 +35,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ko" data-scroll-behavior="smooth">
+    <html lang="ko" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         className={`
           ${uiFont.className}
           antialiased

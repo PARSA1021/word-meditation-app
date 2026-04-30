@@ -267,13 +267,34 @@ function SearchFeed() {
               key="empty"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="py-32 md:py-40 text-center"
+              className="py-32 md:py-40 text-center space-y-12"
             >
-              <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-[32px] md:rounded-[40px] shadow-sm flex items-center justify-center text-3xl md:text-4xl mx-auto mb-8 opacity-40 border border-slate-100">
-                🔎
+              <div>
+                <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-[32px] md:rounded-[40px] shadow-sm flex items-center justify-center text-4xl md:text-5xl mx-auto mb-8 opacity-60 border border-slate-100">
+                  🥺
+                </div>
+                <h3 className="text-xl md:text-2xl font-black text-brand-deep mb-3 capitalize tracking-tight">앗, 관련 말씀을 아직 찾지 못했어요</h3>
+                <p className="text-sm font-bold text-slate-400 px-10 break-keep leading-relaxed">'{query}'에 대한 일치하는 내용이 없습니다.<br/>다른 검색어로 다시 시도하거나 아래 추천 주제를 확인해 보세요.</p>
               </div>
-              <h3 className="text-xl font-black text-brand-deep mb-3 capitalize">결과를 찾지 못했습니다</h3>
-              <p className="text-sm font-bold text-slate-400 px-10 break-keep">"{type || "전체"}" 범주 내에 일치하는 내용이 없습니다.</p>
+
+              <div className="space-y-6 max-w-md mx-auto pt-4">
+                <div className="flex items-center gap-2 px-1 justify-center">
+                  <div className="w-1 h-3 bg-brand-primary rounded-full" />
+                  <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">대신 이런 주제는 어떠세요?</h4>
+                </div>
+
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {["위로", "평안", "사랑", "지혜", "기도"].map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => setQuery(tag)}
+                      className="px-5 py-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-[13px] font-bold text-brand-deep hover:border-brand-primary/50 hover:bg-brand-primary/5 hover:text-brand-primary transition-all duration-300 active:scale-95"
+                    >
+                      # {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </motion.div>
           ) : !query && (
             <motion.div

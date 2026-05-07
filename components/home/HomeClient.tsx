@@ -51,72 +51,89 @@ export default function HomeClient({ stats }: HomeClientProps) {
         animate="visible"
         className="max-w-6xl mx-auto px-6"
       >
-        {/* 1. PREMIUM HERO */}
+        {/* 1. PREMIUM HERO - Refined for Clarity */}
         <header className="pt-16 md:pt-32 pb-10 md:pb-20 text-center flex flex-col items-center">
-          <motion.div variants={itemVariants} className="space-y-6 md:space-y-8 max-w-3xl mx-auto w-full">
-            <div className="inline-flex items-center gap-2 px-4 md:px-5 py-1.5 md:py-2 rounded-full bg-white/60 backdrop-blur-md border border-white/80 shadow-sm text-[10px] md:text-[11px] font-black text-brand-primary uppercase tracking-[0.25em]">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
-              </span>
-              TruePath Calm Edition
-            </div>
+          <motion.div variants={itemVariants} className="space-y-8 md:space-y-12 max-w-4xl mx-auto w-full">
+            <div className="flex flex-col items-center space-y-4 md:space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 md:px-5 py-1.5 md:py-2 rounded-full bg-white/60 backdrop-blur-md border border-white/80 shadow-sm text-[10px] md:text-[11px] font-black text-brand-primary uppercase tracking-[0.25em]">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
+                </span>
+                TruePath Meditation
+              </div>
 
-            <div className="space-y-3 md:space-y-6">
-              <h1 className="text-[52px] sm:text-[64px] md:text-[96px] lg:text-[110px] font-black tracking-tighter text-brand-deep leading-[1] group">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-primary via-[#00adef] to-brand-primary animate-gradient-x">True</span>Path
-              </h1>
-              <p className="text-[15px] sm:text-[17px] md:text-[21px] text-text-secondary font-medium tracking-tight max-w-xs sm:max-w-lg mx-auto leading-relaxed break-keep">
-                매일 주어지는 묵상으로 하루를 단단하게 세우고,<br className="hidden md:block" />
-                수천 개의 지혜 속에서 길을 찾아보세요.
-              </p>
+              <div className="space-y-3 md:space-y-6">
+                <h1 className="text-[52px] sm:text-[64px] md:text-[96px] lg:text-[110px] font-black tracking-tighter text-brand-deep leading-[1] group">
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-primary via-[#00adef] to-brand-primary animate-gradient-x">True</span>Path
+                </h1>
+                <p className="text-[15px] sm:text-[17px] md:text-[20px] text-text-secondary font-medium tracking-tight max-w-xs sm:max-w-xl mx-auto leading-relaxed break-keep">
+                  복잡한 일상 속에서 잠시 멈추고,<br className="hidden sm:block" />
+                  당신의 영혼을 깨우는 참된 말씀과 조우하세요.
+                </p>
+              </div>
             </div>
             
-            {/* Unified Search & Action */}
-            <div className="pt-6 md:pt-12 w-full max-w-2xl mx-auto flex flex-col sm:flex-row items-center gap-3 md:gap-4 px-2 sm:px-0">
-              <form onSubmit={handleSearch} className="relative w-full flex-1 group">
-                <div className="absolute -inset-1.5 bg-gradient-to-r from-brand-primary/30 to-[#00adef]/30 rounded-[32px] blur-md opacity-0 group-focus-within:opacity-100 transition duration-700"></div>
-                <div className="relative flex items-center bg-white/90 backdrop-blur-xl rounded-[28px] border border-white shadow-premium px-6 py-4 md:py-5 overflow-hidden transition-all group-focus-within:bg-white group-focus-within:shadow-2xl">
-                  <input 
-                    type="text" 
-                    placeholder="어떤 지혜가 필요하신가요?" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-1 w-full min-w-0 bg-transparent border-none outline-none text-base md:text-lg font-bold placeholder:text-text-muted/70 text-brand-deep"
-                  />
+            {/* Main Search Experience */}
+            <div className="w-full max-w-2xl mx-auto space-y-6 px-2 sm:px-0">
+              <form onSubmit={handleSearch} className="relative group">
+                <div className="absolute -inset-2 bg-gradient-to-r from-brand-primary/20 via-[#00adef]/20 to-brand-primary/20 rounded-[36px] blur-xl opacity-0 group-focus-within:opacity-100 transition duration-1000"></div>
+                <div className="relative flex items-center bg-white/95 backdrop-blur-2xl rounded-[30px] border border-white shadow-premium p-1.5 transition-all group-focus-within:bg-white group-focus-within:shadow-2xl">
+                  <div className="flex-1 flex items-center px-5 md:px-7">
+                    <span className="text-xl md:text-2xl mr-4 opacity-40">🔍</span>
+                    <input 
+                      type="text" 
+                      placeholder="고민이 있거나 위로가 필요할 때 키워드를 입력해보세요" 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1 w-full bg-transparent border-none outline-none text-base md:text-lg font-bold placeholder:text-text-muted/50 text-brand-deep"
+                    />
+                  </div>
                   <button 
                     type="submit" 
-                    aria-label="Search"
-                    className="text-2xl ml-4 opacity-40 hover:opacity-100 group-focus-within:opacity-100 group-focus-within:scale-110 transition-all duration-300 active:scale-95 focus:outline-none"
+                    className="bg-brand-primary text-white px-6 md:px-8 py-3.5 md:py-4 rounded-[24px] font-black text-sm md:text-base hover:bg-brand-deep hover:shadow-lg transition-all duration-300 active:scale-95"
                   >
-                    🔍
+                    검색하기
                   </button>
                 </div>
               </form>
-              
-              <Link
-                href="/today"
-                className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center gap-3 px-8 py-4 md:py-5 bg-brand-deep text-white rounded-[28px] font-black text-base md:text-lg hover:bg-brand-primary hover:shadow-2xl hover:shadow-brand-primary/30 transition-all duration-300 active:scale-95 group/btn"
-              >
-                오늘의 묵상 <span className="group-hover/btn:-translate-y-1 transition-transform duration-300">✨</span>
-              </Link>
+
+              {/* Trending/Suggested Keywords to guide users */}
+              <div className="flex flex-wrap justify-center gap-2 md:gap-3 opacity-70">
+                <span className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest py-1.5">인기 검색어:</span>
+                {["사랑", "평화", "하나님", "위로", "지혜"].map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => { setSearchQuery(tag); router.push(`/search?q=${encodeURIComponent(tag)}`); }}
+                    className="text-[11px] md:text-[12px] font-bold text-slate-500 hover:text-brand-primary transition-colors"
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
             </div>
             
-            {/* 퀵 액션 (도서관, 퀴즈, 후원) 재활성화 */}
-            <div className="pt-6 md:pt-12 w-full flex justify-center max-w-2xl mx-auto px-2 sm:px-0">
-              <div className="flex flex-row flex-wrap sm:flex-nowrap items-center justify-center gap-1.5 sm:gap-2 p-1.5 sm:p-2.5 bg-white/40 backdrop-blur-xl rounded-[24px] sm:rounded-[28px] border border-white/60 shadow-inner-soft w-full sm:w-auto">
+            {/* Quick Service Modules */}
+            <div className="w-full flex justify-center max-w-3xl mx-auto px-2 sm:px-0 pt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
                 {[
-                  { href: "/library", icon: "📚", label: "주제별 탐색" },
-                  { href: "/quiz", icon: "🎯", label: "말씀 퀴즈" },
-                  { href: "/donate", icon: "🤍", label: "사역 후원" }
+                  { href: "/today", icon: "✨", label: "오늘의 묵상", desc: "매일 새로운 영감", color: "bg-brand-primary/5" },
+                  { href: "/library", icon: "📚", label: "주제별 라이브러리", desc: "지혜의 체계적 탐색", color: "bg-indigo-50/50" },
+                  { href: "/quiz", icon: "🎯", label: "말씀 퀴즈", desc: "마음에 새기는 훈련", color: "bg-amber-50/50" },
+                  { href: "/donate", icon: "🤍", label: "사역 후원", desc: "나눔의 가치", color: "bg-red-50/50" }
                 ].map(action => (
                   <Link
                     key={action.label}
                     href={action.href}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-6 py-3 md:py-3.5 rounded-[18px] sm:rounded-[20px] bg-white/80 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 active:scale-95 text-brand-deep font-black text-[12px] sm:text-[13px] md:text-sm border border-transparent hover:border-slate-100 whitespace-nowrap"
+                    className="flex flex-col items-center justify-center gap-3 p-5 md:p-6 rounded-[28px] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group"
                   >
-                    <span className="text-base sm:text-lg md:text-xl drop-shadow-sm">{action.icon}</span>
-                    <span>{action.label}</span>
+                    <div className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-2xl ${action.color} text-2xl md:text-3xl group-hover:scale-110 transition-transform duration-500`}>
+                      {action.icon}
+                    </div>
+                    <div className="text-center">
+                      <p className="text-brand-deep font-black text-[13px] md:text-[15px]">{action.label}</p>
+                      <p className="text-[10px] md:text-[11px] font-medium text-slate-400 mt-0.5">{action.desc}</p>
+                    </div>
                   </Link>
                 ))}
               </div>

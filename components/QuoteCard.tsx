@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Word } from "@/lib/words";
+import { Word, MatchType } from "@/lib/words";
 import { getWordPath } from "@/lib/toc";
 import { scriptureFont } from "@/lib/fonts";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,6 +10,9 @@ interface QuoteCardProps {
   word: Word;
   showCategory?: boolean;
   highlightRanges?: Array<{ start: number; end: number }>;
+  matchType?: MatchType;
+  explanation?: string;
+  confidence?: "high" | "medium" | "low";
   id?: string;
   isHighlighted?: boolean;
 }
@@ -17,19 +20,39 @@ interface QuoteCardProps {
 function HighlightedByRanges({
   text,
   ranges,
+  matchType = "token"
 }: {
   text: string;
   ranges: Array<{ start: number; end: number }>;
+  matchType?: MatchType;
 }) {
   const parts: React.ReactNode[] = [];
   let cursor = 0;
+
+  const getHighlightClass = (type: MatchType) => {
+    switch (type) {
+      case "exact":
+      case "phrase":
+        return "bg-emerald-400/15 text-emerald-700 ring-1 ring-emerald-400/20";
+      case "stem":
+        return "bg-blue-400/15 text-blue-700 ring-1 ring-blue-400/20";
+      case "synonym":
+        return "bg-purple-400/15 text-purple-700 ring-1 ring-purple-400/20";
+      case "chosung":
+        return "bg-amber-400/15 text-amber-700 ring-1 ring-amber-400/20";
+      default:
+        return "bg-slate-400/15 text-slate-700 ring-1 ring-slate-400/20";
+    }
+  };
+
+  const highlightClass = getHighlightClass(matchType);
 
   for (const { start, end } of ranges) {
     if (start > cursor) parts.push(<span key={`t-${cursor}`}>{text.slice(cursor, start)}</span>);
     parts.push(
       <mark
         key={`h-${start}`}
-        className="bg-brand-primary/10 text-brand-primary rounded-sm px-0.5 font-semibold not-italic"
+        className={`${highlightClass} rounded-[4px] px-1 font-bold not-italic transition-colors duration-500`}
       >
         {text.slice(start, end)}
       </mark>
@@ -40,10 +63,41 @@ function HighlightedByRanges({
   return <>{parts}</>;
 }
 
+function MatchBadge({ type, explanation }: { type: MatchType; explanation?: string }) {
+  const config: Record<string, { label: string; color: string; icon: string }> = {
+    exact: { label: "정확 일치", color: "bg-emerald-500 text-white shadow-emerald-200", icon: "✨" },
+    phrase: { label: "정확 일치", color: "bg-emerald-500 text-white shadow-emerald-200", icon: "✨" },
+    stem: { label: "기본형", color: "bg-blue-500 text-white shadow-blue-200", icon: "🔍" },
+    synonym: { label: "유사 의미", color: "bg-purple-500 text-white shadow-purple-200", icon: "💡" },
+    chosung: { label: "초성 검색", color: "bg-amber-500 text-white shadow-amber-200", icon: "⌨️" },
+    partial: { label: "부분 일치", color: "bg-slate-500 text-white shadow-slate-200", icon: "🧩" },
+    token: { label: "단어 매칭", color: "bg-slate-500 text-white shadow-slate-200", icon: "📍" },
+  };
+
+  const item = config[type] || config.token;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm ${item.color}`}>
+        <span>{item.icon}</span>
+        <span>{item.label}</span>
+      </div>
+      {explanation && (
+        <span className="text-[10px] font-bold text-slate-400 pl-1">
+          {explanation}
+        </span>
+      )}
+    </div>
+  );
+}
+
 const QuoteCard = React.memo(function QuoteCard({
   word,
   showCategory = false,
   highlightRanges,
+  matchType,
+  explanation,
+  confidence,
   id,
   isHighlighted = false,
 }: QuoteCardProps) {
@@ -82,6 +136,7 @@ const QuoteCard = React.memo(function QuoteCard({
         .filter((r) => r.start < displayText.length)
         .map((r) => ({ start: r.start, end: Math.min(r.end, displayText.length) }))
       }
+      matchType={matchType}
     />
     : displayText;
 
@@ -92,6 +147,7 @@ const QuoteCard = React.memo(function QuoteCard({
         .filter((r) => r.start < word.text.length)
         .map((r) => ({ start: r.start, end: Math.min(r.end, word.text.length) }))
       }
+      matchType={matchType}
     />
     : word.text;
 
@@ -124,23 +180,31 @@ const QuoteCard = React.memo(function QuoteCard({
         ${isExpanded ? 'ring-2 ring-brand-primary/10 shadow-active' : ''}
         ${isHighlighted ? 'ring-4 ring-brand-primary/50 shadow-premium !border-brand-primary bg-brand-primary/[0.02] scale-[1.02]' : ''}`}
     >
-      {/* 1. Header: Category & Hint */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
+      {/* 1. Subtle Header: Category only if needed */}
+      <div className="flex items-center justify-between mb-6 md:mb-8">
+        <div className="flex items-center gap-2">
           {showCategory && (
-            <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
-              isHighlighted ? 'bg-brand-primary text-white border-brand-primary' : 'bg-slate-50 text-brand-primary border-slate-100'
+            <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-md border transition-all ${
+              isHighlighted ? 'bg-brand-primary text-white border-brand-primary' : 'bg-slate-50 text-slate-400 border-slate-100'
             }`}>
               {word.category}
             </span>
+          )}
+          {matchType && (
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-50 border border-slate-100/50">
+              <span className="text-[10px] grayscale opacity-70">
+                {matchType === 'exact' || matchType === 'phrase' ? '✨' : 
+                 matchType === 'stem' ? '🔍' : 
+                 matchType === 'synonym' ? '💡' : 
+                 matchType === 'chosung' ? '⌨️' : '📍'}
+              </span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{matchType} match</span>
+            </div>
           )}
         </div>
 
         {/* Subtle Expansion Hint */}
         <div className="flex items-center gap-2 text-slate-200 group-hover:text-brand-primary transition-colors duration-500">
-          {!isExpanded && (
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-0 group-hover:opacity-100 transition-opacity translate-x-1">Expand Wisdom</span>
-          )}
           <svg
             className={`w-4 h-4 transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`}
             fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -162,14 +226,24 @@ const QuoteCard = React.memo(function QuoteCard({
 
       {/* 3. Footer Info & Copy */}
       <motion.div layout className="mt-8 md:mt-10 pt-6 md:pt-8 border-t border-slate-50 flex flex-row items-end justify-between gap-4">
-        <div className="space-y-0.5 md:space-y-1">
-          <p className="text-brand-deep font-extrabold text-[16px] md:text-[19px] tracking-tight leading-tight">
-            {word.source}
-          </p>
-          {word.speaker && (
-            <p className="text-text-secondary text-[13px] md:text-sm font-medium">
-              {word.speaker}
+        <div className="flex-1 space-y-2">
+          <div className="space-y-0.5 md:space-y-1">
+            <p className="text-brand-deep font-extrabold text-[16px] md:text-[19px] tracking-tight leading-tight">
+              {word.source}
             </p>
+            {word.speaker && (
+              <p className="text-text-secondary text-[13px] md:text-sm font-medium">
+                {word.speaker}
+              </p>
+            )}
+          </div>
+          
+          {/* Subtle match explanation at the bottom */}
+          {explanation && (
+            <div className="flex items-center gap-1.5 py-1 px-2 bg-slate-50/50 rounded-lg w-fit">
+              <div className="w-1 h-1 rounded-full bg-brand-primary/40" />
+              <p className="text-[10px] font-bold text-slate-400 tracking-tight">{explanation}</p>
+            </div>
           )}
         </div>
 

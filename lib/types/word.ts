@@ -13,9 +13,20 @@ export type Word = {
 
 export type WordStats = { total: number; byCategory: Record<string, number> }
 
+export interface Synonym {
+  word: string
+  weight: number
+}
+
+export type SynonymMap = Record<string, Synonym[]>
+
+export type MatchType = "exact" | "phrase" | "token" | "stem" | "chosung" | "synonym" | "partial"
+
 export type SearchResult = {
   word: Word
   score: number
-  matchType: "exact" | "phrase" | "token" | "stem" | "chosung" | "synonym"
+  matchType: MatchType
+  explanation?: string
+  confidence?: "high" | "medium" | "low"
   highlightRanges?: Array<{ start: number; end: number }>
 }

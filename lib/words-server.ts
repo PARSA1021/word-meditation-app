@@ -13,11 +13,15 @@ import {
   WordType,
   WordStats,
   SearchResult,
+  MatchType,
   extractChosung,
-  stemWord,
   getSynonyms,
   getHighlightRanges,
   hasHangul,
+  normalizeText,
+  tokenize,
+  preprocessWord,
+  calculateSearchScore,
 } from "@/lib/words";
 
 // -----------------------------
@@ -78,28 +82,24 @@ export const allWords: Word[] = [
 // 3️⃣ 사전 인덱스 (검색 최적화)
 // -----------------------------
 type WordIndex = {
-  textLower: string;
-  sourceLower: string;
-  speakerLower: string;
+  normalizedText: string;
+  normalizedSource: string;
+  normalizedSpeaker: string;
   textChosung: string;
 };
 
 const wordIndex: WordIndex[] = allWords.map((w) => ({
-  textLower: w.text.toLowerCase().replace(/\s+/g, ""),
-  sourceLower: w.source.toLowerCase(),
-  speakerLower: (w.speaker || "").toLowerCase(),
-  textChosung: extractChosung(w.text).toLowerCase().replace(/\s+/g, ""),
+  normalizedText: normalizeText(w.text),
+  normalizedSource: normalizeText(w.source),
+  normalizedSpeaker: normalizeText(w.speaker || ""),
+  textChosung: extractChosung(normalizeText(w.text)),
 }));
 
 // -----------------------------
 // 새로운 유틸: 문장 정규화 + 중복 제거
 // -----------------------------
 function normalizeTextForDeduplication(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s가-힣]/g, " ")   // 구두점 제거
-    .replace(/\s+/g, " ")            // 여러 공백 → 하나
-    .trim();
+  return normalizeText(text);
 }
 
 // 결과에서 반복되는 문장(또는 매우 유사한 문장)을 제거
@@ -124,7 +124,7 @@ function deduplicateResults(results: SearchResult[]): SearchResult[] {
 }
 
 // -----------------------------
-// 4️⃣ 핵심 검색 함수 (중복 제거 + 영어 정확도 강화)
+// 4️⃣ 핵심 검색 함수 (전체 아키텍처 개선)
 // -----------------------------
 export function searchWordsServer(
   query: string,
@@ -134,172 +134,161 @@ export function searchWordsServer(
   const rawQuery = query.trim();
   if (!rawQuery) return { results: [], counts: { all: 0 } };
 
-  const isExactPhrase =
-    rawQuery.startsWith('"') && rawQuery.endsWith('"');
+  // 1. 쿼리 전처리
+  const isExactPhrase = rawQuery.startsWith('"') && rawQuery.endsWith('"');
+  const cleanQuery = isExactPhrase ? rawQuery.slice(1, -1) : rawQuery;
+  const normalizedQuery = normalizeText(cleanQuery);
+  const isChosungSearch = !isExactPhrase && /^[ㄱ-ㅎ\s]+$/.test(normalizedQuery);
+  
+  const queryTokens = isExactPhrase 
+    ? [normalizedQuery] 
+    : tokenize(normalizedQuery);
 
-  const phrase = isExactPhrase
-    ? rawQuery.slice(1, -1).toLowerCase().trim()
-    : null;
-
-  const isChosungSearch =
-    !isExactPhrase && /^[ㄱ-ㅎ]+$/.test(rawQuery);
-
-  const isKorean = hasHangul(rawQuery);
-
-  const tokens = isExactPhrase
-    ? [phrase!]
-    : rawQuery.toLowerCase().split(/\s+/).filter(Boolean);
-
-  const tokenMeta = tokens.map((token) => ({
-    token,
-    tokenNoSpace: token.replace(/\s+/g, ""),
-    stem: stemWord(token),
+  const tokenMeta = queryTokens.map(token => ({
+    original: token,
+    processed: preprocessWord(token),
     synonyms: getSynonyms(token),
-    tokenChosung: extractChosung(token).replace(/\s+/g, ""),
+    chosung: extractChosung(token),
   }));
 
   let results: SearchResult[] = [];
-
-  const useWholeWord = !isKorean && !isExactPhrase;
-
-  function tokenMatches(target: string, token: string): boolean {
-    if (!useWholeWord) return target.includes(token);
-
-    const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(`\\b${escaped}\\b`, "i");
-    return regex.test(target);
-  }
 
   for (let i = 0; i < allWords.length; i++) {
     const word = allWords[i];
     const ix = wordIndex[i];
 
-    const originalTextLower = word.text.toLowerCase();
-
-    let isMatch = false;
-    let bestMatchType: SearchResult["matchType"] = "token";
-    let score = 0;
+    let totalScore = 0;
+    let matchCount = 0;
     let highlightTokens: string[] = [];
+    let bestMatchType: MatchType = "token";
 
+    // 검색 대상 설정
+    const targetText = mode === "text" 
+      ? ix.normalizedText 
+      : `${ix.normalizedSource} ${ix.normalizedSpeaker}`;
+    
+    const originalTarget = mode === "text"
+      ? word.text
+      : `${word.source} ${word.speaker || ""}`;
+
+    // 초성 검색 처리
     if (isChosungSearch) {
-      if (ix.textChosung.includes(rawQuery)) {
-        isMatch = true;
-        score = 60;
-        bestMatchType = "chosung";
-      }
-    } else {
-      let totalScore = 0;
-      let allTokensMatched = true;
-
-      for (const {
-        token,
-        tokenNoSpace,
-        stem,
-        synonyms,
-        tokenChosung,
-      } of tokenMeta) {
-        let tokenScore = 0;
-        let tokenMatched = false;
-
-        const target =
-          mode === "text"
-            ? ix.textLower
-            : `${ix.sourceLower} ${ix.speakerLower}`;
-
-        const originalTarget =
-          mode === "text"
-            ? originalTextLower
-            : `${ix.sourceLower} ${ix.speakerLower}`;
-
-        // 1. Whole-Word 매칭 (텍스트 본문 중심으로 강화)
-        if (tokenMatches(originalTarget, token)) {
-          tokenScore = originalTarget === token.toLowerCase() ? 200 : 45; // 점수 약간 상향
-          tokenMatched = true;
-          highlightTokens.push(token);
-        }
-        // 2. 공백 제거 fallback
-        else if (target.includes(tokenNoSpace)) {
-          tokenScore = 32;
-          tokenMatched = true;
-        }
-
-        // 3. Stem
-        if (!tokenMatched && stem.length >= 2) {
-          if (tokenMatches(originalTarget, stem)) {
-            tokenScore = 28;
-            tokenMatched = true;
-            bestMatchType = "stem";
-            highlightTokens.push(stem);
-          }
-        }
-
-        // 4. Synonym
-        if (!tokenMatched) {
-          for (const syn of synonyms) {
-            if (tokenMatches(originalTarget, syn.toLowerCase())) {
-              tokenScore = 18;
-              tokenMatched = true;
-              bestMatchType = "synonym";
-              highlightTokens.push(syn);
-              break;
-            }
-          }
-        }
-
-        // 5. Chosung fallback
-        if (
-          !tokenMatched &&
-          tokenChosung.length >= 2 &&
-          ix.textChosung.includes(tokenChosung)
-        ) {
-          tokenScore = 12;
-          tokenMatched = true;
-          bestMatchType = "chosung";
-        }
-
-        if (!tokenMatched) {
-          allTokensMatched = false;
-          break;
-        }
-
-        totalScore += tokenScore;
-      }
-
-      if (allTokensMatched) {
-        isMatch = true;
-        score =
-          totalScore *
-          (1 + Math.max(0, 1 - word.text.length / 2500) * 0.25); // 긴 문장 페널티 완화
+      const matchIdx = ix.textChosung.indexOf(normalizedQuery);
+      if (matchIdx !== -1) {
+        const matchedText = ix.normalizedText.substring(matchIdx, matchIdx + normalizedQuery.length);
+        results.push({
+          word,
+          score: calculateSearchScore("chosung"),
+          matchType: "chosung",
+          explanation: `초성 검색: "${matchedText}"`,
+          confidence: "low",
+          highlightRanges: [] // 초성 검색은 하이라이트 생략하거나 전체 처리
+        });
+        continue;
       }
     }
 
-    if (!isMatch) continue;
+    let chosungMatchText = "";
 
-    results.push({
-      word,
-      score,
-      matchType: bestMatchType,
-      highlightRanges: getHighlightRanges(
-        word.text,
-        highlightTokens.length > 0 ? highlightTokens : tokens
-      ),
-    });
+    // 일반 토큰 기반 검색
+    for (const meta of tokenMeta) {
+      let tokenScore = 0;
+      let matched = false;
+
+      // 1. Exact Match (Whole word)
+      const escapedToken = meta.original.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const isKorean = hasHangul(meta.original);
+      const exactRegex = new RegExp(isKorean ? escapedToken : `\\b${escapedToken}\\b`, "i");
+
+      if (exactRegex.test(targetText)) {
+        tokenScore = calculateSearchScore("exact", 1, targetText === meta.original);
+        matched = true;
+        bestMatchType = isExactPhrase ? "phrase" : "exact";
+        highlightTokens.push(meta.original);
+      } 
+      // 2. Preprocessed (Stem/Particle removed) Match
+      else if (meta.processed !== meta.original && targetText.includes(meta.processed)) {
+        tokenScore = calculateSearchScore("stem");
+        matched = true;
+        bestMatchType = "stem";
+        highlightTokens.push(meta.processed);
+      }
+      // 3. Synonym Match
+      else {
+        for (const syn of meta.synonyms) {
+          const escapedSyn = syn.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const synRegex = new RegExp(hasHangul(syn.word) ? escapedSyn : `\\b${escapedSyn}\\b`, "i");
+          if (synRegex.test(targetText)) {
+            tokenScore = calculateSearchScore("synonym", syn.weight);
+            matched = true;
+            bestMatchType = "synonym";
+            highlightTokens.push(syn.word);
+            break;
+          }
+        }
+      }
+
+      // 4. Chosung Fallback (Token level)
+      if (!matched && meta.chosung.length >= 2) {
+        const matchIdx = ix.textChosung.indexOf(meta.chosung);
+        if (matchIdx !== -1) {
+          tokenScore = calculateSearchScore("chosung");
+          matched = true;
+          bestMatchType = "chosung";
+          chosungMatchText = ix.normalizedText.substring(matchIdx, matchIdx + meta.chosung.length);
+        }
+      }
+
+      if (matched) {
+        totalScore += tokenScore;
+        matchCount++;
+      }
+    }
+
+    // 모든 토큰이 매칭되었을 때만 결과에 추가 (AND 검색 지향)
+    if (matchCount > 0 && (isExactPhrase ? matchCount === queryTokens.length : true)) {
+      const finalScore = (totalScore / queryTokens.length) * (1 + Math.max(0, 1 - word.text.length / 5000) * 0.1);
+      
+      let explanation = "";
+      let confidence: "high" | "medium" | "low" = "low";
+
+      if (bestMatchType === "exact" || bestMatchType === "phrase") {
+        explanation = "검색어와 정확히 일치합니다.";
+        confidence = "high";
+      } else if (bestMatchType === "stem") {
+        explanation = `"${highlightTokens[0]}" (기본형) 매칭`;
+        confidence = "medium";
+      } else if (bestMatchType === "synonym") {
+        explanation = `유사 의미: ${queryTokens[0]} → ${highlightTokens[0]}`;
+        confidence = "medium";
+      } else if (bestMatchType === "chosung") {
+        explanation = chosungMatchText ? `초성 검색: "${chosungMatchText}"` : "초성 검색 결과입니다.";
+        confidence = "low";
+      }
+
+      results.push({
+        word,
+        score: finalScore,
+        matchType: bestMatchType,
+        explanation,
+        confidence,
+        highlightRanges: getHighlightRanges(word.text, highlightTokens.length > 0 ? highlightTokens : queryTokens)
+      });
+    }
   }
 
-  // ★★★ 중복 문장 제거 (전체 풀 대상) ★★★
+  // 중복 제거
   let deduplicatedResults = deduplicateResults(results);
 
-  // 카운트 계산: 중복이 완전히 합쳐진(Deduplicated) 결과를 바탕으로 각 카테고리별 Count 집계
+  // 카운트 계산
   const counts: Record<string, number> = { all: 0 };
   for (const res of deduplicatedResults) {
     counts.all++;
     counts[res.word.type] = (counts[res.word.type] || 0) + 1;
   }
-
-  // 프론트엔드 SearchCategoryTabs.tsx 내의 하드코딩된 오타("Cheon Il Guk_ddeutgil") 대응용 Fallback Alias 주입
   counts["Cheon Il Guk_ddeutgil"] = counts["CheonIlGuk_ddeutgil"] || 0;
 
-  // 타입 필터링: 탭(type) 선택 시 필터링 (아이디 공백 에러 방어 포함)
+  // 필터링
   if (type) {
     const normalizedType = type.replace(/\s+/g, "");
     deduplicatedResults = deduplicatedResults.filter(
@@ -307,7 +296,7 @@ export function searchWordsServer(
     );
   }
 
-  // 점수 순 정렬
+  // 정렬
   deduplicatedResults.sort((a, b) => b.score - a.score);
 
   return {

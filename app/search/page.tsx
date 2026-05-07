@@ -20,24 +20,37 @@ function SearchFeed() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // URL에서 초기 상태 로드 (없으면 sessionStorage에서 복원)
-  const [query, setQuery] = useState(() => {
-    return searchParams.get("q") || (typeof window !== "undefined" ? sessionStorage.getItem("last_search_query") : "") || "";
-  });
-  const [mode, setMode] = useState<"text" | "source">(() => {
-    return (searchParams.get("mode") as "text" | "source") || (typeof window !== "undefined" ? sessionStorage.getItem("last_search_mode") as "text" | "source" : "text") || "text";
-  });
-  const [type, setType] = useState(() => {
-    return searchParams.get("type") || (typeof window !== "undefined" ? sessionStorage.getItem("last_search_type") : "") || "";
-  });
-  const [page, setPage] = useState(() => {
-    return parseInt(searchParams.get("page") || "1");
-  });
+  // URL에서 초기 상태 로드 (SSR 및 초기 Hydration 일관성 유지)
+  const [query, setQuery] = useState(() => searchParams.get("q") || "");
+  const [mode, setMode] = useState<"text" | "source">(() => (searchParams.get("mode") as "text" | "source") || "text");
+  const [type, setType] = useState(() => searchParams.get("type") || "");
+  const [page, setPage] = useState(() => parseInt(searchParams.get("page") || "1"));
+
+  // 컴포넌트 마운트 시 sessionStorage에서 상태 복원 (URL에 값이 없는 경우에만)
+  useEffect(() => {
+    if (!searchParams.get("q")) {
+      const savedQuery = sessionStorage.getItem("last_search_query");
+      if (savedQuery) setQuery(savedQuery);
+    }
+    if (!searchParams.get("mode")) {
+      const savedMode = sessionStorage.getItem("last_search_mode") as "text" | "source";
+      if (savedMode) setMode(savedMode);
+    }
+    if (!searchParams.get("type")) {
+      const savedType = sessionStorage.getItem("last_search_type");
+      if (savedType) setType(savedType);
+    }
+  }, []); // 마운트 시 1회 실행
   
   const limit = 30;
 
+  const [isRelatedExpanded, setIsRelatedExpanded] = useState(false);
+  const [filterConfidence, setFilterConfidence] = useState<"all" | "high" | "medium" | "low">("all");
+
   // 검색 상태 변경 시 URL 및 sessionStorage 업데이트
   useEffect(() => {
+    setIsRelatedExpanded(false); // 검색 조건 변경 시 초기화
+    setFilterConfidence("all");
     const params = new URLSearchParams();
     if (query) {
       params.set("q", query);
@@ -179,35 +192,150 @@ function SearchFeed() {
               animate={{ opacity: 1 }}
               className="space-y-6 pt-2"
             >
-              <div className="flex items-center justify-between px-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-3 bg-brand-primary rounded-full" />
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                    말씀 검색 결과 ({data.meta.total.toLocaleString()}개)
-                  </p>
+              <div className="px-2 mb-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-4 bg-brand-primary rounded-full shadow-[0_0_8px_rgba(var(--brand-primary-rgb),0.5)]" />
+                    <h2 className="text-[13px] font-black text-brand-deep uppercase tracking-widest">
+                      Insight Analysis
+                    </h2>
+                  </div>
+                  <button 
+                    onClick={() => setFilterConfidence("all")}
+                    className={`text-[10px] font-bold transition-all ${filterConfidence === 'all' ? 'text-brand-primary opacity-100' : 'text-slate-300 opacity-0 pointer-events-none'}`}
+                  >
+                    Reset Filter
+                  </button>
                 </div>
-                {totalPages > 1 && (
-                  <p className="text-[10px] font-black text-brand-primary bg-brand-primary/5 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                    Page {page} of {totalPages}
-                  </p>
+                
+                {/* Premium Interactive Chips */}
+                <div className="flex flex-wrap gap-2.5">
+                  {data.data.some((r: SearchResult) => r.confidence === 'high') && (
+                    <button
+                      onClick={() => setFilterConfidence(filterConfidence === 'high' ? 'all' : 'high')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all duration-500 ${
+                        filterConfidence === 'high' 
+                          ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-100 scale-105' 
+                          : 'bg-white text-emerald-600 border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50/30'
+                      }`}
+                    >
+                      <span className="text-xs">✨</span>
+                      <span className="text-[11px] font-black uppercase tracking-tight">정확 일치</span>
+                    </button>
+                  )}
+
+                  {data.data.some((r: SearchResult) => r.confidence === 'medium') && (
+                    <button
+                      onClick={() => setFilterConfidence(filterConfidence === 'medium' ? 'all' : 'medium')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all duration-500 ${
+                        filterConfidence === 'medium' 
+                          ? 'bg-purple-500 text-white border-purple-500 shadow-lg shadow-purple-100 scale-105' 
+                          : 'bg-white text-purple-600 border-purple-100 hover:border-purple-300 hover:bg-purple-50/30'
+                      }`}
+                    >
+                      <span className="text-xs">💡</span>
+                      <span className="text-[11px] font-black uppercase tracking-tight">유사/기본형</span>
+                    </button>
+                  )}
+
+                  {data.data.some((r: SearchResult) => r.confidence === 'low') && (
+                    <button
+                      onClick={() => setFilterConfidence(filterConfidence === 'low' ? 'all' : 'low')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all duration-500 ${
+                        filterConfidence === 'low' 
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-100 scale-105' 
+                          : 'bg-white text-amber-600 border-amber-100 hover:border-amber-300 hover:bg-amber-50/30'
+                      }`}
+                    >
+                      <span className="text-xs">⌨️</span>
+                      <span className="text-[11px] font-black uppercase tracking-tight">초성/부분</span>
+                    </button>
+                  )}
+                </div>
+
+                {filterConfidence !== 'all' && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 text-[11px] font-medium text-slate-400 italic"
+                  >
+                    * '{filterConfidence === 'high' ? '정확 일치' : filterConfidence === 'medium' ? '유사 의미/기본형' : '초성/부분 일치'}' 필터가 적용되었습니다.
+                  </motion.p>
                 )}
               </div>
 
-              <div className="space-y-4 md:space-y-6">
-                {data.data.map((result: SearchResult, index: number) => (
-                  <motion.div
-                    key={result.word.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <QuoteCard
-                      word={result.word}
-                      showCategory={true}
-                      highlightRanges={result.highlightRanges}
-                    />
-                  </motion.div>
-                ))}
+              <div className="space-y-16">
+                {/* 1. Exact Matches Section */}
+                {data.data.some((r: SearchResult) => r.confidence === 'high') && (filterConfidence === 'all' || filterConfidence === 'high') && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 px-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span className="text-[11px] font-black text-brand-deep uppercase tracking-[0.2em]">정확히 일치하는 말씀</span>
+                    </div>
+                    <div className="space-y-4 md:space-y-6">
+                      {data.data
+                        .filter((r: SearchResult) => r.confidence === 'high')
+                        .map((result: SearchResult, index: number) => (
+                          <motion.div
+                            key={result.word.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                          >
+                            <QuoteCard
+                              word={result.word}
+                              showCategory={true}
+                              highlightRanges={result.highlightRanges}
+                              matchType={result.matchType}
+                              explanation={result.explanation}
+                              confidence={result.confidence}
+                            />
+                          </motion.div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Related Results Section */}
+                {data.data.some((r: SearchResult) => r.confidence !== 'high') && (filterConfidence === 'all' || filterConfidence === 'medium' || filterConfidence === 'low') && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 px-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                      <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">관련 말씀</span>
+                    </div>
+                    <div className="space-y-4 md:space-y-6">
+                      {data.data
+                        .filter((r: SearchResult) => (filterConfidence === 'all' ? r.confidence !== 'high' : r.confidence === filterConfidence))
+                        .slice(0, (isRelatedExpanded || filterConfidence !== 'all') ? undefined : 3)
+                        .map((result: SearchResult, index: number) => (
+                          <motion.div
+                            key={result.word.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                          >
+                            <QuoteCard
+                              word={result.word}
+                              showCategory={true}
+                              highlightRanges={result.highlightRanges}
+                              matchType={result.matchType}
+                              explanation={result.explanation}
+                              confidence={result.confidence}
+                            />
+                          </motion.div>
+                        ))}
+                      
+                      {!isRelatedExpanded && filterConfidence === 'all' && data.data.filter((r: SearchResult) => r.confidence !== 'high').length > 3 && (
+                        <button
+                          onClick={() => setIsRelatedExpanded(true)}
+                          className="w-full py-4 bg-white border border-dashed border-slate-200 rounded-2xl text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] hover:border-brand-primary hover:text-brand-primary transition-all active:scale-[0.98]"
+                        >
+                          관련 말씀 더 보기 (+{data.data.filter((r: SearchResult) => r.confidence !== 'high').length - 3}개)
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Pagination Controls */}

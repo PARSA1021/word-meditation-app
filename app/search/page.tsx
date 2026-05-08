@@ -110,6 +110,40 @@ function SearchFeed() {
     }
   );
 
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  // Load recent searches on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("recent_searches");
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse recent searches", e);
+      }
+    }
+  }, []);
+
+  // Update recent searches when query changes and results are found
+  useEffect(() => {
+    if (query && data?.data?.length > 0) {
+      setRecentSearches(prev => {
+        const next = [query, ...prev.filter(q => q !== query)].slice(0, 5);
+        localStorage.setItem("recent_searches", JSON.stringify(next));
+        return next;
+      });
+    }
+  }, [query, data]);
+
+  const removeRecentSearch = (e: React.MouseEvent, q: string) => {
+    e.stopPropagation();
+    setRecentSearches(prev => {
+      const next = prev.filter(item => item !== q);
+      localStorage.setItem("recent_searches", JSON.stringify(next));
+      return next;
+    });
+  };
+
   const isFetching = isLoading || isValidating;
 
   const handleTypeChange = (newType: string) => {
@@ -431,7 +465,45 @@ function SearchFeed() {
               animate={{ opacity: 1 }}
               className="py-12 md:py-16 space-y-12"
             >
-              <div className="text-center space-y-6">
+              {/* Recent Searches Section */}
+              {recentSearches.length > 0 && (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-3 bg-brand-primary rounded-full" />
+                      <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">최근 검색어</h4>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setRecentSearches([]);
+                        localStorage.removeItem("recent_searches");
+                      }}
+                      className="text-[10px] font-bold text-slate-300 hover:text-red-400 transition-colors"
+                    >
+                      전체 삭제
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {recentSearches.map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => setQuery(q)}
+                        className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-100 shadow-sm text-[13px] font-bold text-brand-deep hover:border-brand-primary/30 transition-all active:scale-95"
+                      >
+                        <span>{q}</span>
+                        <div 
+                          onClick={(e) => removeRecentSearch(e, q)}
+                          className="w-4 h-4 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                        >
+                          ✕
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center space-y-6 pt-4">
                 <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-[32px] md:rounded-[40px] shadow-premium flex items-center justify-center text-3xl md:text-4xl mx-auto transition-all hover:scale-110 active:scale-95 cursor-default group border border-slate-50/50">
                   <span className="group-hover:animate-bounce">✨</span>
                 </div>

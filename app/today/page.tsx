@@ -1,8 +1,7 @@
-"use client"
-
+import { useRandomWord } from "@/shared/hooks/useRandomWord"
+import { Skeleton, QuoteSkeleton } from "@/shared/ui/Skeleton"
 import QuoteCard from "@/shared/ui/QuoteCard"
 import Link from "next/link"
-import { useRandomWord } from "@/shared/hooks/useRandomWord"
 
 export default function TodayPage() {
   const { data: word, isLoading, isValidating, refreshWord } = useRandomWord()
@@ -10,9 +9,15 @@ export default function TodayPage() {
   // 초기 로딩 화면
   if (!word && isLoading) {
     return (
-      <div className="min-h-screen bg-[#F2F2F7] flex flex-col items-center justify-center p-6">
-        <div className="w-11 h-11 border-4 border-[#0099FF] border-t-transparent rounded-full animate-spin mb-6" />
-        <p className="text-sm font-semibold text-slate-400">오늘의 말씀을 준비하고 있습니다...</p>
+      <div className="min-h-screen bg-[#F2F2F7] pb-20">
+        <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 px-6 py-5">
+           <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto h-12 flex items-center">
+             <Skeleton className="w-32 h-6" />
+           </div>
+        </header>
+        <main className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-6 pt-10">
+          <QuoteSkeleton />
+        </main>
       </div>
     )
   }

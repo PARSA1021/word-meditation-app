@@ -174,3 +174,9 @@ body {
 .pb-safe-offset-2 {
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
 }
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

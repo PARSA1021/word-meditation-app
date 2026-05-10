@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import { Word, MatchType } from "@/shared/lib/utils/word-core";
 import { getWordPath } from "@/features/meditation/services/toc.service";

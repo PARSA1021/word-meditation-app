@@ -1,3 +1,5 @@
+"use client";
+
 // hooks/useRandomWord.ts
 import useSWR from 'swr'
 import { useState } from 'react'

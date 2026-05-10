@@ -1,13 +1,6 @@
 // features/meditation/services/word.service.ts
 import "server-only";
 
-import rawWordsData from "@/data/words.json";
-import rawCheonseongData from "@/data/cheonseong_words.json";
-import rawWonliData from "@/data/wonligangnon_words.json";
-import rawPyeonghwaData from "@/data/pyeonghwashinkyung_words.json";
-import rawCheonIlGukData from "@/data/Cheon Il Guk_ddeutgil_words.json";
-import rawCheonseongEngData from "@/data/CheonSeongGyeong_en_words.json";
-
 import {
   Word,
   WordType,
@@ -24,63 +17,45 @@ import {
   calculateSearchScore,
 } from "@/shared/lib/utils/word-core";
 
+// ✅ 싱글톤 인스턴스 관리를 위한 변수
+let _allWords: Word[] | null = null;
+let _wordIndex: WordIndex[] | null = null;
+
 // -----------------------------
-// ✅ 1️⃣ 타입 안전 + 런타임 검증
+// 0️⃣ 데이터 지연 로딩 (Lazy Loading)
 // -----------------------------
-function assertWords(data: unknown): Word[] {
-  if (!Array.isArray(data)) {
-    throw new Error("Invalid words data format");
-  }
-  return data as Word[];
+function loadAllWords(): Word[] {
+  if (_allWords) return _allWords;
+
+  // JSON 파일을 필요한 시점에만 로드 (서버 사이드 가용성 보장)
+  const rawWordsData = require("@/data/words.json");
+  const rawCheonseongData = require("@/data/cheonseong_words.json");
+  const rawWonliData = require("@/data/wonligangnon_words.json");
+  const rawPyeonghwaData = require("@/data/pyeonghwashinkyung_words.json");
+  const rawCheonIlGukData = require("@/data/Cheon Il Guk_ddeutgil_words.json");
+  const rawCheonseongEngData = require("@/data/CheonSeongGyeong_en_words.json");
+
+  const assertWords = (data: unknown): Word[] => Array.isArray(data) ? data as Word[] : [];
+
+  const wordsData = assertWords(rawWordsData);
+  const cheonseongData = assertWords(rawCheonseongData);
+  const wonliData = assertWords(rawWonliData);
+  const pyeonghwashinkyungData = assertWords(rawPyeonghwaData);
+  const CheonIlGukDdeutgilData = assertWords(rawCheonIlGukData);
+  const cheonseongDataEng = assertWords(rawCheonseongEngData);
+
+  _allWords = [
+    ...wordsData.map((w) => ({ ...w, type: "general" as WordType })),
+    ...cheonseongData.map((w, i) => ({ ...w, type: "cheonseong" as WordType, id: 10000 + i })),
+    ...wonliData.map((w, i) => ({ ...w, type: "wonli" as WordType, id: 20000 + i })),
+    ...pyeonghwashinkyungData.map((w, i) => ({ ...w, type: "pyeonghwashinkyung" as WordType, id: 30000 + i })),
+    ...CheonIlGukDdeutgilData.map((w, i) => ({ ...w, type: "CheonIlGuk_ddeutgil" as WordType, id: 40000 + i })),
+    ...cheonseongDataEng.map((w, i) => ({ ...w, type: "CheonSeongGyeong_en_words" as WordType, id: 50000 + i })),
+  ];
+
+  return _allWords;
 }
 
-const wordsData = assertWords(rawWordsData);
-const cheonseongData = assertWords(rawCheonseongData);
-const wonliData = assertWords(rawWonliData);
-const pyeonghwashinkyungData = assertWords(rawPyeonghwaData);
-const CheonIlGukDdeutgilData = assertWords(rawCheonIlGukData);
-const cheonseongDataEng = assertWords(rawCheonseongEngData);
-
-// -----------------------------
-// 2️⃣ 데이터 합치기 (id 중복 방지)
-// -----------------------------
-export const allWords: Word[] = [
-  ...wordsData.map((w) => ({ ...w, type: "general" as WordType })),
-
-  ...cheonseongData.map((w, i) => ({
-    ...w,
-    type: "cheonseong" as WordType,
-    id: 10000 + i,
-  })),
-
-  ...wonliData.map((w, i) => ({
-    ...w,
-    type: "wonli" as WordType,
-    id: 20000 + i,
-  })),
-
-  ...pyeonghwashinkyungData.map((w, i) => ({
-    ...w,
-    type: "pyeonghwashinkyung" as WordType,
-    id: 30000 + i,
-  })),
-
-  ...CheonIlGukDdeutgilData.map((w, i) => ({
-    ...w,
-    type: "CheonIlGuk_ddeutgil" as WordType,
-    id: 40000 + i,
-  })),
-
-  ...cheonseongDataEng.map((w, i) => ({
-    ...w,
-    type: "CheonSeongGyeong_en_words" as WordType,
-    id: 50000 + i,
-  })),
-];
-
-// -----------------------------
-// 3️⃣ 사전 인덱스 (검색 최적화)
-// -----------------------------
 type WordIndex = {
   normalizedText: string;
   normalizedSource: string;
@@ -88,12 +63,19 @@ type WordIndex = {
   textChosung: string;
 };
 
-const wordIndex: WordIndex[] = allWords.map((w) => ({
-  normalizedText: normalizeText(w.text),
-  normalizedSource: normalizeText(w.source),
-  normalizedSpeaker: normalizeText(w.speaker || ""),
-  textChosung: extractChosung(normalizeText(w.text)),
-}));
+function getWordIndex(): WordIndex[] {
+  if (_wordIndex) return _wordIndex;
+  
+  const words = loadAllWords();
+  _wordIndex = words.map((w) => ({
+    normalizedText: normalizeText(w.text),
+    normalizedSource: normalizeText(w.source),
+    normalizedSpeaker: normalizeText(w.speaker || ""),
+    textChosung: extractChosung(normalizeText(w.text)),
+  }));
+  
+  return _wordIndex;
+}
 
 // -----------------------------
 // 새로운 유틸: 문장 정규화 + 중복 제거
@@ -153,9 +135,12 @@ export function searchWordsServer(
 
   let results: SearchResult[] = [];
 
-  for (let i = 0; i < allWords.length; i++) {
-    const word = allWords[i];
-    const ix = wordIndex[i];
+  const words = loadAllWords();
+  const index = getWordIndex();
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const ix = index[i];
 
     let totalScore = 0;
     let matchCount = 0;
@@ -308,29 +293,30 @@ export function searchWordsServer(
 // -----------------------------
 // 5️⃣ 유틸 함수
 // -----------------------------
-export const getAllWordsServer = (): Word[] => allWords;
+export const getAllWordsServer = (): Word[] => loadAllWords();
 
 export const getWordByIdServer = (id: number): Word | undefined =>
-  allWords.find((w) => w.id === id);
+  loadAllWords().find((w) => w.id === id);
 
 export function getWordStatsServer(): WordStats {
-  const byCategory = allWords.reduce((acc, w) => {
+  const words = loadAllWords();
+  const byCategory = words.reduce((acc, w) => {
     acc[w.category] = (acc[w.category] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
   return {
-    total: allWords.length,
+    total: words.length,
     byCategory,
   };
 }
 
 export function getCategoryWordsServer(category: string): Word[] {
-  return allWords.filter((w) => w.category === category);
+  return loadAllWords().filter((w) => w.category === category);
 }
 
 export const getRandomWordServer = (): Word => {
-  const candidates = allWords.filter(w => w.type !== "CheonSeongGyeong_en_words");
+  const candidates = loadAllWords().filter(w => w.type !== "CheonSeongGyeong_en_words");
   return candidates[Math.floor(Math.random() * candidates.length)];
 };
 
@@ -341,7 +327,8 @@ export function getRandomWordExceptServer(
     Array.isArray(except) ? except : except ? [except] : []
   );
 
-  const candidates = allWords.filter(
+  const words = loadAllWords();
+  const candidates = words.filter(
     (w) => !excludedIds.has(w.id) && w.type !== "CheonSeongGyeong_en_words"
   );
 

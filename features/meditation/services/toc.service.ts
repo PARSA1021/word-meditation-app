@@ -117,16 +117,40 @@ export type SerializedTOCNode = {
   path: string[];
 };
 
-export function serializeTOC(node: TOCNode): SerializedTOCNode {
+export function serializeTOC(node: TOCNode, includeWords: boolean = true): SerializedTOCNode {
   const children: Record<string, SerializedTOCNode> = {};
   node.children.forEach((child, key) => {
-    children[key] = serializeTOC(child);
+    children[key] = serializeTOC(child, includeWords);
   });
 
   return {
     name: node.name,
     children,
-    words: node.words,
+    words: includeWords ? node.words : undefined,
     path: node.path,
   };
+}
+
+/**
+ * 특정 경로의 Node를 찾아 해당 노드와 모든 하위 노드의 말씀을 평탄화하여 반환합니다.
+ */
+export function getWordsInPath(root: TOCNode, path: string[]): Word[] {
+  let current = root;
+  for (const segment of path) {
+    if (current.children.has(segment)) {
+      current = current.children.get(segment)!;
+    } else {
+      return [];
+    }
+  }
+
+  const gatherWords = (node: TOCNode): Word[] => {
+    let res = [...(node.words || [])];
+    node.children.forEach(child => {
+      res = res.concat(gatherWords(child));
+    });
+    return res;
+  };
+
+  return gatherWords(current);
 }

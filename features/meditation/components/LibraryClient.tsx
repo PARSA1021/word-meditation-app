@@ -9,6 +9,8 @@ import { motion, AnimatePresence} from"framer-motion";
 import { useBookmarks} from"@/context/BookmarkContext";
 import QuoteCard from"@/shared/ui/QuoteCard";
 import Link from"next/link";
+import { getWordsByPathAction } from "@/features/meditation/services/word-actions.server";
+import { Word } from "@/shared/lib/types/word";
 
 interface LibraryClientProps {
  toc: SerializedTOCNode;
@@ -16,6 +18,8 @@ interface LibraryClientProps {
 
 export default function LibraryClient({ toc}: LibraryClientProps) {
  const [selectedPath, setSelectedPath] = useState<string[]>([]);
+ const [currentWords, setCurrentWords] = useState<Word[]>([]);
+ const [isLoadingWords, setIsLoadingWords] = useState(false);
  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
  const [searchQuery, setSearchQuery] = useState("");
  const [activeTab, setActiveTab] = useState<"hierarchy" |"bookmarks">("hierarchy");
@@ -66,6 +70,26 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
 }
 }
 }, [searchParams, toc]);
+
+  // --- Word Fetching Logic ---
+  useEffect(() => {
+    if (selectedPath.length > 0) {
+      const fetchWords = async () => {
+        setIsLoadingWords(true);
+        try {
+          const words = await getWordsByPathAction(selectedPath);
+          setCurrentWords(words);
+        } catch (err) {
+          console.error("Failed to fetch words for path:", err);
+        } finally {
+          setIsLoadingWords(false);
+        }
+      };
+      fetchWords();
+    } else {
+      setCurrentWords([]);
+    }
+  }, [selectedPath]);
 
  // --- Search Logic: Recursive tree filtering ---
  const filteredTOC = useMemo(() => {
@@ -320,7 +344,7 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
  placeholder="어떤 말씀을 찾으시나요?"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
- className="w-full bg-white border-none rounded-3xl py-5 pl-14 pr-6 text-base focus:ring-4 focus:ring-brand-primary/10 transition-all font-bold placeholder:text-text-muted shadow-inner-soft"
+ className="w-full bg-white border-none rounded-3xl py-4 md:py-5 pl-12 pr-6 text-[15px] md:text-base focus:ring-4 focus:ring-brand-primary/10 transition-all font-bold placeholder:text-text-muted shadow-inner-soft"
  />
  <svg className="absolute left-5 top-5 w-6 h-6 text-text-muted font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -446,7 +470,8 @@ export default function LibraryClient({ toc}: LibraryClientProps) {
 
  <WordListViewer 
  node={selectedNode} 
- isLoading={false} 
+ words={currentWords}
+ isLoading={isLoadingWords} 
  highlightId={highlightId}
  />
  </div>

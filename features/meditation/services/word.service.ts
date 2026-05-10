@@ -21,6 +21,12 @@ import {
 let _allWords: Word[] | null = null;
 let _wordIndex: WordIndex[] | null = null;
 
+// ✅ 캐시 초기화 함수 (데이터 추가 시 호출)
+export function resetWordCache() {
+  _allWords = null;
+  _wordIndex = null;
+}
+
 // -----------------------------
 // 0️⃣ 데이터 지연 로딩 (Lazy Loading)
 // -----------------------------

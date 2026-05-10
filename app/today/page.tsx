@@ -1,8 +1,8 @@
 "use client"
 
-import QuoteCard from "@/components/QuoteCard"
+import QuoteCard from "@/shared/ui/QuoteCard"
 import Link from "next/link"
-import { useRandomWord } from "@/hooks/useRandomWord"
+import { useRandomWord } from "@/shared/hooks/useRandomWord"
 
 export default function TodayPage() {
   const { data: word, isLoading, isValidating, refreshWord } = useRandomWord()

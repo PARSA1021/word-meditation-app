@@ -1,6 +1,6 @@
 // app/api/words/daily/route.ts
 import { NextResponse } from "next/server";
-import { allWords } from "@/lib/words-server";
+import { allWords } from "@/features/meditation/services/word.service";
 
 export const runtime = "nodejs";
 

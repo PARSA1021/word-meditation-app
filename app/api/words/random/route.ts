@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 export const runtime = 'nodejs';
-import { getRandomWordExceptServer } from "@/lib/words-server";
+import { getRandomWordExceptServer } from "@/features/meditation/services/word.service";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);

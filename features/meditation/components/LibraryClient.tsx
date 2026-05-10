@@ -2,12 +2,12 @@
 
 import { useState, useMemo, useCallback, useEffect} from"react";
 import { useSearchParams, useRouter} from"next/navigation";
-import { SerializedTOCNode} from"@/lib/toc";
-import TOCAccordion from"@/components/library/TOCAccordion";
-import WordListViewer from"@/components/library/WordListViewer";
+import { SerializedTOCNode} from"@/features/meditation/services/toc.service";
+import TOCAccordion from"@/features/meditation/components/TOCAccordion";
+import WordListViewer from"@/features/meditation/components/WordListViewer";
 import { motion, AnimatePresence} from"framer-motion";
 import { useBookmarks} from"@/context/BookmarkContext";
-import QuoteCard from"@/components/QuoteCard";
+import QuoteCard from"@/shared/ui/QuoteCard";
 import Link from"next/link";
 
 interface LibraryClientProps {

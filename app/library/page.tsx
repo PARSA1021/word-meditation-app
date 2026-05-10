@@ -1,7 +1,7 @@
 // app/library/page.tsx
-import { getAllWordsServer} from"@/lib/words-server";
-import { generateTOC, serializeTOC} from"@/lib/toc";
-import LibraryClient from"@/components/library/LibraryClient";
+import { getAllWordsServer} from"@/features/meditation/services/word.service";
+import { generateTOC, serializeTOC} from"@/features/meditation/services/toc.service";
+import LibraryClient from"@/features/meditation/components/LibraryClient";
 
 export const metadata = {
  title:"말씀 도서관 | Word Meditation",

@@ -1,4 +1,4 @@
-// words-server.ts
+// features/meditation/services/word.service.ts
 import "server-only";
 
 import rawWordsData from "@/data/words.json";
@@ -22,7 +22,7 @@ import {
   tokenize,
   preprocessWord,
   calculateSearchScore,
-} from "@/lib/words";
+} from "@/shared/lib/utils/word-core";
 
 // -----------------------------
 // ✅ 1️⃣ 타입 안전 + 런타임 검증

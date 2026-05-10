@@ -1,8 +1,8 @@
 import React from "react"
-import { getWordStatsServer } from "@/lib/words-server"
-import { WordStats } from "@/lib/types/word"
+import { getWordStatsServer } from "@/features/meditation/services/word.service"
+import { WordStats } from "@/shared/lib/types/word"
 import Link from "next/link"
-import { CATEGORY_GROUPS } from "@/lib/constants"
+import { CATEGORY_GROUPS } from "@/shared/lib/constants/constants"
 
 export default function CategoryPage() {
   const stats: WordStats = getWordStatsServer()

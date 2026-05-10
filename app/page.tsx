@@ -1,5 +1,5 @@
-import { getWordStatsServer } from "@/lib/words-server";
-import HomeClient from "@/components/home/HomeClient";
+import { getWordStatsServer } from "@/features/meditation/services/word.service";
+import HomeClient from "@/features/meditation/components/HomeClient";
 
 export default function Home() {
   // 서버 컴포넌트에서 초기 데이터(말씀 통계)를 로드

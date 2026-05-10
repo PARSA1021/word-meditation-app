@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 export const runtime = 'nodejs';
-import { searchWordsServer } from "@/lib/words-server";
-import { WordType } from "@/lib/words";
+import { searchWordsServer } from "@/features/meditation/services/word.service";
+import { WordType } from "@/shared/lib/utils/word-core";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;

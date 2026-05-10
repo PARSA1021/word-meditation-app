@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { uiFont, scriptureFont } from '@/lib/fonts';
+import { uiFont, scriptureFont } from '@/shared/lib/fonts';
 import Link from 'next/link';
 
 // Step order: intro -> form (message) -> amount -> guide -> done

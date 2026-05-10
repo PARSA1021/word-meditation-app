@@ -1,5 +1,5 @@
 // lib/toc.ts
-import { Word } from "./types/word";
+import { Word } from "@/shared/lib/types/word";
 
 export type ParsedSource = {
   category: string;

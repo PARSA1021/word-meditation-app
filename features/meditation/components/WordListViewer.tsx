@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo} from"react";
-import { SerializedTOCNode} from"@/lib/toc";
-import QuoteCard from"../QuoteCard";
+import { SerializedTOCNode} from"@/features/meditation/services/toc.service";
+import QuoteCard from "@/shared/ui/QuoteCard";
 import { motion} from"framer-motion";
 
 interface WordListViewerProps {

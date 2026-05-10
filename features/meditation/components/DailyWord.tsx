@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Word } from "@/lib/words"
-import QuoteCard from "@/components/QuoteCard"
+import { Word } from "@/shared/lib/utils/word-core"
+import QuoteCard from "@/shared/ui/QuoteCard"
 
 export default function DailyWord() {
   const [word, setWord] = useState<Word | null>(null)

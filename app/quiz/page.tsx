@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { getRandomQuiz, Quiz, QuizType, shuffleArray } from "@/lib/quiz"
+import { getRandomQuiz, Quiz, QuizType, shuffleArray } from "@/features/quiz/services/quiz.service"
 
 type ViewState = "selection" | "quiz"
 

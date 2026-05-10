@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import DailyWord from "@/components/DailyWord";
-import { WordStats } from "@/lib/words";
-import CategoryCard from "@/components/CategoryCard";
+import DailyWord from "@/features/meditation/components/DailyWord";
+import { WordStats } from "@/shared/lib/utils/word-core";
+import CategoryCard from "@/shared/ui/CategoryCard";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 

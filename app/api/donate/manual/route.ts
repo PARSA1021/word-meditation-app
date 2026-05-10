@@ -1,6 +1,6 @@
 // app/api/donate/manual/route.ts
 import { NextResponse } from 'next/server';
-import { sendDonationNotification } from '@/lib/notifications';
+import { sendDonationNotification } from '@/shared/lib/utils/notifications';
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
 
@@ -103,4 +103,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
+}

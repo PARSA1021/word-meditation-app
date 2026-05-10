@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Word } from "@/lib/types/word";
-import QuoteCard from "@/components/QuoteCard";
-import SimpleTOC, { TOCItem } from "@/components/category/SimpleTOC";
-import { parseSource } from "@/lib/toc";
+import { Word } from "@/shared/lib/types/word";
+import QuoteCard from "@/shared/ui/QuoteCard";
+import SimpleTOC, { TOCItem } from "@/features/meditation/components/SimpleTOC";
+import { parseSource } from "@/features/meditation/services/toc.service";
 import Link from "next/link";
 
 interface CategoryDetailClientProps {

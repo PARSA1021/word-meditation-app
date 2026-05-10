@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, memo, useEffect} from"react";
-import { SerializedTOCNode} from"@/lib/toc";
+import { SerializedTOCNode} from"@/features/meditation/services/toc.service";
 import { motion, AnimatePresence} from"framer-motion";
 
 interface TOCAccordionProps {

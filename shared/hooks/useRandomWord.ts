@@ -1,7 +1,7 @@
 // hooks/useRandomWord.ts
 import useSWR from 'swr'
 import { useState } from 'react'
-import { fetchRandomWord } from '@/lib/api/words'
+import { fetchRandomWord } from '@/shared/api/word.client'
 
 export function useRandomWord() {
   const [exceptId, setExceptId] = useState<number | undefined>(undefined)

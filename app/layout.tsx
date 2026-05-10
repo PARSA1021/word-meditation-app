@@ -1,7 +1,7 @@
 import "./globals.css"
-import BottomNav from "@/components/BottomNav"
-import SideNav from "@/components/SideNav"
-import { uiFont } from "@/lib/fonts"
+import BottomNav from "@/shared/ui/BottomNav"
+import SideNav from "@/shared/ui/SideNav"
+import { uiFont } from "@/shared/lib/fonts"
 import { BookmarkProvider } from "@/context/BookmarkContext"
 import { SettingsProvider } from "@/context/SettingsContext"
 

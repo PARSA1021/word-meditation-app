@@ -3,10 +3,10 @@
 import React, { useState, Suspense, useEffect } from "react";
 import useSWR from "swr";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { SearchResult } from "@/lib/words";
-import SearchInput from "@/components/search/SearchInput";
-import SearchCategoryTabs from "@/components/search/SearchCategoryTabs";
-import QuoteCard from "@/components/QuoteCard";
+import { SearchResult } from "@/shared/lib/utils/word-core";
+import SearchInput from "@/features/search/components/SearchInput";
+import SearchCategoryTabs from "@/features/search/components/SearchCategoryTabs";
+import QuoteCard from "@/shared/ui/QuoteCard";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 

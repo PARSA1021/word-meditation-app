@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 export const runtime = 'nodejs';
-import { getWordByIdServer } from "@/lib/words-server";
+import { getWordByIdServer } from "@/features/meditation/services/word.service";
 
 export async function GET(
   req: NextRequest,

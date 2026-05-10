@@ -1,4 +1,4 @@
-import DonationSection from '@/components/donation/DonationSection';
+import DonationSection from '@/features/donation/components/DonationSection';
 
 export const metadata = {
   title: '후원하기 | TruePath',

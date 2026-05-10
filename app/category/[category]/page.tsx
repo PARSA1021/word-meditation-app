@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { getCategoryWordsServer } from "@/lib/words-server";
-import CategoryDetailClient from "@/components/category/CategoryDetailClient";
+import { getCategoryWordsServer } from "@/features/meditation/services/word.service";
+import CategoryDetailClient from "@/features/meditation/components/CategoryDetailClient";
 
 const PAGE_SIZE = 30;
 

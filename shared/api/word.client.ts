@@ -1,5 +1,5 @@
 // lib/api/words.ts
-import { Word } from "@/lib/types/word"
+import { Word } from "@/shared/lib/types/word"
 
 export async function fetchRandomWord(exceptId?: number): Promise<Word> {
   const url = exceptId

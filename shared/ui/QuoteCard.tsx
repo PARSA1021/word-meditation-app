@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Word, MatchType } from "@/lib/words";
-import { getWordPath } from "@/lib/toc";
-import { scriptureFont } from "@/lib/fonts";
+import { Word, MatchType } from "@/shared/lib/utils/word-core";
+import { getWordPath } from "@/features/meditation/services/toc.service";
+import { scriptureFont } from "@/shared/lib/fonts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBookmarks } from "@/context/BookmarkContext";
 import Link from "next/link";

@@ -1,3 +1,5 @@
+"use client";
+
 import { useRandomWord } from "@/shared/hooks/useRandomWord"
 import { Skeleton, QuoteSkeleton } from "@/shared/ui/Skeleton"
 import QuoteCard from "@/shared/ui/QuoteCard"

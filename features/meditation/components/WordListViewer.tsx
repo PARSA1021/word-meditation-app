@@ -5,7 +5,7 @@ import { SerializedTOCNode } from "@/features/meditation/services/toc.service";
 import QuoteCard from "@/shared/ui/QuoteCard";
 import { motion } from "framer-motion";
 import { QuoteSkeleton } from "@/shared/ui/Skeleton";
-import { Word } from "@/shared/lib/types/word";
+import { Word } from "@/shared/types/word";
 
 interface WordListViewerProps {
   node: SerializedTOCNode | null;

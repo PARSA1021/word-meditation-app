@@ -1,5 +1,5 @@
 // lib/toc.ts
-import { Word } from "@/shared/lib/types/word";
+import { Word } from "@/shared/types/word";
 
 export type ParsedSource = {
   category: string;
@@ -115,19 +115,27 @@ export type SerializedTOCNode = {
   children: Record<string, SerializedTOCNode>;
   words?: Word[];
   path: string[];
+  wordCount: number;
 };
 
 export function serializeTOC(node: TOCNode, includeWords: boolean = true): SerializedTOCNode {
   const children: Record<string, SerializedTOCNode> = {};
+  let totalChildWords = 0;
+  
   node.children.forEach((child, key) => {
-    children[key] = serializeTOC(child, includeWords);
+    const serializedChild = serializeTOC(child, includeWords);
+    children[key] = serializedChild;
+    totalChildWords += serializedChild.wordCount;
   });
+
+  const nodeWordsCount = node.words?.length || 0;
 
   return {
     name: node.name,
     children,
     words: includeWords ? node.words : undefined,
     path: node.path,
+    wordCount: nodeWordsCount + totalChildWords
   };
 }
 

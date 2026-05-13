@@ -1,22 +1,9 @@
 // app/api/donate/manual/route.ts
 import { NextResponse } from 'next/server';
-import { sendDonationNotification } from '@/shared/lib/utils/notifications';
+import { sendDonationNotification } from '@/features/donation/services/notification.service';
+import { DonationRecord } from '@/features/donation/types';
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
-
-// -----------------------------
-// 1️⃣ 타입 정의 (다른 모듈에서 사용 가능하도록 export)
-// -----------------------------
-export interface DonationRecord {
-  id: string;           // randomUUID()
-  donorName: string | null;
-  isAnonymous: boolean;
-  message: string;
-  amount: number;       // 0 = 미입력
-  status: 'CONFIRMED' | 'MESSAGE_ONLY';
-  hasDonated: boolean;
-  createdAt: string;    // ISO 8601
-}
 
 // -----------------------------
 // 2️⃣ 유효성 검사 스키마

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useBookmarks } from "@/context/BookmarkContext";
+import { useBookmarks } from "@/features/meditation/context/BookmarkContext";
 import QuoteCard from "@/shared/ui/QuoteCard";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";

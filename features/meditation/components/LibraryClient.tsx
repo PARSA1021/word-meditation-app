@@ -6,11 +6,11 @@ import { SerializedTOCNode} from"@/features/meditation/services/toc.service";
 import TOCAccordion from"@/features/meditation/components/TOCAccordion";
 import WordListViewer from"@/features/meditation/components/WordListViewer";
 import { motion, AnimatePresence} from"framer-motion";
-import { useBookmarks} from"@/context/BookmarkContext";
+import { useBookmarks} from "@/features/meditation/context/BookmarkContext";
 import QuoteCard from"@/shared/ui/QuoteCard";
 import Link from"next/link";
 import { getWordsByPathAction } from "@/features/meditation/services/word-actions.server";
-import { Word } from "@/shared/lib/types/word";
+import { Word } from "@/shared/types/word";
 
 interface LibraryClientProps {
  toc: SerializedTOCNode;

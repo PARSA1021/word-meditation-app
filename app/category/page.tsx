@@ -1,6 +1,6 @@
 import React from "react"
 import { getWordStatsServer } from "@/features/meditation/services/word.service"
-import { WordStats } from "@/shared/lib/types/word"
+import { WordStats } from "@/shared/types/word"
 import Link from "next/link"
 import { CATEGORY_GROUPS } from "@/shared/lib/constants/constants"
 

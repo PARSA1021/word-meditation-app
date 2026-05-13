@@ -3,7 +3,7 @@
 import React, { useState, Suspense, useEffect } from "react";
 import useSWR from "swr";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { SearchResult } from "@/shared/lib/utils/word-core";
+import { SearchResult } from "@/features/search/types";
 import SearchInput from "@/features/search/components/SearchInput";
 import SearchCategoryTabs from "@/features/search/components/SearchCategoryTabs";
 import QuoteCard from "@/shared/ui/QuoteCard";

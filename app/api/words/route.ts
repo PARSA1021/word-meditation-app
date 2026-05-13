@@ -1,7 +1,7 @@
 // app/api/words/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { searchWordsServer } from "@/features/meditation/services/word.service";
-import { WordType } from "@/shared/lib/utils/word-core";
+import { searchWords } from "@/features/search/server/search.service";
+import { WordType } from "@/shared/types/word";
 
 export const runtime = 'nodejs';
 
@@ -14,8 +14,8 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1")
   const limit = parseInt(searchParams.get("limit") || "20")
 
-  // Use the advanced search engine from word.service
-  const { results } = searchWordsServer(query, mode, type || undefined);
+  // Use the advanced search engine
+  const { results } = searchWords(query, mode, type || undefined);
 
   // Pagination
   const total = results.length

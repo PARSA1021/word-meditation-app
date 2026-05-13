@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Word } from "@/shared/lib/types/word";
+import { Word } from "@/shared/types/word";
 import QuoteCard from "@/shared/ui/QuoteCard";
 import SimpleTOC, { TOCItem } from "@/features/meditation/components/SimpleTOC";
 import { parseSource } from "@/features/meditation/services/toc.service";

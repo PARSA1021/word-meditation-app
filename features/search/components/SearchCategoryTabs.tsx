@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useCallback } from "react";
-import { WordType } from "@/shared/lib/utils/word-core";
+import { WordType } from "@/shared/types/word";
 import { motion } from "framer-motion";
 
 interface SearchCategoryTabsProps {

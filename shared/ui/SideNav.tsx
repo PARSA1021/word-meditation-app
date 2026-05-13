@@ -131,7 +131,7 @@ export default function SideNav() {
             alt="TruePath Logo"
             width={44}
             height={44}
-            className="rounded-xl shadow-lg shadow-brand-primary/20 transition-transform group-hover:scale-105"
+            className="w-auto h-auto rounded-xl shadow-lg shadow-brand-primary/20 transition-transform group-hover:scale-105"
             priority
           />
           <div className="hidden lg:block">
@@ -153,8 +153,8 @@ export default function SideNav() {
               key={item.href}
               href={item.href}
               className={`group relative flex items-center justify-center lg:justify-start gap-4 p-3 lg:px-4 lg:py-3.5 rounded-2xl transition-all duration-300 active:scale-[0.97] ${isActive
-                  ? "bg-brand-primary/5 text-brand-primary shadow-sm"
-                  : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+                ? "bg-brand-primary/5 text-brand-primary shadow-sm"
+                : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
                 }`}
             >
               {isActive && (

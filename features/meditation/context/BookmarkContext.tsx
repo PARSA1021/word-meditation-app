@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Word } from "@/shared/lib/types/word";
+import { Word } from "@/shared/types/word";
 
 interface BookmarkContextType {
   bookmarks: Word[];

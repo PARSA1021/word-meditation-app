@@ -3,8 +3,8 @@
 import fs from "fs/promises";
 import path from "path";
 import { revalidatePath } from "next/cache";
-import { Word } from "@/shared/lib/utils/word-core";
-import { resetWordCache } from "@/features/meditation/services/word.service";
+import { Word } from "@/shared/types/word";
+import { resetWordCache } from "@/features/search/indexing/word-repository";
 
 const WORDS_PATH = path.join(process.cwd(), "data", "words.json");
 

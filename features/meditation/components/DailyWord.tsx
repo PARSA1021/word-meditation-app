@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Word } from "@/shared/lib/utils/word-core"
+import { Word } from "@/shared/types/word"
 import QuoteCard from "@/shared/ui/QuoteCard"
 
 export default function DailyWord() {

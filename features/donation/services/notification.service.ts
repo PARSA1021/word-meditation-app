@@ -1,17 +1,21 @@
-import { DonationRecord } from '@/app/api/donate/manual/route';
-
+// features/donation/services/notification.service.ts
 /**
  * 후원 알림 전송 (Slack Block Kit)
+ * features/donation domain logic
  */
+
+// We need the type definition. Since it's from an API route, we might need to move that type too.
+// For now, I'll use a local interface or find where it's defined.
+
+import { DonationRecord } from "../types";
+
 export async function sendDonationNotification(record: DonationRecord) {
   const { id, donorName, amount, status, message, createdAt, hasDonated } = record;
 
-  // 1. 적절한 웹훅 URL 선택
   const webhookUrl = (
     (status === 'CONFIRMED' ? process.env.SLACK_WEBHOOK_CONFIRMED : process.env.SLACK_WEBHOOK_MESSAGE) ||
     process.env.SLACK_WEBHOOK_URL ||
-    process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL ||
-    process.env.WebhookURL
+    process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL
   )?.trim();
 
   if (!webhookUrl) {
@@ -19,7 +23,6 @@ export async function sendDonationNotification(record: DonationRecord) {
     return false;
   }
 
-  // URL 유효성 검사 (설계 원칙 준수)
   if (!webhookUrl.startsWith('https://hooks.slack.com/')) {
     console.error('[Slack Notification Error]: Invalid Webhook URL format.');
     return false;
@@ -29,15 +32,12 @@ export async function sendDonationNotification(record: DonationRecord) {
   const amountDisplay = amount > 0 ? `${amount.toLocaleString()}원` : '금액 미입력';
   const statusEmoji = hasDonated ? '✅ [송금완료]' : '💌 [메시지만]';
   
-  // 시간 포맷
   const formattedTime = new Date(createdAt).toLocaleString('ko-KR', {
     year: 'numeric', month: 'long', day: 'numeric',
     hour: '2-digit', minute: '2-digit', hour12: true
   });
 
-  // 2. 슬랙 페이로드 구성 (Block Kit)
   const payload = {
-    // 폰 푸시 알림용 미리보기 텍스트
     text: `${statusEmoji} ${nameDisplay} · ${amount > 0 ? amountDisplay : '새 메시지'}`,
     blocks: [
       {
@@ -96,7 +96,6 @@ export async function sendDonationNotification(record: DonationRecord) {
       console.error(`Slack API Error (${response.status}):`, errorText);
       return false;
     }
-    
     return true;
   } catch (error) {
     console.error('Error sending Slack notification:', error);

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSettings } from "@/context/SettingsContext";
+import { useSettings } from "@/shared/context/SettingsContext";
 import { motion } from "framer-motion";
 
 export default function AccessibilitySettings() {

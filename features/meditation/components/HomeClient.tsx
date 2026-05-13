@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import DailyWord from "@/features/meditation/components/DailyWord";
-import { WordStats } from "@/shared/lib/utils/word-core";
+import { WordStats } from "@/shared/types/word";
 import CategoryCard from "@/shared/ui/CategoryCard";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";

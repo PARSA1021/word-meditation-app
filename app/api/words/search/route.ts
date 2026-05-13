@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 export const runtime = 'nodejs';
-import { searchWordsServer } from "@/features/meditation/services/word.service";
-import { WordType } from "@/shared/lib/utils/word-core";
+import { searchWords } from "@/features/search/server/search.service";
+import { WordType } from "@/shared/types/word";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "50");
 
   try {
-    const { results: allResults, counts } = searchWordsServer(query, mode, type);
+    const { results: allResults, counts } = searchWords(query, mode, type);
     const total = allResults.length;
     
     // 페이징 처리

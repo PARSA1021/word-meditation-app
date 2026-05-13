@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Word, MatchType } from "@/shared/lib/utils/word-core";
+import { Word } from "@/shared/types/word";
+import { MatchType } from "@/features/search/types";
 import { getWordPath } from "@/features/meditation/services/toc.service";
 import { scriptureFont } from "@/shared/lib/fonts";
 import { motion, AnimatePresence } from "framer-motion";
-import { useBookmarks } from "@/context/BookmarkContext";
+import { useBookmarks } from "@/features/meditation/context/BookmarkContext";
 import Link from "next/link";
 
 interface QuoteCardProps {
@@ -113,11 +114,11 @@ const QuoteCard = React.memo(function QuoteCard({
     if (isHighlighted) {
       const timer = setTimeout(() => {
         cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 600); 
+      }, 600);
       return () => clearTimeout(timer);
     }
   }, [isHighlighted]);
-  
+
   const bookmarked = isBookmarked(word.id);
   const MAX_LENGTH = 160;
 
@@ -186,19 +187,18 @@ const QuoteCard = React.memo(function QuoteCard({
       <div className="flex items-center justify-between mb-6 md:mb-8">
         <div className="flex items-center gap-2">
           {showCategory && (
-            <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-md border transition-all ${
-              isHighlighted ? 'bg-brand-primary text-white border-brand-primary' : 'bg-slate-50 text-slate-400 border-slate-100'
-            }`}>
+            <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-md border transition-all ${isHighlighted ? 'bg-brand-primary text-white border-brand-primary' : 'bg-slate-50 text-slate-400 border-slate-100'
+              }`}>
               {word.category}
             </span>
           )}
           {matchType && (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-50 border border-slate-100/50">
               <span className="text-[10px] grayscale opacity-70">
-                {matchType === 'exact' || matchType === 'phrase' ? '✨' : 
-                 matchType === 'stem' ? '🔍' : 
-                 matchType === 'synonym' ? '💡' : 
-                 matchType === 'chosung' ? '⌨️' : '📍'}
+                {matchType === 'exact' || matchType === 'phrase' ? '✨' :
+                  matchType === 'stem' ? '🔍' :
+                    matchType === 'synonym' ? '💡' :
+                      matchType === 'chosung' ? '⌨️' : '📍'}
               </span>
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{matchType} match</span>
             </div>
@@ -239,7 +239,7 @@ const QuoteCard = React.memo(function QuoteCard({
               </p>
             )}
           </div>
-          
+
           {/* Subtle match explanation at the bottom */}
           {explanation && (
             <div className="flex items-center gap-1.5 py-1 px-2 bg-slate-50/50 rounded-lg w-fit">
@@ -253,9 +253,8 @@ const QuoteCard = React.memo(function QuoteCard({
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={handleToggleBookmark}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
-              bookmarked ? "bg-red-50 text-red-500" : "bg-slate-50 text-slate-400 hover:text-red-400"
-            }`}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${bookmarked ? "bg-red-50 text-red-500" : "bg-slate-50 text-slate-400 hover:text-red-400"
+              }`}
           >
             <svg className="w-5 h-5" fill={bookmarked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -275,9 +274,8 @@ const QuoteCard = React.memo(function QuoteCard({
 
           <button
             onClick={copyToClipboard}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 ${
-              isCopied ? "bg-green-50 text-green-600" : "bg-slate-50 text-slate-400 hover:text-brand-primary"
-            }`}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 ${isCopied ? "bg-green-50 text-green-600" : "bg-slate-50 text-slate-400 hover:text-brand-primary"
+              }`}
           >
             <AnimatePresence mode="wait">
               {isCopied ? (

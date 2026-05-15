@@ -127,7 +127,7 @@ export default function SideNav() {
       <div className="mb-10 lg:px-2">
         <Link href="/" className="flex items-center gap-3 group">
           <Image
-            src="/TP_LOGO_2.png"
+            src="/TP_LOGO_2.webp"
             alt="TruePath Logo"
             width={44}
             height={44}

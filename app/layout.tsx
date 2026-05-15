@@ -4,6 +4,7 @@ import SideNav from "@/shared/ui/SideNav"
 import { uiFont } from "@/shared/lib/fonts"
 import { BookmarkProvider } from "@/features/meditation/context/BookmarkContext"
 import { SettingsProvider } from "@/shared/context/SettingsContext"
+import PWARegistrar from "@/shared/components/PWARegistrar"
 
 export const metadata = {
   title: "TruePath",
@@ -64,6 +65,7 @@ export default function RootLayout({
             <BottomNav />
           </BookmarkProvider>
         </SettingsProvider>
+        <PWARegistrar />
       </body>
     </html>
   )

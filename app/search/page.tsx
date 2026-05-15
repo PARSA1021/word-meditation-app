@@ -46,6 +46,7 @@ function SearchFeed() {
 
   const [isRelatedExpanded, setIsRelatedExpanded] = useState(false);
   const [filterConfidence, setFilterConfidence] = useState<"all" | "high" | "medium" | "low">("all");
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // 검색 상태 변경 시 URL 및 sessionStorage 업데이트
   useEffect(() => {
@@ -90,6 +91,7 @@ function SearchFeed() {
 
         const handleScroll = () => {
             sessionStorage.setItem("last_search_scroll", window.scrollY.toString());
+            setShowScrollTop(window.scrollY > 400);
         };
 
         window.addEventListener("scroll", handleScroll, { passive: true });
@@ -538,6 +540,24 @@ function SearchFeed() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Scroll to Top FAB */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed z-40 right-4 sm:right-6 bottom-[calc(env(safe-area-inset-bottom)+96px)] lg:bottom-8 w-12 h-12 bg-white text-brand-deep border border-slate-200/60 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] flex items-center justify-center hover:border-brand-primary hover:text-brand-primary active:scale-95 transition-all focus:outline-none backdrop-blur-xl"
+            aria-label="위로 가기"
+          >
+            <svg className="w-5 h-5 relative -top-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7" />
+            </svg>
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

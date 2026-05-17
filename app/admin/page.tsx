@@ -6,28 +6,32 @@ export default async function AdminPage() {
   const stats = getWordStatsServer();
 
   return (
-    <main className="min-h-screen bg-[#0a0a0c] text-zinc-200 selection:bg-indigo-500/30">
-      {/* Background Gradients */}
+    <main className="min-h-screen bg-brand-bg transition-colors duration-500 pb-32">
+      {/* Background Ambient Effects */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-teal-500/10 blur-[120px]" />
+        <div className="absolute top-[-5%] left-[-5%] w-[400px] h-[400px] bg-brand-primary/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[-5%] right-[-5%] w-[400px] h-[400px] bg-brand-deep/5 rounded-full blur-[100px]" />
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <header className="flex items-center justify-between mb-12">
-          <div>
+      <div className="max-w-5xl mx-auto px-6 py-12 md:py-24">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 relative">
+          <div className="space-y-4">
             <Link 
               href="/" 
-              className="text-zinc-500 hover:text-indigo-400 transition-colors text-sm font-medium mb-2 inline-block"
+              className="group inline-flex items-center gap-2 text-[11px] font-black text-slate-400 hover:text-brand-primary transition-all uppercase tracking-[0.3em]"
             >
-              ← 홈으로 돌아가기
+              <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Sanctuary
             </Link>
-            <h1 className="text-4xl font-black bg-gradient-to-br from-white to-zinc-500 bg-clip-text text-transparent tracking-tight">
-              Admin Dashboard
+            <h1 className="text-[40px] md:text-[56px] font-black text-brand-deep tracking-tighter leading-tight font-serif">
+              Content <span className="text-brand-primary">Studio</span>
             </h1>
           </div>
-          <div className="px-4 py-2 bg-zinc-800/50 border border-white/5 rounded-full text-xs font-mono text-zinc-500">
-            SYSTEM ONLINE
+          <div className="px-5 py-2.5 bg-white/40 backdrop-blur-sm border border-brand-primary/5 rounded-sm text-[10px] font-black text-brand-deep tracking-[0.2em] shadow-sm uppercase">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse" />
+            System Operational
           </div>
         </header>
 

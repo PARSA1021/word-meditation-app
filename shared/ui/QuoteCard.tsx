@@ -180,8 +180,8 @@ const QuoteCard = React.memo(function QuoteCard({
         setIsExpanded(!isExpanded);
       }}
       className={`premium-card premium-card-hover group p-6 md:p-10 cursor-default relative overflow-hidden transition-all duration-700
-        ${isExpanded ? 'ring-2 ring-brand-primary/10 shadow-active' : ''}
-        ${isHighlighted ? 'ring-4 ring-brand-primary/50 shadow-premium !border-brand-primary bg-brand-primary/[0.02] scale-[1.02]' : ''}`}
+        ${isExpanded ? 'ring-1 ring-brand-primary/10 shadow-premium scale-[1.01]' : ''}
+        ${isHighlighted ? 'ring-2 ring-brand-primary/50 shadow-premium !border-brand-primary bg-brand-primary/[0.02] scale-[1.02]' : ''}`}
     >
       {/* 1. Subtle Header: Category only if needed */}
       <div className="flex items-center justify-between mb-6 md:mb-8">
@@ -253,7 +253,7 @@ const QuoteCard = React.memo(function QuoteCard({
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={handleToggleBookmark}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${bookmarked ? "bg-red-50 text-red-500" : "bg-slate-50 text-slate-400 hover:text-red-400"
+            className={`w-10 h-10 flex items-center justify-center rounded-sm transition-all ${bookmarked ? "bg-red-50 text-red-500 shadow-sm ring-1 ring-red-100" : "bg-slate-50 text-slate-400 hover:text-red-400"
               }`}
           >
             <svg className="w-5 h-5" fill={bookmarked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
@@ -264,7 +264,7 @@ const QuoteCard = React.memo(function QuoteCard({
           <Link
             href={`/library?path=${encodeURIComponent(JSON.stringify(getWordPath(word)))}&highlight=${word.id}`}
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-brand-primary transition-all active:scale-95 group/lib"
+            className="w-10 h-10 flex items-center justify-center rounded-sm bg-slate-50 text-slate-400 hover:text-brand-primary transition-all active:scale-95 shadow-sm group/lib"
             title="말씀 도서관에서 보기"
           >
             <svg className="w-5 h-5 group-hover/lib:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,7 +274,7 @@ const QuoteCard = React.memo(function QuoteCard({
 
           <button
             onClick={copyToClipboard}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 ${isCopied ? "bg-green-50 text-green-600" : "bg-slate-50 text-slate-400 hover:text-brand-primary"
+            className={`w-10 h-10 flex items-center justify-center rounded-sm transition-all shadow-sm active:scale-90 ${isCopied ? "bg-green-50 text-green-600 ring-1 ring-green-100" : "bg-slate-50 text-slate-400 hover:text-brand-primary"
               }`}
           >
             <AnimatePresence mode="wait">

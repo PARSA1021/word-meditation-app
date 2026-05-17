@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { addWordAction, addBatchWordsAction } from "@/features/meditation/actions/word-management";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface AdminClientProps {
   stats: {
@@ -57,147 +58,165 @@ export default function AdminClient({ stats }: AdminClientProps) {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="space-y-10">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white/10 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl">
-          <div className="text-zinc-400 text-sm font-medium mb-1">전체 말씀 수</div>
-          <div className="text-3xl font-bold text-indigo-400">{stats.total.toLocaleString()}</div>
-        </div>
-        <div className="bg-white/10 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl">
-          <div className="text-zinc-400 text-sm font-medium mb-1">카테고리 수</div>
-          <div className="text-3xl font-bold text-teal-400">{Object.keys(stats.byCategory).length}</div>
-        </div>
-        <div className="bg-white/10 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl">
-          <div className="text-zinc-400 text-sm font-medium mb-1">최근 업데이트</div>
-          <div className="text-3xl font-bold text-amber-400">Today</div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard label="Total Verses" value={stats.total} color="brand" />
+        <StatCard label="Active Categories" value={Object.keys(stats.byCategory).length} color="emerald" />
+        <StatCard label="Last Updated" value="Today" color="amber" isString />
       </div>
 
-      {/* Mode Switches */}
-      <div className="flex p-1 bg-zinc-200 dark:bg-zinc-800 rounded-xl w-fit">
-        <button
-          onClick={() => setMode("single")}
-          className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-            mode === "single" 
-              ? "bg-white dark:bg-zinc-700 shadow-md text-indigo-500" 
-              : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-          }`}
-        >
-          개별 추가
-        </button>
-        <button
-          onClick={() => setMode("batch")}
-          className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-            mode === "batch" 
-              ? "bg-white dark:bg-zinc-700 shadow-md text-indigo-500" 
-              : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-          }`}
-        >
-          대량 추가 (Batch)
-        </button>
-      </div>
-
-      {/* Message Area */}
-      {message && (
-        <div className={`p-4 rounded-xl border animate-in slide-in-from-top-2 duration-300 ${
-          message.type === "success" 
-            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" 
-            : "bg-rose-500/10 border-rose-500/20 text-rose-500"
-        }`}>
-          {message.text}
+      {/* Control Panel */}
+      <div className="bg-white/40 backdrop-blur-xl rounded-sm border border-brand-primary/5 shadow-premium overflow-hidden">
+        {/* Mode Selector */}
+        <div className="flex bg-slate-50 p-1.5 border-b border-brand-primary/5">
+          <button
+            onClick={() => setMode("single")}
+            className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all rounded-sm ${
+              mode === "single" 
+                ? "bg-white text-brand-primary shadow-sm" 
+                : "text-slate-400 hover:text-slate-600"
+            }`}
+          >
+            Single Entry
+          </button>
+          <button
+            onClick={() => setMode("batch")}
+            className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all rounded-sm ${
+              mode === "batch" 
+                ? "bg-white text-brand-primary shadow-sm" 
+                : "text-slate-400 hover:text-slate-600"
+            }`}
+          >
+            Batch Import
+          </button>
         </div>
-      )}
 
-      {/* Form Area */}
-      <div className="bg-white/5 backdrop-blur-3xl border border-white/10 p-8 rounded-3xl shadow-2xl">
-        {mode === "single" ? (
-          <form onSubmit={handleSingleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400 ml-1">말씀 본문</label>
-              <textarea
-                required
-                value={formData.text}
-                onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-                className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all resize-none"
-                placeholder="내용을 입력하세요..."
-              />
-            </div>
+        {/* Message Area */}
+        <AnimatePresence>
+          {message && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className={`p-4 text-center text-xs font-black uppercase tracking-widest border-b border-brand-primary/5 ${
+                message.type === "success" 
+                  ? "bg-emerald-50 text-emerald-600" 
+                  : "bg-rose-50 text-rose-600"
+              }`}
+            >
+              {message.text}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400 ml-1">출처 (Source)</label>
-                <input
+        {/* Form Body */}
+        <div className="p-8 md:p-12">
+          {mode === "single" ? (
+            <form onSubmit={handleSingleSubmit} className="space-y-8">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Verse Text</label>
+                <textarea
                   required
-                  type="text"
-                  value={formData.source}
-                  onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                  placeholder="예: 1967.6.12 심정의 경계"
+                  value={formData.text}
+                  onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+                  className="w-full h-40 bg-slate-50/50 border border-slate-100 rounded-sm p-6 text-brand-deep font-medium md:text-lg focus:outline-none focus:border-brand-primary/30 transition-all resize-none leading-relaxed"
+                  placeholder="말씀 본문을 입력하세요..."
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400 ml-1">카테고리</label>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Source</label>
+                  <input
+                    required
+                    type="text"
+                    value={formData.source}
+                    onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-sm p-5 text-brand-deep font-bold focus:outline-none focus:border-brand-primary/30 transition-all"
+                    placeholder="예: 1967.6.12 심정의 경계"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Category</label>
+                  <input
+                    required
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-sm p-5 text-brand-deep font-bold focus:outline-none focus:border-brand-primary/30 transition-all"
+                    placeholder="예: 참부모님 말씀"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Speaker (Optional)</label>
                 <input
-                  required
                   type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                  placeholder="예: 참부모님 말씀"
+                  value={formData.speaker}
+                  onChange={(e) => setFormData({ ...formData, speaker: e.target.value })}
+                  className="w-full bg-slate-50/50 border border-slate-100 rounded-sm p-5 text-brand-deep font-bold focus:outline-none focus:border-brand-primary/30 transition-all"
+                  placeholder="예: 참어머님"
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400 ml-1">말씀하신 분 (선택)</label>
-              <input
-                type="text"
-                value={formData.speaker}
-                onChange={(e) => setFormData({ ...formData, speaker: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                placeholder="예: 참어머님"
-              />
-            </div>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full py-6 bg-brand-deep text-white rounded-sm font-black uppercase tracking-[0.3em] text-[13px] shadow-xl shadow-brand-deep/20 transition-all hover:bg-brand-primary active:scale-[0.98] disabled:opacity-50"
+              >
+                {isPending ? "Processing..." : "Publish to Library"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleBatchSubmit} className="space-y-8">
+              <div className="bg-brand-primary/5 border border-brand-primary/10 p-6 rounded-sm space-y-3">
+                <p className="text-[11px] font-black text-brand-primary uppercase tracking-widest">Batch Import Guide</p>
+                <p className="text-sm font-medium text-slate-500 leading-relaxed">
+                  각 열은 <span className="text-brand-deep font-bold">| (파이프)</span> 기호로 구분해 주세요.<br/>
+                  형식: <span className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-slate-100">본문 | 출처 | 카테고리 | 화자(선택)</span>
+                </p>
+              </div>
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-500/50 text-white rounded-2xl font-semibold shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
-            >
-              {isPending ? "저장 중..." : "말씀 저장하기"}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleBatchSubmit} className="space-y-6">
-            <div className="bg-indigo-500/10 border border-indigo-500/20 p-6 rounded-2xl space-y-2 text-sm text-indigo-400">
-              <p className="font-bold">📝 입력 형식 안내</p>
-              <p>본문 | 출처 | 카테고리 | 화자(선택)</p>
-              <p className="font-mono text-xs opacity-70 mt-2">
-                예: 말씀 내용입니다 | 출처입니다 | 카테고리 | 화자
-              </p>
-            </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Bulk Data Paste</label>
+                <textarea
+                  required
+                  value={batchText}
+                  onChange={(e) => setBatchText(e.target.value)}
+                  className="w-full h-96 bg-slate-50/50 border border-slate-100 rounded-sm p-6 text-brand-deep font-mono text-sm focus:outline-none focus:border-brand-primary/30 transition-all resize-none"
+                  placeholder="여러 줄을 입력하세요..."
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400 ml-1">데이터 붙여넣기</label>
-              <textarea
-                required
-                value={batchText}
-                onChange={(e) => setBatchText(e.target.value)}
-                className="w-full h-80 bg-white/5 border border-white/10 rounded-2xl p-4 text-zinc-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all resize-none"
-                placeholder="여러 줄을 입력하세요..."
-              />
-            </div>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full py-6 bg-brand-deep text-white rounded-sm font-black uppercase tracking-[0.3em] text-[13px] shadow-xl shadow-brand-deep/20 transition-all hover:bg-brand-primary active:scale-[0.98] disabled:opacity-50"
+              >
+                {isPending ? "Processing Batch..." : "Bulk Publish"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-500/50 text-white rounded-2xl font-semibold shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
-            >
-              {isPending ? "대량 처리 중..." : "여러 말씀 일괄 저장"}
-            </button>
-          </form>
-        )}
+function StatCard({ label, value, color, isString }: { label: string, value: any, color: "brand" | "emerald" | "amber", isString?: boolean }) {
+  const colors = {
+    brand: "text-brand-primary bg-brand-primary/5",
+    emerald: "text-emerald-600 bg-emerald-50",
+    amber: "text-amber-600 bg-amber-50"
+  };
+
+  return (
+    <div className="bg-white/40 backdrop-blur-xl border border-brand-primary/5 p-8 rounded-sm shadow-premium group">
+      <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-4 group-hover:text-brand-primary transition-colors">{label}</div>
+      <div className={`text-4xl font-black tracking-tight ${colors[color].split(" ")[0]}`}>
+        {isString ? value : value.toLocaleString()}
       </div>
     </div>
   );

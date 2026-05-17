@@ -86,8 +86,8 @@ export default function QuizPage() {
                         className={`inline-flex flex-col items-center justify-center min-w-[80px] px-3 py-2 mx-1 rounded-xl border-2 font-bold text-base transition
 
                         ${activeBlankIndex === currentIdx && !showCorrection
-                            ? "border-blue-400 bg-blue-50 scale-105"
-                            : "border-gray-200 bg-gray-50 text-gray-400"}
+                                ? "border-blue-400 bg-blue-50 scale-105"
+                                : "border-gray-200 bg-gray-50 text-gray-400"}
 
                         ${isCorrect ? "bg-emerald-50 border-emerald-500 text-emerald-700" : ""}
                         ${isWrong ? "bg-rose-50 border-rose-500 text-rose-700" : ""}
@@ -202,18 +202,18 @@ export default function QuizPage() {
                                 className={`p-4 rounded-xl border font-semibold transition-all duration-200 active:scale-95
 
                                 ${!showCorrection
-                                    ? isSelected
-                                        ? "bg-blue-100 border-blue-500 text-blue-700 shadow-md scale-105"
-                                        : "bg-white border-gray-200 hover:border-blue-300"
-                                    : ""}
+                                        ? isSelected
+                                            ? "bg-blue-100 border-blue-500 text-blue-700 shadow-md scale-105"
+                                            : "bg-white border-gray-200 hover:border-blue-300"
+                                        : ""}
 
                                 ${showCorrection
-                                    ? isCorrect
-                                        ? "bg-emerald-50 border-emerald-500"
-                                        : isSelected
-                                            ? "bg-rose-50 border-rose-500"
-                                            : "opacity-30"
-                                    : ""}
+                                        ? isCorrect
+                                            ? "bg-emerald-50 border-emerald-500"
+                                            : isSelected
+                                                ? "bg-rose-50 border-rose-500"
+                                                : "opacity-30"
+                                        : ""}
                                 `}
                             >
                                 {option}

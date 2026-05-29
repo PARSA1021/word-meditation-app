@@ -272,7 +272,7 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
     <div className="flex min-h-screen bg-[#fafafa] text-slate-800 antialiased font-sans selection:bg-brand-primary/10 selection:text-brand-primary">
       
       {/* 1. Global Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/80 border-b border-slate-200/60 backdrop-blur-md z-40 px-4 xs:px-5 flex items-center justify-between">
+      <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white/80 border-b border-slate-200/60 backdrop-blur-md z-40 px-4 xs:px-5 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           {selectedPath.length > 0 && (
             <button 
@@ -307,16 +307,16 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsMobileMenuOpen(false)}
-            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 lg:hidden"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 md:hidden"
           />
         )}
       </AnimatePresence>
 
       {/* 3. Adaptive Sidebar */}
       <aside className={`
-        fixed lg:sticky top-0 left-0 h-full lg:h-screen w-full sm:w-[22rem] lg:w-[23rem] border-r z-50 bg-white border-slate-100
+        fixed md:sticky top-0 left-0 h-full md:h-screen w-full sm:w-[22rem] md:w-[20rem] lg:w-[23rem] border-r z-50 bg-white border-slate-100
         transform transition-transform duration-300 ease-out flex flex-col
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Sidebar Header */}
         <div className="px-5 xs:px-6 pt-5 lg:pt-8 pb-4 flex items-center justify-between">
@@ -326,7 +326,7 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
           </div>
           <button 
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 rounded-xl hover:bg-slate-100 lg:hidden text-slate-500"
+            className="p-2 rounded-xl hover:bg-slate-100 md:hidden text-slate-500"
             aria-label="메뉴 닫기"
           >
             <X size={18} />
@@ -397,11 +397,11 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
       </aside>
 
       {/* 4. Fluid Main Layout */}
-      <main className="flex-1 min-w-0 pt-14 lg:pt-0 pb-24 px-3 xs:px-4 sm:px-8 lg:px-10 xl:px-16 flex justify-center">
+      <main className="flex-1 min-w-0 pt-14 md:pt-0 pb-24 px-3 xs:px-4 sm:px-8 lg:px-10 xl:px-16 flex justify-center">
         <div className="w-full max-w-4xl xl:max-w-5xl">
           
           {/* Sticky Breadcrumb & Navigation Action Bar */}
-          <div className="sticky top-14 lg:top-0 bg-[#fafafa]/90 backdrop-blur-md z-30 flex items-center justify-between py-3.5 border-b border-slate-200/60 mb-6 shadow-[0_4px_12px_-12px_rgba(0,0,0,0.05)]">
+          <div className="sticky top-14 md:top-0 bg-[#fafafa]/90 backdrop-blur-md z-30 flex items-center justify-between py-3.5 border-b border-slate-200/60 mb-6 shadow-[0_4px_12px_-12px_rgba(0,0,0,0.05)]">
             {/* 브레드크럼 내비게이터 */}
             <div className="flex items-center gap-1 sm:gap-2 text-xs font-semibold text-slate-500 truncate pr-4">
               {selectedPath.length > 0 && (

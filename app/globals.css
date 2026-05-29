@@ -135,16 +135,30 @@ body {
   --font-scale: 1.30;
 }
 
+/* Responsive Typography with clamp() */
 .scripture-text {
-  @apply text-lg md:text-2xl leading-[1.8] text-brand-deep italic font-serif;
-  font-size: calc(1.125rem * var(--font-scale) * 1.1); /* Slightly larger for scripture */
+  @apply leading-[1.8] text-brand-deep italic font-serif transition-colors duration-500;
+  font-size: clamp(1rem, 0.875rem + 1vw, 1.25rem);
+  letter-spacing: -0.015em;
 }
 
 @media (min-width: 768px) {
   .scripture-text {
-    font-size: calc(1.5rem * var(--font-scale) * 1.1);
+    font-size: clamp(1.125rem, 1rem + 1.2vw, 1.5rem);
   }
 }
+
+.text-size-large .scripture-text {
+  font-size: clamp(1.25rem, 1.125rem + 1.5vw, 1.75rem);
+}
+
+@media (min-width: 768px) {
+  .text-size-large .scripture-text {
+    font-size: clamp(1.5rem, 1.25rem + 1.8vw, 2.25rem);
+  }
+}
+
+
 
 /* -----------------------
    Scrollbar Design

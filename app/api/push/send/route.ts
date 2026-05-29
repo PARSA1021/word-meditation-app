@@ -3,17 +3,25 @@ import webpush from 'web-push';
 import fs from 'fs';
 import path from 'path';
 
-// VAPID 키 설정
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:admin@truepath.app',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY as string,
-  process.env.VAPID_PRIVATE_KEY as string
-);
-
 const dataFilePath = path.join(process.cwd(), 'data', 'subscriptions.json');
 
 export async function POST(req: Request) {
   try {
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+    if (!publicKey || !privateKey) {
+      console.warn('VAPID keys are not set. Push notifications will not work.');
+      return NextResponse.json({ success: false, error: 'VAPID 키가 설정되지 않았습니다.' }, { status: 500 });
+    }
+
+    // 빌드 에러 방지를 위해 핸들러 내부에서 VAPID 키 설정
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:admin@truepath.app',
+      publicKey,
+      privateKey
+    );
+
     if (!fs.existsSync(dataFilePath)) {
       return NextResponse.json({ message: '등록된 구독자가 없습니다.' });
     }

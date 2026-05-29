@@ -90,9 +90,9 @@ export default function TodayPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              {/* PWA: 푸시 알림 구독 버튼 */}
-              <div className="hidden md:block mr-2">
+            <div className="flex items-center gap-1.5 md:gap-2">
+              {/* PWA: 푸시 알림 구독 버튼 (데스크톱에서는 크게, 태블릿에서는 숨기거나 아이콘화 가능. 현재는 lg이상에서만 보이도록 조정) */}
+              <div className="hidden xl:block mr-2">
                 <PushSubscriber />
               </div>
               
@@ -149,11 +149,12 @@ export default function TodayPage() {
           </motion.article>
         </AnimatePresence>
 
-        <div className="mt-16 text-center opacity-70">
-          <p className="text-sm font-medium text-slate-500 mb-4">
+        <div className="mt-14 mb-8 text-center opacity-80">
+          <p className="text-sm font-medium text-slate-500 mb-6">
             좌우로 스와이프하거나 방향키로 넘기세요
           </p>
-          <div className="md:hidden flex justify-center">
+          {/* 모바일 및 태블릿용 알림 버튼 (xl 미만에서 모두 표시) */}
+          <div className="xl:hidden flex justify-center px-4 w-full">
              <PushSubscriber />
           </div>
         </div>

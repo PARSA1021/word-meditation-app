@@ -22,11 +22,23 @@ export async function POST(req: Request) {
       privateKey
     );
 
+    const { searchParams } = new URL(req.url);
+    const targetTime = searchParams.get('time'); // ex: '07:00'
+
     if (!fs.existsSync(dataFilePath)) {
       return NextResponse.json({ message: '등록된 구독자가 없습니다.' });
     }
 
-    const subscriptions = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
+    const allSubscriptions = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
+    
+    // 특정 시간이 파라미터로 넘어왔다면 필터링, 없으면 전체 발송
+    const targetSubscriptions = targetTime 
+      ? allSubscriptions.filter((sub: any) => sub.preferredTime === targetTime)
+      : allSubscriptions;
+
+    if (targetSubscriptions.length === 0) {
+      return NextResponse.json({ message: '해당 시간에 발송할 대상이 없습니다.' });
+    }
     
     // 매일 아침 전송할 푸시 내용 (또는 매번 DB에서 랜덤으로 가져올 수 있음)
     const payload = JSON.stringify({
@@ -36,7 +48,7 @@ export async function POST(req: Request) {
       icon: '/TP_192_192.png'
     });
 
-    const sendPromises = subscriptions.map((sub: any) => 
+    const sendPromises = targetSubscriptions.map((sub: any) => 
       webpush.sendNotification(sub, payload).catch(err => {
         if (err.statusCode === 410 || err.statusCode === 404) {
           // 구독이 만료되었거나 유효하지 않음 (이후 필터링 로직 추가 가능)
@@ -49,7 +61,7 @@ export async function POST(req: Request) {
 
     await Promise.all(sendPromises);
 
-    return NextResponse.json({ success: true, message: `${subscriptions.length}명에게 푸시 발송 완료` });
+    return NextResponse.json({ success: true, message: `${targetSubscriptions.length}명에게 푸시 발송 완료` });
   } catch (error) {
     console.error('Send error:', error);
     return NextResponse.json({ success: false, error: '발송 실패' }, { status: 500 });

@@ -5,16 +5,18 @@ const STATIC_ASSETS = [
   '/TP_192_192.png',
   '/TP_512_512.png',
   '/apple-touch-icon.png',
-  '/favicon.ico',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+      return Promise.all(
+        STATIC_ASSETS.map((asset) => 
+          cache.add(asset).catch((err) => console.warn('SW Cache failed for:', asset, err))
+        )
+      );
+    }).then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

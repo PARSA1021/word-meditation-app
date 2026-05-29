@@ -39,7 +39,7 @@ export default function PushSubscriber() {
       setIsLoading(true);
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        alert('알림 권한이 거부되었습니다.');
+        alert('알림 권한이 거부되어 있습니다. 브라우저 주소창 좌측의 자물쇠(또는 설정) 아이콘을 눌러 알림 권한을 [허용]으로 변경해 주세요.');
         setIsLoading(false);
         return;
       }

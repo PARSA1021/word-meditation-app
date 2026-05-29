@@ -8,8 +8,6 @@
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-4-38BDF8?logo=tailwindcss&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma&logoColor=white)
 
 </div>
 
@@ -155,12 +153,8 @@
 | Styling | Tailwind CSS v4 |
 | Animation | Framer Motion |
 | Data Fetching | SWR |
-| Database | PostgreSQL (Neon) |
-| ORM | Prisma ORM |
-| Authentication | NextAuth.js |
-| Backend Services | Supabase |
-| Payment | Toss Payments SDK |
-| Notification | Slack Webhook |
+| Data Source | Local JSON Files |
+| Validation | Zod |
 | Deployment | Vercel |
 
 ---
@@ -171,7 +165,6 @@
 word-meditation-app/
 │
 ├── public/                     # 이미지, 폰트, 아이콘 등 정적 자원
-├── prisma/                     # Prisma Schema 및 Migration
 │
 ├── src/
 │   ├── app/                    # Next.js App Router
@@ -225,23 +218,7 @@ cp .env.example .env.local
 
 ---
 
-## 4️⃣ 데이터베이스 연결
-
-Prisma 스키마 적용
-
-```bash
-npx prisma db push
-```
-
-또는 Migration 사용 시:
-
-```bash
-npx prisma migrate dev
-```
-
----
-
-## 5️⃣ 개발 서버 실행
+## 4️⃣ 개발 서버 실행
 
 ```bash
 npm run dev
@@ -298,18 +275,11 @@ npm run start
 
 ## Database
 
-- PostgreSQL (Neon)
-- Prisma ORM
-
-## Authentication
-
-- NextAuth.js
-- Supabase Auth
+- 현재는 `data/*.json` 파일을 기반으로 데이터를 로드합니다.
+- 복잡한 데이터베이스 설정 없이도 클라이언트에서 빠르게 콘텐츠를 탐색할 수 있습니다.
 
 ## External Services
 
-- Toss Payments
-- Slack Webhook
 - Vercel Deployment
 
 ---
@@ -364,18 +334,13 @@ npm run start
 
 # 🔐 환경 변수 예시
 
+`.env.example` 파일을 참고하세요.
+현재 버전은 정적 파일 기반으로 작동하여 복잡한 환경 변수가 필요하지 않습니다.
+
 ```env
-DATABASE_URL=
-NEXTAUTH_SECRET=
-NEXTAUTH_URL=
-
-SUPABASE_URL=
-SUPABASE_ANON_KEY=
-
-TOSS_CLIENT_KEY=
-TOSS_SECRET_KEY=
-
-SLACK_WEBHOOK_URL=
+# 향후 확장 시 필요한 환경 변수들 (현재는 필요하지 않음)
+# DATABASE_URL=
+# NEXTAUTH_SECRET=
 ```
 
 ---

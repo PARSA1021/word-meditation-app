@@ -1,7 +1,7 @@
 // app/library/page.tsx
 import { getAllWordsServer} from"@/features/meditation/services/word.service";
 import { generateTOC, serializeTOC} from"@/features/meditation/services/toc.service";
-import LibraryMain from "@/features/meditation/components/LibraryMain";
+import LibraryClient from"@/features/meditation/components/LibraryClient";
 
 export const metadata = {
  title:"말씀 도서관 | Word Meditation",
@@ -27,7 +27,7 @@ export default async function LibraryPage() {
  <div className="w-10 h-10 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin"></div>
  </div>
 }>
- <LibraryMain toc={serializedTOC} />
+ <LibraryClient toc={serializedTOC} />
  </Suspense>
  </div>
  );

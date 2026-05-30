@@ -4,7 +4,6 @@
 import { useState, useMemo, memo, useEffect} from "react";
 import { SerializedTOCNode } from "@/features/meditation/services/toc.service";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface TOCAccordionProps {
   node: SerializedTOCNode;
@@ -44,8 +43,7 @@ const TOCAccordion = memo(function TOCAccordion({
     }
   }, [searchQuery, isParentOfSelected]);
 
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClick = () => {
     if (hasChildren) {
       setIsOpen(!isOpen);
     }
@@ -60,49 +58,47 @@ const TOCAccordion = memo(function TOCAccordion({
       <span>
         {parts.map((part, i) => 
           part.toLowerCase() === searchQuery.toLowerCase() ? (
-            <mark key={i} className="bg-brand-primary/10 text-brand-primary font-bold rounded px-0.5">{part}</mark>
+            <mark key={i} className="bg-brand-primary/20 text-brand-primary font-bold rounded px-0.5">{part}</mark>
           ) : part
         )}
       </span>
     );
   };
 
-  const paddingLeft = level === 0 ? 0 : 8;
+  const paddingLeft = level === 0 ? 0 : 16;
 
   return (
-    <div className="md:px-0.5">
+    <div className="md:px-2">
       <motion.button
-        onClick={handleToggle}
-        whileTap={{ scale: 0.97 }}
-        className={`w-full group flex items-center justify-between py-3 px-4 rounded-2xl transition-all duration-300 ${
-          isSelected 
-            ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10" 
-            : "hover:bg-slate-100/50 text-slate-500 hover:text-slate-900"
-        }`}
-        style={{ paddingLeft: `${paddingLeft + (level * 12)}px` }}
+        whileTap={{ scale: 0.98 }}
+        onClick={handleClick}
+        className={`
+          w-full flex items-center justify-between py-3.5 px-4 rounded-sm text-[13px] transition-all text-left group
+          ${isSelected 
+            ? "bg-brand-primary/5 text-brand-primary font-black shadow-sm ring-1 ring-brand-primary/10" 
+            : "text-text-secondary hover:bg-slate-50 hover:text-brand-deep"
+          }
+        `}
+        style={{ paddingLeft: `${paddingLeft + 16}px` }}
       >
         <div className="flex items-center gap-3 truncate">
-          <div className="flex-shrink-0">
-            {hasChildren ? (
-              <div className={`transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`}>
-                <ChevronRight size={16} className={isSelected ? "text-white" : "text-slate-300 group-hover:text-slate-400"} />
-              </div>
-            ) : (
-              <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white" : "bg-slate-200 group-hover:bg-brand-primary/40 transition-colors"}`} />
-            )}
-          </div>
-          <span className={`truncate tracking-tight ${isSelected ? "font-bold text-[15px]" : "font-medium text-[14px]"}`}>
-            {renderName()}
-          </span>
+          <span className={`w-1 h-3 rounded-full transition-all duration-500 ${isSelected ? "bg-brand-primary h-5" : "bg-slate-200 group-hover:bg-slate-300"}`} />
+          <span className="truncate font-bold tracking-tight">{renderName()}</span>
         </div>
         
-        <div className="flex items-center gap-2">
-          <span className={`text-[10px] font-bold py-0.5 px-1.5 rounded-md transition-colors tabular-nums ${
-            isSelected ? "bg-white/10 text-white/60" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
-          }`}>
-            {node.wordCount}
-          </span>
-        </div>
+        {hasChildren && (
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black text-slate-300 group-hover:text-brand-primary/50 transition-colors uppercase">{node.wordCount}</span>
+            <div className={`p-1 transition-all duration-300 ${isOpen ? "text-brand-primary rotate-180" : "text-slate-300"}`}>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        )}
+        {!hasChildren && (
+          <span className="text-[9px] font-black text-slate-300 group-hover:text-brand-primary/50 transition-colors uppercase">{node.wordCount}</span>
+        )}
       </motion.button>
 
       <AnimatePresence initial={false}>
@@ -113,19 +109,22 @@ const TOCAccordion = memo(function TOCAccordion({
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="mt-0.5 space-y-0.5 border-l border-slate-100/80 ml-4.5">
-              {Object.values(node.children)
-                .map((child) => (
-                  <TOCAccordion
-                    key={child.name}
-                    node={child}
-                    level={level + 1}
-                    onSelect={onSelect}
-                    selectedPath={selectedPath}
-                    searchQuery={searchQuery}
-                  />
-                ))}
-            </div>
+            {Object.values(node.children)
+              .sort((a, b) => {
+                const aNum = parseInt(a.name.match(/\d+/)?.[0] || "0");
+                const bNum = parseInt(b.name.match(/\d+/)?.[0] || "0");
+                return aNum - bNum;
+              })
+              .map((child) => (
+                <TOCAccordion
+                  key={child.name}
+                  node={child}
+                  level={level + 1}
+                  onSelect={onSelect}
+                  selectedPath={selectedPath}
+                  searchQuery={searchQuery}
+                />
+              ))}
           </motion.div>
         )}
       </AnimatePresence>

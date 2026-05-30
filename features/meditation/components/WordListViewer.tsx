@@ -12,11 +12,12 @@ interface WordListViewerProps {
   words: Word[];
   isLoading?: boolean;
   highlightId?: number | null;
+  lineHeight?: "normal" | "relaxed";
 }
 
 const ITEMS_PER_PAGE = 20;
 
-export default function WordListViewer({ node, words, isLoading, highlightId }: WordListViewerProps) {
+export default function WordListViewer({ node, words, isLoading, highlightId, lineHeight }: WordListViewerProps) {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -66,7 +67,7 @@ export default function WordListViewer({ node, words, isLoading, highlightId }: 
           ))}
         </div>
       ) : visibleWords.length > 0 ? (
-        <div className="space-y-14">
+        <div className="space-y-16 sm:space-y-24">
           {visibleWords.map((word, index) => (
             <motion.div
               key={word.id}
@@ -77,6 +78,7 @@ export default function WordListViewer({ node, words, isLoading, highlightId }: 
               <QuoteCard 
                 word={word} 
                 isHighlighted={word.id === highlightId} 
+                lineHeight={lineHeight}
               />
             </motion.div>
           ))}

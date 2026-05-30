@@ -18,6 +18,7 @@ interface QuoteCardProps {
   confidence?: "high" | "medium" | "low";
   id?: string;
   isHighlighted?: boolean;
+  lineHeight?: "normal" | "relaxed";
 }
 
 function HighlightedByRanges({
@@ -103,6 +104,7 @@ const QuoteCard = React.memo(function QuoteCard({
   confidence,
   id,
   isHighlighted = false,
+  lineHeight = "normal",
 }: QuoteCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -160,7 +162,8 @@ const QuoteCard = React.memo(function QuoteCard({
       const textToCopy = `"${word.text}"\n- ${word.source} ${word.speaker ? `(${word.speaker})` : ""}`;
       await navigator.clipboard.writeText(textToCopy);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      // 복사 완료 시 햅틱 피드백 시뮬레이션 및 시각적 효과
+      setTimeout(() => setIsCopied(false), 2400);
     } catch (err) {
       console.error("복사 실패:", err);
     }
@@ -179,7 +182,7 @@ const QuoteCard = React.memo(function QuoteCard({
         if (selection && selection.toString().length > 0) return;
         setIsExpanded(!isExpanded);
       }}
-      className={`premium-card premium-card-hover group p-6 md:p-10 cursor-default relative overflow-hidden transition-all duration-700
+      className={`premium-card premium-card-hover group p-6 sm:p-10 md:p-14 lg:p-16 cursor-default relative overflow-hidden transition-all duration-700
         ${isExpanded ? 'ring-1 ring-brand-primary/10 shadow-premium scale-[1.01]' : ''}
         ${isHighlighted ? 'ring-2 ring-brand-primary/50 shadow-premium !border-brand-primary bg-brand-primary/[0.02] scale-[1.02]' : ''}`}
     >
@@ -216,26 +219,32 @@ const QuoteCard = React.memo(function QuoteCard({
         </div>
       </div>
 
-      {/* 2. Scripture Text */}
-      <motion.div layout className="relative">
-        <span className="absolute -top-6 -left-4 text-6xl md:text-7xl text-slate-100 font-serif pointer-events-none select-none">"</span>
+      {/* 2. Scripture Text (Reading Focus) */}
+      <motion.div layout className="relative mt-2 md:mt-4">
+        <span className="absolute -top-10 md:-top-14 -left-6 md:-left-10 text-7xl md:text-9xl text-slate-100/60 font-serif pointer-events-none select-none italic">“</span>
         <div className="relative z-10">
-          <p className={`${scriptureFont.className} scripture-text transition-all duration-500 ${isExpanded ? 'text-brand-deep !not-italic' : ''} !leading-[1.7] md:!leading-[1.8]`}>
+          <p className={`
+            ${scriptureFont.className} scripture-text transition-all duration-500 
+            text-[18px] md:text-[22px] lg:text-[26px] 
+            ${isExpanded ? 'text-brand-deep !not-italic' : 'text-slate-800'} 
+            ${lineHeight === 'relaxed' ? '!leading-[1.9] md:!leading-[2.1]' : '!leading-[1.7] md:!leading-[1.8]'}
+            break-keep
+          `}>
             {isExpanded ? renderedExpandedText : renderedText}
           </p>
         </div>
       </motion.div>
 
-      {/* 3. Footer Info & Copy */}
-      <motion.div layout className="mt-8 md:mt-10 pt-6 md:pt-8 border-t border-slate-50 flex flex-row items-end justify-between gap-4">
+      {/* 3. Footer Info & Copy (Spacing refinement) */}
+      <motion.div layout className="mt-6 md:mt-14 pt-6 md:pt-10 border-t border-slate-100 flex flex-row items-end justify-between gap-6">
         <div className="flex-1 space-y-2">
-          <div className="space-y-0.5 md:space-y-1">
-            <p className="text-brand-deep font-extrabold text-[16px] md:text-[19px] tracking-tight leading-tight">
+          <div className="space-y-0.5 md:space-y-1.5">
+            <p className="text-brand-deep font-extrabold text-[15px] md:text-[21px] lg:text-[23px] tracking-tight leading-tight">
               {word.source}
             </p>
             {word.speaker && (
-              <p className="text-text-secondary text-[13px] md:text-sm font-medium">
-                {word.speaker}
+              <p className="text-text-secondary text-[13px] md:text-[15px] font-medium opacity-80 italic">
+                — {word.speaker}
               </p>
             )}
           </div>
@@ -256,9 +265,19 @@ const QuoteCard = React.memo(function QuoteCard({
             className={`w-10 h-10 flex items-center justify-center rounded-sm transition-all ${bookmarked ? "bg-red-50 text-red-500 shadow-sm ring-1 ring-red-100" : "bg-slate-50 text-slate-400 hover:text-red-400"
               }`}
           >
-            <svg className="w-5 h-5" fill={bookmarked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 relative z-10" fill={bookmarked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
+            <AnimatePresence>
+              {bookmarked && (
+                <motion.span
+                  initial={{ scale: 0, opacity: 0.8 }}
+                  animate={{ scale: 2.5, opacity: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-red-100 rounded-full"
+                />
+              )}
+            </AnimatePresence>
           </motion.button>
 
           <Link
@@ -279,13 +298,23 @@ const QuoteCard = React.memo(function QuoteCard({
           >
             <AnimatePresence mode="wait">
               {isCopied ? (
-                <motion.svg key="check" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <motion.svg key="check" initial={{ scale: 0.5, opacity: 0, rotate: -20 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} exit={{ scale: 0.5, opacity: 0 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                 </motion.svg>
               ) : (
-                <motion.svg key="copy" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <motion.svg key="copy" initial={{ scale: 0.8 }} whileHover={{ scale: 1.1 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </motion.svg>
+              )}
+            </AnimatePresence>
+            <AnimatePresence>
+              {isCopied && (
+                <motion.span
+                  initial={{ scale: 0, opacity: 0.8 }}
+                  animate={{ scale: 2.5, opacity: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-brand-primary/20 rounded-full"
+                />
               )}
             </AnimatePresence>
           </button>

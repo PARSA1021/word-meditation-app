@@ -18,6 +18,7 @@ interface QuoteCardProps {
   confidence?: "high" | "medium" | "low";
   id?: string;
   isHighlighted?: boolean;
+  searchQuery?: string;
 }
 
 function HighlightedByRanges({
@@ -103,21 +104,15 @@ const QuoteCard = React.memo(function QuoteCard({
   confidence,
   id,
   isHighlighted = false,
+  searchQuery,
 }: QuoteCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { toggleBookmark, isBookmarked } = useBookmarks();
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // --- Highlighting & Scroll-into-view Logic ---
-  useEffect(() => {
-    if (isHighlighted) {
-      const timer = setTimeout(() => {
-        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 600);
-      return () => clearTimeout(timer);
-    }
-  }, [isHighlighted]);
+  // Scroll is now handled by WordListViewer for precision. No timeout needed here.
+
 
   const bookmarked = isBookmarked(word.id);
   const MAX_LENGTH = 160;
@@ -262,10 +257,10 @@ const QuoteCard = React.memo(function QuoteCard({
           </motion.button>
 
           <Link
-            href={`/library?path=${encodeURIComponent(JSON.stringify(getWordPath(word)))}&highlight=${word.id}`}
+            href={`/library?path=${encodeURIComponent(JSON.stringify(getWordPath(word)))}&highlight=${word.id}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''}`}
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
             className="w-10 h-10 flex items-center justify-center rounded-sm bg-slate-50 text-slate-400 hover:text-brand-primary transition-all active:scale-95 shadow-sm group/lib"
-            title="말씀 도서관에서 보기"
+            title="말씀 도서관에서 해당 구절 보기"
           >
             <svg className="w-5 h-5 group-hover/lib:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253" />

@@ -325,6 +325,7 @@ function SearchFeed() {
                               matchType={result.matchType}
                               explanation={result.explanation}
                               confidence={result.confidence}
+                              searchQuery={query}
                             />
                           </motion.div>
                         ))}
@@ -357,6 +358,7 @@ function SearchFeed() {
                               matchType={result.matchType}
                               explanation={result.explanation}
                               confidence={result.confidence}
+                              searchQuery={query}
                             />
                           </motion.div>
                         ))}

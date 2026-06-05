@@ -5,6 +5,7 @@ import React, {
 } from "react";
 
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { 
   Menu, X, ArrowUp, Search, Bookmark, Layers, Sparkles, 
@@ -156,12 +157,16 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
     return () => { document.body.style.overflow = ""; };
   }, [isMobileMenuOpen]);
 
+  const [urlQuery, setUrlQuery] = useState<string | null>(null);
+
   // Deep Linking
   useEffect(() => {
     const pathParam = searchParams.get("path");
     const highlightParam = searchParams.get("highlight");
+    const qParam = searchParams.get("q");
 
     if (highlightParam) setHighlightId(parseInt(highlightParam));
+    if (qParam) setUrlQuery(qParam);
 
     if (pathParam) {
       try {
@@ -517,6 +522,31 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
                   </section>
                 )}
 
+                {/* 검색에서 넘어온 경우: '검색 결과로 돌아가기' 배너 */}
+                {urlQuery && (
+                  <AnimatePresence>
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="flex items-center justify-between gap-3 px-4 py-3 bg-brand-primary/5 border border-brand-primary/15 rounded-2xl"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Search size={14} className="text-brand-primary shrink-0" />
+                        <p className="text-[12px] font-bold text-brand-primary truncate">
+                          &lsquo;<span className="font-black">{urlQuery}</span>&rsquo; 검색 결과에서 이동했습니다
+                        </p>
+                      </div>
+                      <Link
+                        href={`/search?q=${encodeURIComponent(urlQuery)}`}
+                        className="shrink-0 text-[11px] font-black text-brand-primary bg-white border border-brand-primary/20 px-3 py-1.5 rounded-xl hover:bg-brand-primary hover:text-white transition-all active:scale-95 whitespace-nowrap"
+                      >
+                        ← 검색으로 돌아가기
+                      </Link>
+                    </motion.div>
+                  </AnimatePresence>
+                )}
+
                 {/* Reader Card Content */}
                 <div className={`bg-white border border-slate-200/60 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs ${textClassMap[textSize]}`}>
                   <WordListViewer
@@ -524,6 +554,7 @@ export default function LibraryClient({ toc }: LibraryClientProps) {
                     words={currentWords}
                     isLoading={isLoadingWords || isPending}
                     highlightId={highlightId}
+                    searchQuery={urlQuery}
                   />
                 </div>
               </motion.div>

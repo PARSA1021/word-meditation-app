@@ -6,24 +6,34 @@ import QuoteCard from "@/shared/ui/QuoteCard";
 import { motion } from "framer-motion";
 import { QuoteSkeleton } from "@/shared/ui/Skeleton";
 import { Word } from "@/shared/types/word";
+import { getHighlightRanges } from "@/features/search/engine/highlight";
 
 interface WordListViewerProps {
   node: SerializedTOCNode | null;
   words: Word[];
   isLoading?: boolean;
   highlightId?: number | null;
+  searchQuery?: string | null;
 }
 
 const ITEMS_PER_PAGE = 20;
 
-export default function WordListViewer({ node, words, isLoading, highlightId }: WordListViewerProps) {
+export default function WordListViewer({ node, words, isLoading, highlightId, searchQuery }: WordListViewerProps) {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
+  // When words or highlightId change, ensure the highlighted word is within the visible set
   useEffect(() => {
+    if (highlightId && words.length > 0) {
+      const idx = words.findIndex((w) => w.id === highlightId);
+      if (idx >= 0) {
+        setVisibleCount(Math.max(ITEMS_PER_PAGE, idx + 1));
+        return;
+      }
+    }
     setVisibleCount(ITEMS_PER_PAGE);
-  }, [node]);
+  }, [node, words, highlightId]);
 
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
@@ -41,9 +51,24 @@ export default function WordListViewer({ node, words, isLoading, highlightId }: 
     return () => observerRef.current?.disconnect();
   }, [words, visibleCount]);
 
+  // After words load and visibleCount is updated, scroll to highlighted card immediately
+  useEffect(() => {
+    if (!highlightId || words.length === 0) return;
+    // Double rAF: first frame lets React flush DOM changes, second ensures layout is complete
+    const id1 = requestAnimationFrame(() => {
+      const id2 = requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-word-id="${highlightId}"]`);
+        el?.scrollIntoView({ behavior: "instant", block: "center" });
+      });
+      return () => cancelAnimationFrame(id2);
+    });
+    return () => cancelAnimationFrame(id1);
+  }, [words, highlightId]);
+
   if (!node) return null;
 
   const visibleWords = words.slice(0, visibleCount);
+  const searchTokens = searchQuery ? searchQuery.split(" ").filter(Boolean) : [];
 
   return (
     <div className="space-y-12 pb-32">
@@ -67,19 +92,24 @@ export default function WordListViewer({ node, words, isLoading, highlightId }: 
         </div>
       ) : visibleWords.length > 0 ? (
         <div className="space-y-14">
-          {visibleWords.map((word, index) => (
-            <motion.div
-              key={word.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(index * 0.05, 0.4) }}
-            >
-              <QuoteCard 
-                word={word} 
-                isHighlighted={word.id === highlightId} 
-              />
-            </motion.div>
-          ))}
+          {visibleWords.map((word, index) => {
+            const highlightRanges = searchTokens.length > 0 ? getHighlightRanges(word.text, searchTokens) : undefined;
+            return (
+              <motion.div
+                key={word.id}
+                data-word-id={word.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(index * 0.05, 0.4) }}
+              >
+                <QuoteCard
+                  word={word}
+                  isHighlighted={word.id === highlightId}
+                  highlightRanges={highlightRanges}
+                />
+              </motion.div>
+            );
+          })}
         </div>
       ) : (
         <div className="py-32 text-center grayscale opacity-50">

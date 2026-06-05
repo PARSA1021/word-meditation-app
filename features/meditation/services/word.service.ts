@@ -31,7 +31,9 @@ export function getCategoryWordsServer(category: string): Word[] {
 }
 
 export const getRandomWordServer = (): Word => {
-  const candidates = loadAllWords().filter(w => w.type !== "CheonSeongGyeong_en_words");
+  const candidates = loadAllWords().filter(
+    (w) => w.type === "cheonseong" || w.type === "CheonIlGuk_ddeutgil"
+  );
   return candidates[Math.floor(Math.random() * candidates.length)];
 };
 
@@ -44,7 +46,7 @@ export function getRandomWordExceptServer(
 
   const words = loadAllWords();
   const candidates = words.filter(
-    (w) => !excludedIds.has(w.id) && w.type !== "CheonSeongGyeong_en_words"
+    (w) => !excludedIds.has(w.id) && (w.type === "cheonseong" || w.type === "CheonIlGuk_ddeutgil")
   );
 
   return candidates.length > 0

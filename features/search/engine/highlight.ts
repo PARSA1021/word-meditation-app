@@ -14,10 +14,8 @@ export function getHighlightRanges(
   tokens.forEach(token => {
     if (!token) return
 
-    // 한국어는 단어 경계 패턴 사용, 영어는 \b 사용
-    const regex = hasHangul(token)
-      ? buildKoreanWordPattern(token)
-      : new RegExp(`\\b${escapeRegExp(token)}\\b`, "gi")
+    // 단순 전역 정규식으로 매칭된 토큰을 하이라이트 (부분 일치 및 어간 포함)
+    const regex = new RegExp(escapeRegExp(token), "gi")
 
     let match
     while ((match = regex.exec(text)) !== null) {

@@ -15,8 +15,9 @@ const MAIN_TABS = [
   { id: "cheonseong", name: "천성경" },
   { id: "wonli", name: "원리강론" },
   { id: "pyeonghwashinkyung", name: "평화신경" },
-  { id: "Cheon Il Guk_ddeutgil", name: "천일국시대 뜻길" },
+  { id: "CheonIlGuk_ddeutgil", name: "천일국시대 뜻길" },
   { id: "general", name: "일반말씀" },
+  { id: "CheonSeongGyeong_en_words", name: "천성경 (EN)" },
 ];
 
 export default function SearchCategoryTabs({

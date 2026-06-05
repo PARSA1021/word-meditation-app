@@ -159,7 +159,17 @@ export function searchWords(
         }
       }
 
-      // 4) 초성 부분 매칭 (2글자 이상만)
+      // 4) 부분 일치 (단어 경계 없이 포함 여부 확인, 2글자 이상)
+      if (!matched && meta.original.length >= 2) {
+        if (targetText.includes(meta.original)) {
+          tokenScore = calculateSearchScore("partial")
+          matched = true
+          bestMatchType = "partial"
+          highlightTokens.push(meta.original)
+        }
+      }
+
+      // 5) 초성 부분 매칭 (2글자 이상만)
       if (!matched && meta.chosung.length >= 2) {
         const matchIdx = ix.textChosung.indexOf(meta.chosung)
         if (matchIdx !== -1) {
@@ -199,6 +209,9 @@ export function searchWords(
       } else if (bestMatchType === "synonym") {
         explanation = "유사 의미 매칭"
         confidence = "medium"
+      } else if (bestMatchType === "partial") {
+        explanation = "부분 일치 매칭"
+        confidence = "low"
       } else if (bestMatchType === "chosung") {
         explanation = chosungMatchText
           ? `초성 검색: "${chosungMatchText}"`

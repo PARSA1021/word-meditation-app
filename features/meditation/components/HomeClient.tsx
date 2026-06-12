@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import DailyWord from "@/features/meditation/components/DailyWord";
 import { WordStats } from "@/shared/types/word";
 import CategoryCard from "@/shared/ui/CategoryCard";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // ✅ useEffect 추가
 import { useRouter } from "next/navigation";
 import { 
   Search, 
@@ -36,10 +36,18 @@ interface HomeClientProps {
 export default function HomeClient({ stats }: HomeClientProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // ✅ [하이드레이션 해결] 클라이언트 마운트 상태 가드 선언
+  const [isMounted, setIsMounted] = useState(false);
+
+  // ✅ [하이드레이션 해결] 브라우저 최초 로드 완료 시 true 전환
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const categoryIcons: Record<string, React.ReactNode> = {
     "사랑": <Heart className="w-4 h-4 text-rose-500 shrink-0" />,
-    "평화": <Anchor className="w-4 h-4 text-sky-500 shrink-0" />, // Compass 제거로 Anchor 대체 혹은 유지
+    "평화": <Anchor className="w-4 h-4 text-sky-500 shrink-0" />,
     "하나님": <Anchor className="w-4 h-4 text-brand-primary shrink-0" />,
     "위로": <Leaf className="w-4 h-4 text-emerald-500 shrink-0" />,
     "지혜": <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />,
@@ -60,6 +68,17 @@ export default function HomeClient({ stats }: HomeClientProps) {
   const handleTagClick = (tag: string) => {
     router.push(`/search?q=${encodeURIComponent(tag)}`);
   };
+
+  // ✅ [하이드레이션 해결] 마운트가 되기 전(서버 렌더링 포함)에는 충돌 없는 정적 기본 뼈대 반환
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-brand-bg pb-20 overflow-x-hidden relative">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 w-full pt-10 text-center">
+          <div className="w-12 h-12 border-2 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin mx-auto mt-20" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-brand-bg pb-24 sm:pb-28 lg:pb-20 overflow-x-hidden relative selection:bg-brand-primary/20">
@@ -132,7 +151,7 @@ export default function HomeClient({ stats }: HomeClientProps) {
               </div>
             </div>
             
-            {/* 4분할 핵심 메뉴 - 상황별 탐색을 북마크 메뉴로 교체 */}
+            {/* 4분할 핵심 메뉴 */}
             <div className="w-full max-w-2xl mx-auto pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
                 {[
@@ -291,7 +310,8 @@ export default function HomeClient({ stats }: HomeClientProps) {
         </section>
 
         {/* 4. BOTTOM NAV SAFE AREA SPACER */}
-        <div className="h-[calc(4.5rem+env(safe-area-inset-bottom))] lg:hidden" />
+        {/* ✅ [안정성 개정]: 빌드 오류를 뿜던 인라인 calc 연산을 제거하고 globals.css에 안전하게 매핑된 클래스 바인딩 */}
+        <div className="pb-safe-offset-20 lg:hidden" />
         
       </motion.div>
     </div>

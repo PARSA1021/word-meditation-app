@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     if (adminPassword && password === adminPassword) {
       const response = NextResponse.json({ success: true });
       
-      // Set an HttpOnly cookie that the middleware will verify
+      // Session cookie: expires when the browser is closed (no maxAge)
       response.cookies.set({
         name: 'admin_token',
         value: 'authenticated',
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
+        // maxAge 없음 → 세션 쿠키 → 브라우저 종료 시 자동 삭제
       });
 
       return response;

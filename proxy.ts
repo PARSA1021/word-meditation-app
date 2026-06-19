@@ -2,35 +2,36 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function proxy(req: NextRequest) {
-  // Only apply to /admin and /api/admin
-  if (req.nextUrl.pathname.startsWith('/admin') || req.nextUrl.pathname.startsWith('/api/admin')) {
-    const authHeader = req.headers.get('authorization');
+  const path = req.nextUrl.pathname;
 
-    if (!authHeader) {
-      return new NextResponse('Authentication required', {
-        status: 401,
-        headers: { 'WWW-Authenticate': 'Basic realm="Secure Area"' },
-      });
-    }
+  // Paths that require authentication
+  const isAdminPath = path.startsWith('/admin');
+  const isAdminApi = path.startsWith('/api/admin');
+  
+  // Public paths
+  const isLoginPage = path === '/admin/login';
+  const isLoginApi = path === '/api/admin/login';
 
-    const authPattern = /^Basic\s+(.*)$/i;
-    const match = authHeader.match(authPattern);
+  if ((isAdminPath || isAdminApi) && !isLoginPage && !isLoginApi) {
+    const adminToken = req.cookies.get('admin_token')?.value;
 
-    if (match) {
-      const credentials = atob(match[1]);
-      const [username, password] = credentials.split(':');
-
-      const adminPassword = process.env.ADMIN_PASSWORD;
-
-      if (adminPassword && password === adminPassword && username === 'admin') {
-        return NextResponse.next();
+    if (adminToken !== 'authenticated') {
+      // For API requests, return 401 JSON
+      if (isAdminApi) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
+      
+      // For page requests, redirect to custom login page
+      return NextResponse.redirect(new URL('/admin/login', req.url));
     }
+  }
 
-    return new NextResponse('Authentication failed', {
-      status: 401,
-      headers: { 'WWW-Authenticate': 'Basic realm="Secure Area"' },
-    });
+  // If trying to access login page while already authenticated, redirect to dashboard
+  if (isLoginPage) {
+    const adminToken = req.cookies.get('admin_token')?.value;
+    if (adminToken === 'authenticated') {
+      return NextResponse.redirect(new URL('/admin/donations', req.url));
+    }
   }
 
   return NextResponse.next();

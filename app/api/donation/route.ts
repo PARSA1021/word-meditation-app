@@ -16,13 +16,13 @@ export async function POST(request: Request) {
     if (slackUrl) {
       try {
         const slackPayload = {
-          text: `새로운 정성 봉헌 대기 - ${name}님 (${amount.toLocaleString()}원)`,
+          text: `새로운 정성 봉헌: ${name}님 (${amount.toLocaleString()}원)`,
           blocks: [
             {
               type: "header",
               text: {
                 type: "plain_text",
-                text: "🙏 새로운 정성 봉헌 접수 대기",
+                text: "✨ 새로운 정성 봉헌이 접수되었습니다",
                 emoji: true
               }
             },
@@ -31,11 +31,11 @@ export async function POST(request: Request) {
               fields: [
                 {
                   type: "mrkdwn",
-                  text: `*봉헌인:*\n${name}`
+                  text: `*👤 봉헌인:*\n${name} 님`
                 },
                 {
                   type: "mrkdwn",
-                  text: `*정성 금액:*\n${amount.toLocaleString()}원`
+                  text: `*💰 정성 금액:*\n*${amount.toLocaleString()}원*`
                 }
               ]
             },
@@ -43,35 +43,39 @@ export async function POST(request: Request) {
               type: "section",
               text: {
                 type: "mrkdwn",
-                text: `*📝 심정의 한마디:*\n> ${memo || '작성된 내용이 없습니다.'}`
+                text: `*📝 심정의 한마디:*\n> ${memo ? `_${memo}_` : '작성된 내용이 없습니다.'}`
               }
-            },
-            {
-              type: "divider"
             },
             {
               type: "context",
               elements: [
                 {
                   "type": "mrkdwn",
-                  "text": `🕒 접수: ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} | ID: \`${donation.id}\``
+                  "text": `🕒 접수 일시: ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`
                 }
               ]
             },
             {
-              type: "actions",
-              elements: [
-                {
-                  type: "button",
-                  text: {
-                    type: "plain_text",
-                    text: "관리자 페이지 열기",
-                    emoji: true
-                  },
-                  url: "https://word-meditation-app.vercel.app/admin/donations",
-                  style: "primary"
-                }
-              ]
+              type: "divider"
+            },
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: "이 봉헌 내역을 확인하고 승인/반려 처리를 진행해 주세요."
+              },
+              accessory: {
+                type: "button",
+                text: {
+                  type: "plain_text",
+                  text: "관리자 대시보드 열기",
+                  emoji: true
+                },
+                value: "admin_dashboard",
+                url: "https://word-meditation-app.vercel.app/admin/donations",
+                action_id: "button-action",
+                style: "primary"
+              }
             }
           ]
         };

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { uiFont } from '@/shared/lib/fonts';
 import Link from 'next/link';
-import { ChevronLeft, Check, Copy } from 'lucide-react';
+import { ChevronLeft, Check, Copy, ExternalLink } from 'lucide-react';
 
 type Step = 'intro' | 'details' | 'guide' | 'done';
 
@@ -28,11 +28,52 @@ export default function DonationSection() {
   const [loading, setLoading] = useState(false);
   const [hasDonated, setHasDonated] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [showReturnNudge, setShowReturnNudge] = useState(false);
 
   const [name, setName] = useState('');
   const [memo, setMemo] = useState('');
   const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
+
+  // 1. 임시 저장 (불러오기)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('donation-draft');
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft.name) setName(draft.name);
+        if (draft.memo) setMemo(draft.memo);
+        if (draft.amount !== undefined) setAmount(draft.amount);
+        if (draft.customAmount) setCustomAmount(draft.customAmount);
+        if (draft.step && draft.step !== 'intro' && draft.step !== 'done') {
+          setStep(draft.step);
+        }
+      }
+    } catch (e) {}
+  }, []);
+
+  // 1. 임시 저장 (저장하기)
+  useEffect(() => {
+    if (step === 'done') {
+      localStorage.removeItem('donation-draft');
+      return;
+    }
+    localStorage.setItem('donation-draft', JSON.stringify({ name, memo, amount, customAmount, step }));
+  }, [name, memo, amount, customAmount, step]);
+
+  // 2. 앱 복귀 넛지 감지
+  useEffect(() => {
+    if (step !== 'guide') return;
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setShowReturnNudge(true);
+        setTimeout(() => setShowReturnNudge(false), 4000);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [step]);
 
   useEffect(() => {
     if (copied) {
@@ -50,6 +91,13 @@ export default function DonationSection() {
     }
   };
 
+  const handleOpenTossTransfer = () => {
+    const finalAmount = amount === 0 ? Number(customAmount) : (amount || 0);
+    // 토스 송금 딥링크
+    const tossUrl = `supertoss://send?bank=${encodeURIComponent(ACCOUNT.bank)}&accountNo=${ACCOUNT.number}&amount=${finalAmount}&origin=${encodeURIComponent(window.location.href)}`;
+    window.location.href = tossUrl;
+  };
+
   const handleNext = () => {
     if (step === 'intro') setStep('details');
     else if (step === 'details') setStep('guide');
@@ -62,16 +110,18 @@ export default function DonationSection() {
 
   const handleSubmit = async () => {
     setLoading(true);
+    setSubmitError('');
     try {
       const finalAmount = amount === 0 ? Number(customAmount) : (amount || 0);
-      await fetch('/api/donation', {
+      const res = await fetch('/api/donation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, memo, amount: finalAmount }),
       });
+      if (!res.ok) throw new Error('서버 응답 오류');
       setStep('done');
     } catch (error) {
-      console.error(error);
+      setSubmitError('접수 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setLoading(false);
     }
@@ -212,6 +262,8 @@ export default function DonationSection() {
                           <input
                             id="custom-amount"
                             type="number"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             placeholder="금액을 입력하세요"
                             value={customAmount}
                             onChange={(e) => setCustomAmount(e.target.value)}
@@ -259,8 +311,11 @@ export default function DonationSection() {
                   <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-3xl">💳</span>
                   </div>
-                  <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">아래 계좌로 송금해 주세요</h3>
-                  <p className="text-sm font-medium text-slate-400">송금을 완료하신 후 하단의 확인 버튼을 눌러주세요.</p>
+                  <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">송금을 진행해 주세요</h3>
+                  <p className="text-sm font-medium text-slate-400 break-keep leading-relaxed">
+                    앱으로 바로 송금하거나, 계좌번호를 복사하여 송금하신 후<br />
+                    <span className="text-slate-700 font-bold">반드시 돌아와서 하단의 완료 버튼을 눌러주세요.</span>
+                  </p>
                 </div>
 
                 <div className="bg-slate-50/80 border border-slate-200/60 rounded-[1.5rem] p-6 sm:p-8 text-center space-y-5 shadow-inner">
@@ -270,29 +325,46 @@ export default function DonationSection() {
                     <p className="text-sm font-bold text-slate-500 mt-1">예금주 : {ACCOUNT.holder}</p>
                   </div>
                   
-                  <button
-                    onClick={handleCopyAccount}
-                    className={`w-full py-4 px-4 rounded-2xl border flex items-center justify-center gap-2 text-base font-bold transition-all duration-300 ${
-                      copied 
-                        ? 'bg-green-50 border-green-200 text-green-700' 
-                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-400 shadow-sm'
-                    }`}
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-5 h-5" />
-                        복사되었습니다
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-5 h-5 text-slate-400" />
-                        계좌번호 복사하기
-                      </>
-                    )}
-                  </button>
+                  <div className="space-y-3 mt-4">
+                    <button
+                      onClick={handleOpenTossTransfer}
+                      className="w-full py-4 px-4 rounded-2xl bg-[#0050FF] hover:bg-[#0040CC] text-white flex items-center justify-center gap-2 text-base font-bold transition-all shadow-md active:scale-[0.98]"
+                    >
+                      <ExternalLink className="w-5 h-5" />
+                      토스 앱으로 바로 송금하기
+                    </button>
+
+                    <button
+                      onClick={handleCopyAccount}
+                      className={`w-full py-4 px-4 rounded-2xl border flex items-center justify-center gap-2 text-base font-bold transition-all duration-300 ${
+                        copied 
+                          ? 'bg-green-50 border-green-200 text-green-700' 
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-400 shadow-sm'
+                      }`}
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-5 h-5" />
+                          복사되었습니다
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-5 h-5 text-slate-400" />
+                          계좌번호 복사하기 <span className="text-sm font-medium text-slate-400 ml-1">(다른 은행)</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="bg-amber-50/60 border border-amber-200 rounded-2xl p-5 flex items-center gap-4 cursor-pointer group transition-all hover:bg-amber-100/50" onClick={() => setHasDonated(!hasDonated)}>
+                <div 
+                  className={`border rounded-2xl p-5 flex items-center gap-4 cursor-pointer group transition-all duration-300 ${
+                    hasDonated 
+                      ? 'bg-amber-50/60 border-amber-200 hover:bg-amber-100/50' 
+                      : 'bg-white border-slate-200 hover:bg-slate-50'
+                  } ${showReturnNudge && !hasDonated ? 'ring-4 ring-amber-400/50 animate-pulse border-amber-400' : ''}`}
+                  onClick={() => setHasDonated(!hasDonated)}
+                >
                   <div className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${
                     hasDonated ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-300 group-hover:border-slate-400'
                   }`}>
@@ -305,18 +377,23 @@ export default function DonationSection() {
                   </div>
                 </div>
 
-                <button
-                  onClick={handleSubmit}
-                  disabled={!hasDonated || loading}
-                  className="w-full py-5 bg-slate-900 text-white rounded-2xl text-lg font-bold tracking-wider hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-xl hover:-translate-y-1 disabled:hover:translate-y-0 disabled:hover:shadow-none active:translate-y-0 transition-all duration-300"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-3">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      접수 중...
-                    </span>
-                  ) : '봉헌 내역 제출 완료'}
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={!hasDonated || loading}
+                    className="w-full py-5 bg-slate-900 text-white rounded-2xl text-lg font-bold tracking-wider hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-xl hover:-translate-y-1 disabled:hover:translate-y-0 disabled:hover:shadow-none active:translate-y-0 transition-all duration-300"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-3">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        접수 중...
+                      </span>
+                    ) : '봉헌 내역 제출 완료'}
+                  </button>
+                  {submitError && (
+                    <p className="text-sm font-bold text-red-500 text-center animate-pulse">{submitError}</p>
+                  )}
+                </div>
               </motion.div>
             )}
 

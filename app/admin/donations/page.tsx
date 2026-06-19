@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { uiFont } from '@/shared/lib/fonts';
-import { CheckCircle2, Clock, XCircle, Wallet, Search, Filter } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, Wallet, Search, Filter, Download } from 'lucide-react';
 
 type DonationStatus = 'pending' | 'confirmed' | 'rejected';
 
@@ -19,9 +19,26 @@ interface Donation {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+function timeAgo(dateString: string) {
+  const seconds = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / 1000);
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + "년 전";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + "달 전";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + "일 전";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + "시간 전";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + "분 전";
+  if (seconds < 10) return "방금 전";
+  return Math.floor(seconds) + "초 전";
+}
+
 export default function AdminDonationsPage() {
   const [activeTab, setActiveTab] = useState<DonationStatus | 'all'>('pending');
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState<'all' | 'thisMonth' | 'today'>('all');
   
   // Fetch ALL donations unconditionally to build statistics
   const { data: allDonations, error, mutate } = useSWR<Donation[]>(
@@ -48,6 +65,33 @@ export default function AdminDonationsPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (!filteredDonations || filteredDonations.length === 0) return alert('다운로드할 데이터가 없습니다.');
+    
+    const headers = ['ID', '이름', '금액', '상태', '메모', '접수일', '처리일'];
+    const rows = filteredDonations.map(d => [
+      d.id,
+      d.name,
+      d.amount,
+      d.status === 'pending' ? '확인대기' : d.status === 'confirmed' ? '승인됨' : '반려됨',
+      d.memo || '',
+      new Date(d.createdAt).toLocaleString('ko-KR'),
+      d.confirmedAt ? new Date(d.confirmedAt).toLocaleString('ko-KR') : ''
+    ]);
+    
+    // Add BOM for Excel UTF-8
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + 
+      [headers.join(','), ...rows.map(e => e.map(item => `"${String(item).replace(/"/g, '""')}"`).join(','))].join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `정성봉헌내역_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Statistics calculations
   const safeDonations = allDonations || [];
   const pendingCount = safeDonations.filter(d => d.status === 'pending').length;
@@ -59,7 +103,18 @@ export default function AdminDonationsPage() {
   const filteredDonations = safeDonations.filter(d => {
     const matchesTab = activeTab === 'all' || d.status === activeTab;
     const matchesSearch = d.name.includes(searchQuery) || d.memo.includes(searchQuery);
-    return matchesTab && matchesSearch;
+    
+    let matchesDate = true;
+    const date = new Date(d.createdAt);
+    const now = new Date();
+    
+    if (dateFilter === 'today') {
+      matchesDate = date.toDateString() === now.toDateString();
+    } else if (dateFilter === 'thisMonth') {
+      matchesDate = date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    }
+    
+    return matchesTab && matchesSearch && matchesDate;
   });
 
   const tabs: { label: string; value: DonationStatus | 'all'; count?: number }[] = [
@@ -79,15 +134,24 @@ export default function AdminDonationsPage() {
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 font-serif">정성 봉헌 관리</h1>
             <p className="text-xs md:text-sm font-medium text-slate-500 mt-1 md:mt-2">입금 내역을 실시간으로 확인하고 관리합니다.</p>
           </div>
-          <button 
-            onClick={() => mutate()} 
-            className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-white border border-slate-200 text-sm font-bold text-slate-700 rounded-xl hover:bg-slate-50 active:bg-slate-100 shadow-sm transition-all"
-          >
-            새로고침
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button 
+              onClick={handleExportCSV}
+              className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-green-50 border border-green-200 text-sm font-bold text-green-700 rounded-xl hover:bg-green-100 active:bg-green-200 shadow-sm transition-all flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              엑셀 다운로드
+            </button>
+            <button 
+              onClick={() => mutate()} 
+              className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-white border border-slate-200 text-sm font-bold text-slate-700 rounded-xl hover:bg-slate-50 active:bg-slate-100 shadow-sm transition-all"
+            >
+              새로고침
+            </button>
+          </div>
         </div>
 
-        {/* Statistics Widgets - Mobile: 2 cols (Total spans 2), Tablet/Desktop: 3 cols */}
+        {/* Statistics Widgets */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
           {/* Total Amount Widget */}
           <div className="col-span-2 md:col-span-1 bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 border border-slate-100 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] flex items-center gap-4 md:gap-5 transition-transform hover:-translate-y-0.5">
@@ -158,18 +222,31 @@ export default function AdminDonationsPage() {
               ))}
             </div>
 
-            {/* Search */}
-            <div className="relative w-full lg:w-72 shrink-0">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-slate-400" />
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              {/* Date Filter */}
+              <select 
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value as any)}
+                className="w-full sm:w-auto px-4 py-3 sm:py-2.5 border border-slate-200 rounded-xl bg-white text-[15px] sm:text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all cursor-pointer"
+              >
+                <option value="all">모든 기간</option>
+                <option value="thisMonth">이번 달</option>
+                <option value="today">오늘</option>
+              </select>
+
+              {/* Search */}
+              <div className="relative w-full sm:w-64 lg:w-72 shrink-0">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="이름 또는 메모 검색..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-4 py-3 sm:py-2.5 border border-slate-200 rounded-xl bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-[15px] sm:text-sm font-bold text-slate-700 transition-all"
+                />
               </div>
-              <input
-                type="text"
-                placeholder="이름 또는 메모 검색..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-[15px] sm:text-sm transition-all font-bold text-slate-700"
-              />
             </div>
           </div>
 
@@ -189,7 +266,7 @@ export default function AdminDonationsPage() {
                   <Filter className="w-8 h-8 text-slate-300" />
                 </div>
                 <p className="text-base font-bold text-slate-900">해당하는 내역이 없습니다.</p>
-                <p className="text-sm font-medium text-slate-400 mt-1">검색어나 탭 필터를 확인해 주세요.</p>
+                <p className="text-sm font-medium text-slate-400 mt-1">검색어나 탭/기간 필터를 변경해 보세요.</p>
               </div>
             )}
 
@@ -221,12 +298,14 @@ export default function AdminDonationsPage() {
                         </p>
                       </div>
                     )}
-                    <div className="flex flex-wrap gap-x-3 sm:gap-x-4 gap-y-1 text-[11px] sm:text-xs font-bold text-slate-400">
-                      <span>접수: {new Date(donation.createdAt).toLocaleString('ko-KR')}</span>
+                    <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 text-[11px] sm:text-xs font-bold text-slate-400">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {timeAgo(donation.createdAt)} 접수
+                      </span>
                       {donation.confirmedAt && (
-                        <span>처리: {new Date(donation.confirmedAt).toLocaleString('ko-KR')}</span>
+                        <span>({new Date(donation.confirmedAt).toLocaleString('ko-KR')} 처리됨)</span>
                       )}
-                      <span className="text-slate-300 font-mono font-normal">ID: {donation.id.slice(-8)}</span>
                     </div>
                   </div>
 
@@ -238,7 +317,7 @@ export default function AdminDonationsPage() {
                         className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-900 text-white rounded-xl text-sm font-bold tracking-wider hover:bg-slate-800 active:scale-95 transition-all shadow-sm"
                       >
                         <CheckCircle2 className="w-4 h-4" />
-                        승인 처리
+                        승인
                       </button>
                       <button
                         onClick={() => handleUpdateStatus(donation.id, 'rejected')}

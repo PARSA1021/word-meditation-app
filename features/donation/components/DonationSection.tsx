@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { uiFont } from '@/shared/lib/fonts';
 import Link from 'next/link';
+import { ChevronLeft, Check, Copy } from 'lucide-react';
 
-type Step = 'intro' | 'form' | 'amount' | 'guide' | 'done';
+type Step = 'intro' | 'details' | 'guide' | 'done';
 
 const ACCOUNT = {
   bank: 'KB국민은행',
@@ -15,11 +16,11 @@ const ACCOUNT = {
 };
 
 const AMOUNT_PRESETS = [
-  { label: '소담한 심정의 정성', value: 3000, sub: '작은 정성 봉헌' },
-  { label: '감사와 찬양의 정성', value: 10000, sub: '일상 감사 봉헌' },
-  { label: '신령과 진리의 정성', value: 30000, sub: '신령 진리 봉헌' },
-  { label: '섭리 발전을 위한 정성', value: 50000, sub: '섭리 발전 봉헌' },
-  { label: '직접 정성 금액 설정', value: 0, sub: '자율 정성 봉헌' },
+  { label: '3천원', value: 3000 },
+  { label: '1만원', value: 10000 },
+  { label: '3만원', value: 30000 },
+  { label: '5만원', value: 50000 },
+  { label: '직접 입력', value: 0 },
 ];
 
 export default function DonationSection() {
@@ -30,7 +31,7 @@ export default function DonationSection() {
 
   const [name, setName] = useState('');
   const [memo, setMemo] = useState('');
-  const [amount, setAmount] = useState<number>(0);
+  const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
 
   useEffect(() => {
@@ -49,16 +50,20 @@ export default function DonationSection() {
     }
   };
 
-  const handleSubmit = async (isFinal = false) => {
-    if (!isFinal) {
-      if (!name.trim()) return;
-      setStep('amount');
-      return;
-    }
+  const handleNext = () => {
+    if (step === 'intro') setStep('details');
+    else if (step === 'details') setStep('guide');
+  };
 
+  const handleBack = () => {
+    if (step === 'details') setStep('intro');
+    else if (step === 'guide') setStep('details');
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     try {
-      const finalAmount = amount === 0 ? Number(customAmount) : amount;
+      const finalAmount = amount === 0 ? Number(customAmount) : (amount || 0);
       await fetch('/api/donation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -72,243 +77,280 @@ export default function DonationSection() {
     }
   };
 
+  const isDetailsValid = name.trim().length > 0 && amount !== null && (amount > 0 || (amount === 0 && Number(customAmount) > 0));
+
   return (
-    // ✅ 내부 높이를 스크롤이 발생하지 않는 컴팩트한 모바일 친화형 스케일로 압축
-    <div className={`min-h-[75vh] md:min-h-[60vh] flex items-center justify-center px-4 w-full ${uiFont.className}`}>
-      {/* ✅ max-w-md로 슬림화하고, 패딩을 고정 압축(p-5 sm:p-8)하여 한 화면 정착 */}
-      <div className="w-full max-w-md bg-white border border-slate-100 rounded-2xl p-5 sm:p-8 shadow-md relative overflow-hidden transition-all duration-300">
+    <div className={`min-h-[85vh] flex items-center justify-center px-4 md:px-6 w-full py-16 ${uiFont.className}`}>
+      <div className="w-full max-w-lg bg-white border border-slate-100/80 rounded-[32px] p-6 sm:p-10 shadow-[0_12px_48px_-12px_rgba(0,0,0,0.12)] relative overflow-hidden transition-all duration-500 flex flex-col">
         
-        {/* 상단 포인트 실선 고수 */}
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-amber-400/80" />
+        {/* 상단 프로그레스 바 (완료 단계 제외) */}
+        {step !== 'done' && (
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-100">
+            <motion.div 
+              className="h-full bg-slate-900"
+              initial={{ width: '0%' }}
+              animate={{ 
+                width: step === 'intro' ? '25%' : step === 'details' ? '60%' : '100%' 
+              }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
+            />
+          </div>
+        )}
+
+        {/* 헤더 (뒤로가기 + 타이틀 영역을 깔끔하게 분리) */}
+        <div className="flex items-center min-h-[48px] mb-4 mt-2">
+          <AnimatePresence>
+            {(step === 'details' || step === 'guide') && (
+              <motion.button
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                onClick={handleBack}
+                className="flex items-center gap-1.5 text-slate-400 hover:text-slate-900 transition-colors font-bold text-sm bg-slate-50 hover:bg-slate-100 py-2 px-3 rounded-xl"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                뒤로
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
         
-        <AnimatePresence mode="wait">
-          {step === 'intro' && (
-            <motion.div
-              key="intro"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              className="space-y-6 text-center py-2"
-            >
-              <div className="space-y-3">
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-serif break-keep">
-                  사역 정성 봉헌 안내
-                </h2>
-                <div className="w-6 h-[1px] bg-slate-200 mx-auto" />
-                <p className="text-[12px] sm:text-xs font-medium text-slate-500 leading-relaxed break-keep max-w-xs mx-auto">
-                  하늘부모님과 참부모님의 심정을 온 누리에 전하는 생명 말씀 사역은 식구님들의 정성 어린 봉헌으로 운영됩니다. 상달해주신 정성은 말씀 사역 발전을 위해 투명하게 사용됩니다.
-                </p>
-              </div>
-              <button
-                onClick={() => setStep('form')}
-                className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold tracking-wider hover:bg-slate-800 active:scale-98 transition-all"
+        <div className="flex-1 flex flex-col justify-center min-h-[420px]">
+          <AnimatePresence mode="wait">
+            {step === 'intro' && (
+              <motion.div
+                key="intro"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-10 text-center flex flex-col items-center pb-4"
               >
-                정성 봉헌 동참하기
-              </button>
-            </motion.div>
-          )}
-
-          {step === 'form' && (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              className="space-y-5"
-            >
-              <div className="space-y-0.5 text-center sm:text-left">
-                <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">봉헌인 정보 기록</h3>
-                <p className="text-[10px] font-medium text-slate-400">정성 기도를 위한 성명을 바르게 기록해 주세요.</p>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <label htmlFor="donor-name" className="text-[11px] font-bold text-slate-600">봉헌인 성명</label>
-                  <input
-                    id="donor-name"
-                    type="text"
-                    required
-                    placeholder="성명을 입력해 주세요"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-slate-50/70 border border-slate-200/80 rounded-xl py-2.5 px-3.5 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-slate-900 transition-all"
-                  />
+                <div className="w-20 h-20 bg-slate-50 rounded-[1.5rem] flex items-center justify-center mb-2 shadow-sm border border-slate-100">
+                  <span className="text-4xl">🌱</span>
                 </div>
-                <div className="space-y-1">
-                  <label htmlFor="donor-memo" className="text-[11px] font-bold text-slate-600">심정의 한마디 <span className="text-slate-400 font-normal">(선택)</span></label>
-                  <input
-                    id="donor-memo"
-                    type="text"
-                    placeholder="하늘부모님께 올리는 고백이나 기도 제목"
-                    value={memo}
-                    onChange={(e) => setMemo(e.target.value)}
-                    className="w-full bg-slate-50/70 border border-slate-200/80 rounded-xl py-2.5 px-3.5 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-slate-900 transition-all"
-                  />
+                <div className="space-y-5">
+                  <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 font-serif break-keep leading-snug">
+                    사역 발전을 위한<br/>정성 봉헌
+                  </h2>
+                  <div className="w-10 h-1 bg-slate-200 mx-auto rounded-full" />
+                  <p className="text-base font-medium text-slate-500 leading-relaxed break-keep max-w-[320px] mx-auto">
+                    식구님들의 소중한 정성은 생명 말씀 사역의 든든한 초석이자 심정적 동력이 됩니다.
+                  </p>
                 </div>
-              </div>
-
-              <button
-                onClick={() => handleSubmit(false)}
-                disabled={!name.trim()}
-                className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold tracking-wider hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed active:scale-98 transition-all mt-1"
-              >
-                다음 단계 이동
-              </button>
-            </motion.div>
-          )}
-
-          {step === 'amount' && (
-            <motion.div
-              key="amount"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              className="space-y-4"
-            >
-              <div className="space-y-0.5 text-center sm:text-left">
-                <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">봉헌 정성액 선택</h3>
-                <p className="text-[10px] font-medium text-slate-400">올려드리고자 하는 정성 금액을 지정해 주세요.</p>
-              </div>
-
-              {/* ✅ 스크롤바 높이를 줄이고 요소를 슬림화하여 화면 가득 차오르는 피로도 완전 해소 */}
-              <div className="space-y-1.5 max-h-[190px] overflow-y-auto pr-0.5 scrollbar-thin">
-                {AMOUNT_PRESETS.map((preset) => (
-                  <button
-                    key={preset.label}
-                    onClick={() => {
-                      setAmount(preset.value);
-                      if (preset.value !== 0) setCustomAmount('');
-                    }}
-                    className={`w-full py-2.5 px-3.5 rounded-xl border text-left transition-all duration-150 flex items-center justify-between ${
-                      amount === preset.value && (preset.value !== 0 || customAmount !== '')
-                        ? 'border-slate-900 bg-slate-50'
-                        : 'border-slate-100 bg-white hover:bg-slate-50/80'
-                    }`}
-                  >
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-xs text-slate-800 truncate">{preset.label}</span>
-                      <span className="text-[9px] font-medium text-slate-400">{preset.sub}</span>
-                    </div>
-                    <span className="text-xs font-mono font-bold text-slate-700 shrink-0 ml-2">
-                      {preset.value === 0 ? '자율 입력' : `${preset.value.toLocaleString()}원`}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              {amount === 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-1"
+                <button
+                  onClick={handleNext}
+                  className="w-full py-5 bg-slate-900 text-white rounded-2xl text-lg font-bold tracking-wider hover:bg-slate-800 hover:shadow-xl hover:-translate-y-1 active:translate-y-0 transition-all duration-300 mt-6"
                 >
-                  <div className="relative">
-                    <input
-                      id="custom-amount"
-                      type="number"
-                      placeholder="정성 금액 직접 입력"
-                      value={customAmount}
-                      onChange={(e) => setCustomAmount(e.target.value)}
-                      className="w-full bg-slate-50/60 border border-slate-200/80 rounded-xl py-2.5 pl-3.5 pr-8 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-slate-900 transition-all font-mono"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">원</span>
-                  </div>
-                </motion.div>
-              )}
+                  동참하기
+                </button>
+              </motion.div>
+            )}
 
-              <button
-                onClick={() => setStep('guide')}
-                disabled={amount === 0 && !customAmount.trim()}
-                className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold tracking-wider hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed active:scale-98 transition-all"
+            {step === 'details' && (
+              <motion.div
+                key="details"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-8"
               >
-                정성 송금 안내 보기
-              </button>
-            </motion.div>
-          )}
-
-          {step === 'guide' && (
-            <motion.div
-              key="guide"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              className="space-y-4"
-            >
-              <div className="space-y-0.5 text-center sm:text-left">
-                <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">정성 계좌 송금 안내</h3>
-                <p className="text-[10px] font-medium text-slate-400">계좌로 정성을 송금 완료하신 후 하단에 체크를 완료해 주세요.</p>
-              </div>
-
-              {/* ✅ 여백 컴팩트 압축으로 미적인 아름다움과 공간성 동시 충족 */}
-              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-center space-y-3">
-                <div className="space-y-0.5">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{ACCOUNT.bank}</p>
-                  <p className="text-lg font-mono font-bold tracking-tight text-slate-900 select-all">{ACCOUNT.number}</p>
-                  <p className="text-[11px] font-medium text-slate-500">예금주 : {ACCOUNT.holder}</p>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">어떤 분이 보내시나요?</h3>
+                  <p className="text-sm font-medium text-slate-400">봉헌인 정보와 금액을 시원하게 입력해 주세요.</p>
                 </div>
                 
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label htmlFor="donor-name" className="text-sm font-bold text-slate-600 ml-1">
+                      봉헌인 실명 <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      id="donor-name"
+                      type="text"
+                      required
+                      placeholder="예) 홍길동 (실제 입금자명)"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full bg-slate-50/70 border border-slate-200 rounded-2xl py-4 px-5 text-lg font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all"
+                    />
+                    <p className="text-xs font-medium text-amber-600 ml-1 mt-1">
+                      * 입금 내역 확인을 위해 반드시 <strong>입금자명과 동일한 실명</strong>을 적어주세요.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <label className="text-sm font-bold text-slate-600 ml-1">정성 금액 <span className="text-red-400">*</span></label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {AMOUNT_PRESETS.map((preset) => (
+                        <button
+                          key={preset.label}
+                          onClick={() => {
+                            setAmount(preset.value);
+                            if (preset.value !== 0) setCustomAmount('');
+                          }}
+                          className={`py-4 px-2 rounded-2xl text-base font-bold transition-all duration-200 border ${
+                            amount === preset.value
+                              ? 'bg-slate-900 text-white border-slate-900 shadow-lg scale-[1.03]'
+                              : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400 hover:bg-slate-50'
+                          } ${preset.value === 0 ? 'col-span-2 sm:col-span-1' : ''}`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <AnimatePresence>
+                      {amount === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                          animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                          className="relative overflow-hidden"
+                        >
+                          <input
+                            id="custom-amount"
+                            type="number"
+                            placeholder="금액을 입력하세요"
+                            value={customAmount}
+                            onChange={(e) => setCustomAmount(e.target.value)}
+                            className="w-full bg-slate-50/70 border border-slate-200 rounded-2xl py-4 pl-5 pr-12 text-lg font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all font-mono"
+                          />
+                          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">원</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="donor-memo" className="text-sm font-bold text-slate-600 ml-1">심정의 한마디 <span className="text-slate-400 font-medium text-xs">(선택)</span></label>
+                    <input
+                      id="donor-memo"
+                      type="text"
+                      placeholder="기도 제목이나 남기실 말씀"
+                      value={memo}
+                      onChange={(e) => setMemo(e.target.value)}
+                      className="w-full bg-slate-50/70 border border-slate-200 rounded-2xl py-4 px-5 text-lg font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all"
+                    />
+                  </div>
+                </div>
+
                 <button
-                  onClick={handleCopyAccount}
-                  className={`w-full py-2 px-3 rounded-lg border text-xs font-bold transition-all ${
-                    copied 
-                      ? 'bg-slate-900 border-slate-900 text-white' 
-                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
-                  }`}
+                  onClick={handleNext}
+                  disabled={!isDetailsValid}
+                  className="w-full py-5 bg-slate-900 text-white rounded-2xl text-lg font-bold tracking-wider hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none hover:shadow-xl hover:-translate-y-1 active:translate-y-0 transition-all duration-300 mt-4"
                 >
-                  {copied ? '계좌 정보 복사 완료' : '계좌 번호 복사하기'}
+                  다음으로
                 </button>
-              </div>
+              </motion.div>
+            )}
 
-              <div className="flex items-center gap-2.5 justify-center py-1">
-                <input
-                  id="confirm-donation"
-                  type="checkbox"
-                  checked={hasDonated}
-                  onChange={(e) => setHasDonated(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900/10 accent-slate-900 cursor-pointer shrink-0"
-                />
-                <label htmlFor="confirm-donation" className="text-xs font-bold text-slate-600 cursor-pointer select-none">
-                  상기 계좌로 송금을 완료했습니다.
-                </label>
-              </div>
-
-              <button
-                onClick={() => handleSubmit(true)}
-                disabled={!hasDonated || loading}
-                className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold tracking-wider hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed active:scale-98 transition-all"
+            {step === 'guide' && (
+              <motion.div
+                key="guide"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-8"
               >
-                {loading ? '정성 정보 확인 중...' : '정성 봉헌 완료'}
-              </button>
-            </motion.div>
-          )}
+                <div className="space-y-2 text-center">
+                  <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-3xl">💳</span>
+                  </div>
+                  <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">아래 계좌로 송금해 주세요</h3>
+                  <p className="text-sm font-medium text-slate-400">송금을 완료하신 후 하단의 확인 버튼을 눌러주세요.</p>
+                </div>
 
-          {step === 'done' && (
-            <motion.div
-              key="done"
-              initial={{ opacity: 0, scale: 0.99 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center space-y-5 py-4"
-            >
-              <div className="space-y-2">
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-serif break-keep">
-                  깊은 감사와 축복을 올립니다
-                </h2>
-                <div className="w-6 h-[1px] bg-slate-200 mx-auto" />
-                <p className="text-[12px] sm:text-xs font-medium text-slate-400 max-w-xs mx-auto leading-relaxed break-keep">
-                  식구님께서 정성으로 받들어 올려주신 귀한 은사는 생명 말씀 선포 사역의 가장 든든한 초석이자 심정적 동력이 됩니다.
-                </p>
-              </div>
-              <div className="pt-1">
-                <Link
-                  href="/"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold tracking-wider hover:bg-slate-800 active:scale-95 transition-all w-full sm:w-auto"
+                <div className="bg-slate-50/80 border border-slate-200/60 rounded-[1.5rem] p-6 sm:p-8 text-center space-y-5 shadow-inner">
+                  <div className="space-y-2">
+                    <p className="text-xs font-extrabold text-slate-500 uppercase tracking-wider bg-white inline-block px-3 py-1 rounded-full border border-slate-200 mb-2">{ACCOUNT.bank}</p>
+                    <p className="text-3xl font-mono font-black tracking-tight text-slate-900 select-all">{ACCOUNT.number}</p>
+                    <p className="text-sm font-bold text-slate-500 mt-1">예금주 : {ACCOUNT.holder}</p>
+                  </div>
+                  
+                  <button
+                    onClick={handleCopyAccount}
+                    className={`w-full py-4 px-4 rounded-2xl border flex items-center justify-center gap-2 text-base font-bold transition-all duration-300 ${
+                      copied 
+                        ? 'bg-green-50 border-green-200 text-green-700' 
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-400 shadow-sm'
+                    }`}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-5 h-5" />
+                        복사되었습니다
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-5 h-5 text-slate-400" />
+                        계좌번호 복사하기
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="bg-amber-50/60 border border-amber-200 rounded-2xl p-5 flex items-center gap-4 cursor-pointer group transition-all hover:bg-amber-100/50" onClick={() => setHasDonated(!hasDonated)}>
+                  <div className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${
+                    hasDonated ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-300 group-hover:border-slate-400'
+                  }`}>
+                    {hasDonated && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-base font-bold text-slate-800 leading-tight">
+                      네, 위 계좌로 <span className="text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4">{amount === 0 ? Number(customAmount).toLocaleString() : amount?.toLocaleString()}원</span>을 송금했습니다.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={!hasDonated || loading}
+                  className="w-full py-5 bg-slate-900 text-white rounded-2xl text-lg font-bold tracking-wider hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-xl hover:-translate-y-1 disabled:hover:translate-y-0 disabled:hover:shadow-none active:translate-y-0 transition-all duration-300"
                 >
-                  홈으로 이동
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-3">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      접수 중...
+                    </span>
+                  ) : '봉헌 내역 제출 완료'}
+                </button>
+              </motion.div>
+            )}
+
+            {step === 'done' && (
+              <motion.div
+                key="done"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, type: 'spring' }}
+                className="text-center space-y-8 py-8 flex flex-col items-center"
+              >
+                <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-2">
+                  <Check className="w-12 h-12 text-green-500" strokeWidth={3} />
+                </div>
+                <div className="space-y-4">
+                  <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 font-serif break-keep">
+                    깊은 감사와 축복을<br/>올립니다
+                  </h2>
+                  <p className="text-base font-medium text-slate-500 max-w-[280px] mx-auto leading-relaxed break-keep">
+                    올려주신 귀한 정성은 생명 말씀 사역의 든든한 초석이 됩니다.
+                  </p>
+                </div>
+                <div className="pt-6 w-full">
+                  <Link
+                    href="/"
+                    className="flex items-center justify-center py-5 bg-slate-100 text-slate-700 rounded-2xl text-lg font-bold tracking-wider hover:bg-slate-200 transition-colors w-full"
+                  >
+                    홈으로 돌아가기
+                  </Link>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

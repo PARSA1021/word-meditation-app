@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model words {
+  id       Int     @id
+  text     String
+  source   String  @default("")
+  category String  @default("")
+  speaker  String?
+  type     String  @default("general")
+
+  @@index([category])
+  @@index([type])
+}
+
+model Donation {
+  id          String    @id @default(cuid())
+  name        String
+  memo        String?
+  amount      Int
+  status      String    @default("pending") // 'pending', 'confirmed', 'rejected'
+  createdAt   DateTime  @default(now())
+  confirmedAt DateTime?
+}

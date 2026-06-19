@@ -9,10 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "@serwist/next": "^9.5.11",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.17.0",
     "next": "^16.2.1",
+    "next-auth": "^4.24.14",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "server-only": "^0.0.1",
@@ -29,6 +31,7 @@
     "@types/web-push": "^3.6.4",
     "eslint": "^10.1.0",
     "eslint-config-next": "^16.2.1",
+    "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

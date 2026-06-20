@@ -28,6 +28,7 @@ export function loadAllWords(): Word[] {
   const rawPyeonghwaData = require("@/data/pyeonghwashinkyung_words.json")
   const rawCheonIlGukData = require("@/data/Cheon Il Guk_ddeutgil_words.json")
   const rawCheonseongEngData = require("@/data/CheonSeongGyeong_en_words.json")
+  const rawDivinePrincipleEngData = require("@/data/Divine_Principle_eng.json")
 
   const assertWords = (data: unknown): Word[] => Array.isArray(data) ? data as Word[] : []
 
@@ -37,6 +38,7 @@ export function loadAllWords(): Word[] {
   const pyeonghwashinkyungData = assertWords(rawPyeonghwaData)
   const CheonIlGukDdeutgilData = assertWords(rawCheonIlGukData)
   const cheonseongDataEng = assertWords(rawCheonseongEngData)
+  const DivinePrincipleEng = assertWords(rawDivinePrincipleEngData)
 
   _allWords = [
     ...wordsData.map((w) => ({ ...w, type: "general" as WordType })),
@@ -45,6 +47,7 @@ export function loadAllWords(): Word[] {
     ...pyeonghwashinkyungData.map((w, i) => ({ ...w, type: "pyeonghwashinkyung" as WordType, id: 30000 + i })),
     ...CheonIlGukDdeutgilData.map((w, i) => ({ ...w, type: "CheonIlGuk_ddeutgil" as WordType, id: 40000 + i })),
     ...cheonseongDataEng.map((w, i) => ({ ...w, type: "CheonSeongGyeong_en_words" as WordType, id: 50000 + i })),
+    ...DivinePrincipleEng.map((w, i) => ({ ...w, type: "Divine_Principle_en" as WordType, id: 60000 + i })),
   ]
 
   return _allWords

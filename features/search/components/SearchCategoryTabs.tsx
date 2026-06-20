@@ -18,6 +18,7 @@ const MAIN_TABS = [
   { id: "CheonIlGuk_ddeutgil", name: "천일국시대 뜻길" },
   { id: "general", name: "일반말씀" },
   { id: "CheonSeongGyeong_en_words", name: "천성경 (EN)" },
+  { id: "Divine_Principle_en", name: "원리강론 (EN)" },
 ];
 
 export default function SearchCategoryTabs({

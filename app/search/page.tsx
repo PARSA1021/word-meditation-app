@@ -20,11 +20,32 @@ function SearchFeed() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
+  const [isMounted, setIsMounted] = useState(false);
+
   // URL에서 초기 상태 로드
   const [query, setQuery] = useState(() => searchParams.get("q") || "");
   const [mode, setMode] = useState<"text" | "source">(() => (searchParams.get("mode") as "text" | "source") || "text");
   const [type, setType] = useState(() => searchParams.get("type") || "");
   const [page, setPage] = useState(() => parseInt(searchParams.get("page") || "1"));
+
+  useEffect(() => {
+    setIsMounted(true);
+    
+    // 브라우저에서만 sessionStorage/localStorage 접근
+    const savedQuery = sessionStorage.getItem("last_search_query");
+    const savedMode = sessionStorage.getItem("last_search_mode") as "text" | "source";
+    const savedType = sessionStorage.getItem("last_search_type");
+    
+    if (!searchParams.get("q") && savedQuery) {
+      setQuery(savedQuery);
+    }
+    if (!searchParams.get("mode") && savedMode) {
+      setMode(savedMode);
+    }
+    if (!searchParams.get("type") && savedType) {
+      setType(savedType);
+    }
+  }, [searchParams]);
 
   // 카테고리 및 URL 동기화 실시간 감지 이펙트
   useEffect(() => {
@@ -35,27 +56,14 @@ function SearchFeed() {
 
     if (urlQuery !== null) {
       setQuery(urlQuery);
-    } else {
-      const savedQuery = sessionStorage.getItem("last_search_query");
-      if (savedQuery) setQuery(savedQuery);
     }
 
     if (urlMode) {
       setMode(urlMode);
-    } else {
-      const savedMode = sessionStorage.getItem("last_search_mode") as "text" | "source";
-      if (savedMode) setMode(savedMode);
     }
 
     if (urlType !== null) {
       setType(urlType);
-    } else {
-      const savedType = sessionStorage.getItem("last_search_type");
-      if (savedType) {
-        setType(savedType);
-      } else {
-        setType(""); 
-      }
     }
 
     if (urlPage) {
@@ -73,6 +81,8 @@ function SearchFeed() {
 
   // 검색 상태 변경 시 URL 및 sessionStorage 업데이트
   useEffect(() => {
+    if (!isMounted) return;
+    
     setIsRelatedExpanded(false); 
     setFilterConfidence("all");
     const params = new URLSearchParams();
@@ -100,10 +110,12 @@ function SearchFeed() {
     const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
     
     router.replace(newUrl, { scroll: false });
-  }, [query, mode, type, page, pathname, router]);
+  }, [query, mode, type, page, pathname, router, isMounted]);
 
   // 스크롤 위치 복원 및 감지
   useEffect(() => {
+    if (!isMounted) return;
+    
     const savedScroll = sessionStorage.getItem("last_search_scroll");
     const savedQuery = sessionStorage.getItem("last_search_query");
 
@@ -120,7 +132,7 @@ function SearchFeed() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [query]);
+  }, [query, isMounted]);
 
   useEffect(() => {
     setPage(1);
@@ -138,6 +150,8 @@ function SearchFeed() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   useEffect(() => {
+    if (!isMounted) return;
+    
     const saved = localStorage.getItem("recent_searches");
     if (saved) {
       try {
@@ -146,9 +160,11 @@ function SearchFeed() {
         console.error("Failed to parse recent searches", e);
       }
     }
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
+    if (!isMounted) return;
+    
     if (query && data?.data?.length > 0) {
       setRecentSearches(prev => {
         const next = [query, ...prev.filter(q => q !== query)].slice(0, 5);
@@ -156,7 +172,7 @@ function SearchFeed() {
         return next;
       });
     }
-  }, [query, data]);
+  }, [query, data, isMounted]);
 
   const removeRecentSearch = (e: React.MouseEvent, q: string) => {
     e.stopPropagation();

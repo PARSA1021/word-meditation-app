@@ -1,5 +1,5 @@
 // shared/types/word.ts
-export type WordType = "general" | "cheonseong" | "wonli" | "pyeonghwashinkyung" | "CheonIlGuk_ddeutgil" | "CheonSeongGyeong_en_words"
+export type WordType = "general" | "cheonseong" | "wonli" | "pyeonghwashinkyung" | "CheonIlGuk_ddeutgil" | "CheonSeongGyeong_en_words" | "Divine_Principle_en"
 
 export interface Word {
   id: number

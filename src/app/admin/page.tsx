@@ -48,19 +48,19 @@ export default function AdminHubPage() {
         <div className="absolute bottom-[-5%] right-[-5%] w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px]" />
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-12 md:py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 md:py-24">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 relative">
           <div className="space-y-4">
             <Link
               href="/"
-              className="group inline-flex items-center gap-2 text-[11px] font-black text-slate-400 hover:text-brand-primary transition-all uppercase tracking-[0.3em]"
+              className="hidden lg:inline-flex group items-center gap-2 text-[11px] font-black text-slate-400 hover:text-brand-primary transition-all uppercase tracking-[0.3em]"
             >
               <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Sanctuary
             </Link>
-            <h1 className="text-[40px] md:text-[56px] font-black text-brand-deep tracking-tighter leading-tight font-serif">
+            <h1 className="text-[28px] sm:text-[40px] md:text-[56px] font-black text-brand-deep tracking-tighter leading-tight font-serif">
               Admin <span className="text-brand-primary">Hub</span>
             </h1>
             <p className="text-slate-500 font-medium max-w-lg leading-relaxed">
@@ -68,19 +68,19 @@ export default function AdminHubPage() {
               원하시는 항목을 선택하여 관리를 시작하세요.
             </p>
           </div>
-          <div className="px-5 py-2.5 bg-white/40 backdrop-blur-sm border border-brand-primary/10 rounded-sm text-[10px] font-black text-brand-deep tracking-[0.2em] shadow-sm uppercase flex items-center">
+          <div className="hidden sm:flex px-5 py-2.5 bg-white/40 backdrop-blur-sm border border-brand-primary/10 rounded-sm text-[10px] font-black text-brand-deep tracking-[0.2em] shadow-sm uppercase items-center">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-3 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
             System Online
           </div>
         </header>
 
         {/* Dashboard Grid */}
-        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <section className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {ADMIN_MODULES.map((module) => (
             <Link
               key={module.href}
               href={module.href}
-              className="group relative flex flex-col p-8 bg-white/40 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:shadow-brand-primary/10 hover:-translate-y-1.5 transition-all duration-300 overflow-hidden"
+              className="group relative flex flex-col p-5 sm:p-8 bg-white/40 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:shadow-brand-primary/10 hover:-translate-y-1.5 transition-all duration-300 overflow-hidden"
             >
               {/* Card Hover Effect Background */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/0 group-hover:from-white/60 group-hover:to-white/20 transition-all duration-300 z-0" />

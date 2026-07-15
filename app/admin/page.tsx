@@ -3,7 +3,7 @@ import AdminClient from "@/features/meditation/components/AdminClient";
 import Link from "next/link";
 
 export default async function AdminPage() {
-  const stats = getWordStatsServer();
+  const stats = await getWordStatsServer();
 
   return (
     <main className="min-h-screen bg-brand-bg transition-colors duration-500 pb-32">

@@ -36,14 +36,6 @@ interface HomeClientProps {
 export default function HomeClient({ stats }: HomeClientProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // ✅ [하이드레이션 해결] 클라이언트 마운트 상태 가드 선언
-  const [isMounted, setIsMounted] = useState(false);
-
-  // ✅ [하이드레이션 해결] 브라우저 최초 로드 완료 시 true 전환
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const categoryIcons: Record<string, React.ReactNode> = {
     "사랑": <Heart className="w-4 h-4 text-rose-500 shrink-0" />,
@@ -68,17 +60,6 @@ export default function HomeClient({ stats }: HomeClientProps) {
   const handleTagClick = (tag: string) => {
     router.push(`/search?q=${encodeURIComponent(tag)}`);
   };
-
-  // ✅ [하이드레이션 해결] 마운트가 되기 전(서버 렌더링 포함)에는 충돌 없는 정적 기본 뼈대 반환
-  if (!isMounted) {
-    return (
-      <div className="min-h-screen bg-brand-bg pb-20 overflow-x-hidden relative">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 w-full pt-10 text-center">
-          <div className="w-12 h-12 border-2 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin mx-auto mt-20" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-brand-bg pb-24 sm:pb-28 lg:pb-20 overflow-x-hidden relative selection:bg-brand-primary/20">

@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20")
 
   // Use the advanced search engine
-  const { results } = searchWords(query, mode, type || undefined);
+  const { results } = await searchWords(query, mode as "text" | "source", type || undefined);
 
   // Pagination
   const total = results.length

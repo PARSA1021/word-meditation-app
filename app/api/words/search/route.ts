@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "50");
 
   try {
-    const { results: allResults, counts } = searchWords(query, mode, type);
+    const { results: allResults, counts } = await searchWords(query, mode, type);
     const total = allResults.length;
     
     // 페이징 처리

@@ -1,17 +1,17 @@
 // app/api/words/daily/route.ts
 import { NextResponse } from "next/server";
-import { getAllWordsServer } from "@/features/meditation/services/word.service";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const allWords = getAllWordsServer();
-    
-    // Cheon Il Guk 뜻길 말씀만 필터링
-    const ddeutgilWords = allWords.filter(
-      (w) => w.type === "CheonIlGuk_ddeutgil"
-    );
+    // Cheon Il Guk 뜻길 말씀만 가져오기
+    const ddeutgilWords = await prisma.words.findMany({
+      where: {
+        type: "CheonIlGuk_ddeutgil"
+      }
+    });
 
     if (ddeutgilWords.length === 0) {
       return NextResponse.json(

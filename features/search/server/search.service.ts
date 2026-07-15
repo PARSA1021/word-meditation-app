@@ -51,11 +51,11 @@ function matchPhrase(targetText: string, phrase: string): boolean {
   return boundary.test(targetText)
 }
 
-export function searchWords(
+export async function searchWords(
   query: string,
   mode: "text" | "source" = "text",
   type?: string
-): { results: SearchResult[]; counts: Record<string, number> } {
+): Promise<{ results: SearchResult[]; counts: Record<string, number> }> {
   const rawQuery = query.trim()
   if (!rawQuery) return { results: [], counts: { all: 0 } }
 
@@ -73,8 +73,8 @@ export function searchWords(
   }))
 
   const results: SearchResult[] = []
-  const words = loadAllWords()
-  const index = getWordIndex()
+  const words = await loadAllWords()
+  const index = await getWordIndex()
 
   for (let i = 0; i < words.length; i++) {
     const word = words[i]

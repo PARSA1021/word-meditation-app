@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   
   try {
     const exceptIds = except ? except.split(",").map(id => parseInt(id)) : [];
-    const word = getRandomWordExceptServer(exceptIds);
+    const word = await getRandomWordExceptServer(exceptIds);
     
     if (!word) {
       return NextResponse.json({ error: "No words found" }, { status: 404 });

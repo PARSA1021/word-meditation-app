@@ -12,7 +12,7 @@ import { Suspense} from"react";
 
 export default async function LibraryPage() {
  // 1. 서버 사이드에서 모든 데이터 로드
- const allWords = getAllWordsServer();
+ const allWords = await getAllWordsServer();
 
  // 2. TOC 생성 (O(n) 성능)
  const tocTree = generateTOC(allWords);

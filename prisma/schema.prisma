@@ -29,3 +29,32 @@ model Donation {
   createdAt   DateTime  @default(now())
   confirmedAt DateTime?
 }
+
+model EvangelismScript {
+  id        Int        @id @default(autoincrement())
+  title     String
+  content   String
+  type      ScriptType
+  createdAt DateTime   @default(now())
+  authorId  Int?
+  author    User?      @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id          Int                @id @default(autoincrement())
+  email       String             @unique
+  name        String?
+  role        UserRole           @default(USER)
+  scripts     EvangelismScript[]
+}
+
+enum ScriptType {
+  SERMON
+  MEDITATION
+  PRAYER
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}

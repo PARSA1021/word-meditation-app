@@ -17,14 +17,14 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+      const { signIn } = await import('next-auth/react');
+      const res = await signIn('credentials', {
+        password,
+        redirect: false,
       });
 
-      if (res.ok) {
-        router.push('/admin/donations');
+      if (res?.ok && !res?.error) {
+        router.push('/admin');
         router.refresh();
       } else {
         setError('비밀번호가 올바르지 않습니다.');

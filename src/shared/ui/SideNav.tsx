@@ -13,41 +13,25 @@ interface DailyWordData {
   speaker?: string | null;
 }
 
+import useSWR from 'swr';
+
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+});
+
 function useDailyWord() {
-  const [dailyWord, setDailyWord] = useState<DailyWordData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error, isLoading, mutate } = useSWR('/api/words/daily', fetcher, {
+    revalidateOnFocus: false, // Prevents refetching when window gets focus
+    dedupingInterval: 60000,  // Deduplicate requests within 1 minute
+  });
 
-  const fetchDailyWord = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/words/daily", {
-        method: "GET",
-        cache: "no-store",
-        headers: { "Cache-Control": "no-cache" },
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-
-      const data = await res.json();
-      setDailyWord(data.word || data);
-    } catch (err: any) {
-      console.error("Daily word fetch failed:", err);
-      setError("말씀을 불러오지 못했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchDailyWord();
-  }, [fetchDailyWord]);
-
-  return { dailyWord, loading, error, refresh: fetchDailyWord };
+  return { 
+    dailyWord: data?.word || data, 
+    loading: isLoading, 
+    error: error ? "말씀을 불러오지 못했습니다." : null, 
+    refresh: () => mutate() 
+  };
 }
 
 export default function SideNav() {
@@ -119,7 +103,16 @@ export default function SideNav() {
       ),
     },
 
-  ];
+      {
+      href: "/admin/login",
+      label: "관리자",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 5v14M5 12h14" />
+        </svg>
+      ),
+    },
+];
 
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-72 glass-sidebar z-50 p-6 overflow-y-auto">

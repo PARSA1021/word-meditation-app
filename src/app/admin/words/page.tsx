@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+export default async function WordsAdminPage() {
   const stats = await getWordStatsServer();
 
   return (
@@ -18,25 +18,26 @@ export default async function AdminPage() {
       <div className="max-w-5xl mx-auto px-6 py-12 md:py-24">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 relative">
           <div className="space-y-4">
-            <Link 
-              href="/" 
+            <Link
+              href="/admin"
               className="group inline-flex items-center gap-2 text-[11px] font-black text-slate-400 hover:text-brand-primary transition-all uppercase tracking-[0.3em]"
             >
               <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to Sanctuary
+              Back to Admin Hub
             </Link>
             <h1 className="text-[40px] md:text-[56px] font-black text-brand-deep tracking-tighter leading-tight font-serif">
-              Content <span className="text-brand-primary">Studio</span>
+              Word <span className="text-brand-primary">Management</span>
             </h1>
           </div>
           <div className="px-5 py-2.5 bg-white/40 backdrop-blur-sm border border-brand-primary/5 rounded-sm text-[10px] font-black text-brand-deep tracking-[0.2em] shadow-sm uppercase">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse" />
-            System Operational
+            Words DB Active
           </div>
         </header>
 
+        {/* Admin Stats & Client Form */}
         <AdminClient stats={stats} />
       </div>
     </main>

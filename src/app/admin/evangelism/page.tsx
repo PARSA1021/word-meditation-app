@@ -39,10 +39,10 @@ export default function AdminEvangelismDashboard() {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-2">
-            AI 전도 스크립트 관리
+            AI 전도 스크립트 스튜디오
           </h1>
-          <p className="text-sm font-medium text-slate-500">
-            말씀 DB를 기반으로 감동적인 설교, 묵상, 기도문을 자동으로 생성하고 관리합니다.
+          <p className="text-sm font-medium text-slate-500 max-w-2xl leading-relaxed">
+            AI가 데이터베이스에 저장된 참부모님 말씀을 심도 있게 분석하여, 입력하신 상황과 주제에 딱 맞는 맞춤형 <b>설교, 묵상 메시지, 기도문</b>을 10초 만에 자동 작성해 드립니다. 생성된 스크립트를 식구들과 바로 공유해 보세요.
           </p>
         </header>
         

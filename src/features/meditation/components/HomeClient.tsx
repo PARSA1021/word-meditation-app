@@ -36,6 +36,11 @@ interface HomeClientProps {
 export default function HomeClient({ stats }: HomeClientProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const categoryIcons: Record<string, React.ReactNode> = {
     "사랑": <Heart className="w-4 h-4 text-rose-500 shrink-0" />,
@@ -78,8 +83,15 @@ export default function HomeClient({ stats }: HomeClientProps) {
         <header className="pt-10 sm:pt-16 md:pt-20 text-center flex flex-col items-center">
           <div className="space-y-5 md:space-y-6 max-w-2xl mx-auto w-full">
             <div className="flex flex-col items-center space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/60 shadow-2xs text-[10px] font-bold text-brand-primary tracking-widest uppercase">
-                TruePath Meditation
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/60 shadow-2xs text-[10px] font-bold text-brand-primary tracking-widest uppercase">
+                  TruePath Meditation
+                </div>
+                {isMounted && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-700 shadow-2xs">
+                    <span>🔥 연속 3일 묵상 완료</span>
+                  </div>
+                )}
               </div>
               <p className="text-xs sm:text-sm font-semibold text-brand-primary/80 tracking-tight">
                 참부모님·천일국 말씀 디지털 라이브러리
@@ -267,24 +279,24 @@ export default function HomeClient({ stats }: HomeClientProps) {
                   소음에서 벗어나 진리에 머무는 시간
                 </h3>
                 <p className="text-text-secondary text-xs sm:text-sm font-medium leading-relaxed break-keep">
-                  TruePath는 매일 깨끗한 말씀 문화를 지향하며 후원자분들의 자발적 선의로 함께 운영됩니다.
+                  TruePath와 함께 매일 깨끗한 말씀 묵상을 시작해보세요.
                 </p>
              </div>
              
-             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 w-full max-w-xs sm:max-w-none mx-auto">
+             <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 w-full max-w-xs sm:max-w-none mx-auto">
                <Link
                 href="/today"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-3 bg-brand-primary text-white rounded-xl font-bold text-xs hover:bg-brand-deep transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-3 bg-brand-primary text-white rounded-xl font-bold text-xs hover:bg-brand-deep transition-all shadow-sm active:scale-95"
                >
                 <span>묵상 시작하기</span>
                 <Sparkles className="w-3.5 h-3.5" />
                </Link>
                <Link
                 href="/donate"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-3 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs hover:bg-slate-100 transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-3 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-xl font-bold text-xs hover:bg-rose-100 transition-all active:scale-95"
                >
                 <span>사역 후원하기</span>
-                <Heart className="w-3.5 h-3.5 text-rose-500" />
+                <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
                </Link>
              </div>
           </div>

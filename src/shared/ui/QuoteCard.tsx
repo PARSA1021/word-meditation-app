@@ -8,6 +8,7 @@ import { scriptureFont } from "@/shared/lib/fonts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBookmarks } from "@/features/meditation/context/BookmarkContext";
 import Link from "next/link";
+import WordCardImageModal from "./WordCardImageModal";
 
 interface QuoteCardProps {
   word: Word;
@@ -98,8 +99,31 @@ const QuoteCard = React.memo(function QuoteCard({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCopied, setIsCopied]     = useState(false);
   const [copyError, setCopyError]   = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio]   = useState(false);
   const { toggleBookmark, isBookmarked } = useBookmarks();
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleToggleAudio = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+    if (isPlayingAudio) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(word.text);
+    utterance.lang = "ko-KR";
+    utterance.rate = 0.9;
+    utterance.onend = () => setIsPlayingAudio(false);
+    utterance.onerror = () => setIsPlayingAudio(false);
+
+    setIsPlayingAudio(true);
+    window.speechSynthesis.speak(utterance);
+  }, [word.text, isPlayingAudio]);
 
   const bookmarked    = isBookmarked(word.id);
   const needsExpansion = word.text.length > MAX_LENGTH;
@@ -432,8 +456,51 @@ const QuoteCard = React.memo(function QuoteCard({
               )}
             </AnimatePresence>
           </button>
+
+          {/* TTS Audio Speech Button */}
+          <button
+            onClick={handleToggleAudio}
+            aria-label={isPlayingAudio ? "음성 낭독 일시정지" : "말씀 음성 낭독"}
+            title={isPlayingAudio ? "음성 낭독 중지" : "말씀 음성으로 듣기"}
+            className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-sm transition-all shadow-sm active:scale-90 ${
+              isPlayingAudio
+                ? "bg-brand-primary text-white ring-2 ring-brand-primary/40 animate-pulse"
+                : "bg-slate-50 text-slate-400 hover:text-brand-primary"
+            }`}
+          >
+            <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+              />
+            </svg>
+          </button>
+
+          {/* Image Card Generator Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setIsImageModalOpen(true);
+            }}
+            aria-label="말씀 카드 이미지 생성 및 공유"
+            title="이미지 카드로 저장 및 공유"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all duration-300 active:scale-90 bg-slate-50 text-slate-400 hover:text-brand-primary hover:bg-brand-primary/5 border border-slate-200/50 shadow-xs"
+          >
+            <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </button>
         </div>
-      </motion.div>
+
+      {/* Image Modal */}
+      <WordCardImageModal
+        word={word}
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+      />
 
       {/* ── Copy-error toast (positioned absolute, doesn't shift layout) ──────── */}
       <AnimatePresence>
@@ -485,6 +552,7 @@ const QuoteCard = React.memo(function QuoteCard({
           </motion.div>
         )}
       </AnimatePresence>
+      </motion.div>
     </motion.div>
   );
 });

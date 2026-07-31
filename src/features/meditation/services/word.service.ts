@@ -1,114 +1,52 @@
 // features/meditation/services/word.service.ts
 import "server-only";
-import { prisma } from "@/lib/prisma";
 import { Word, WordStats } from "@/shared/types/word";
-
-/**
- * 명언 데이터 관련 서버 전용 서비스
- * 데이터베이스(Prisma) 연동으로 업데이트 되었습니다.
- */
+import { loadAllWords } from "@/features/search/indexing/word-repository";
 
 export async function getAllWordsServer(): Promise<Word[]> {
-  const words = await prisma.words.findMany({
-    orderBy: { id: "asc" }
-  });
-  return words as unknown as Word[];
+  return await loadAllWords();
 }
 
 export async function getWordByIdServer(id: number): Promise<Word | null> {
-  const word = await prisma.words.findUnique({
-    where: { id },
-  });
-  return word as unknown as Word | null;
+  const words = await loadAllWords();
+  return words.find(w => w.id === id) || null;
 }
 
-import { unstable_cache } from "next/cache";
-
-export const getWordStatsServer = unstable_cache(
-  async (): Promise<WordStats> => {
-    const byCategory = await prisma.words.groupBy({
-      by: ['category'],
-      _count: {
-        category: true,
-      },
-    });
-
-    const total = await prisma.words.count();
-    
-    const categoryStats = byCategory.reduce((acc, curr) => {
-      acc[curr.category] = curr._count.category;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return {
-      total,
-      byCategory: categoryStats,
-    };
-  },
-  ['word-stats'],
-  { revalidate: 3600, tags: ['word-stats'] }
-);
+export async function getWordStatsServer(): Promise<WordStats> {
+  const words = await loadAllWords();
+  const byCategory: Record<string, number> = {};
+  for (const w of words) {
+    const cat = w.category || "기타";
+    byCategory[cat] = (byCategory[cat] || 0) + 1;
+  }
+  return {
+    total: words.length,
+    byCategory,
+  };
+}
 
 export async function getCategoryWordsServer(category: string): Promise<Word[]> {
-  const words = await prisma.words.findMany({
-    where: { category },
-    orderBy: { id: "asc" }
-  });
-  return words as unknown as Word[];
+  const words = await loadAllWords();
+  return words.filter(w => w.category === category);
 }
 
 export async function getRandomWordServer(): Promise<Word | null> {
-  const count = await prisma.words.count({
-    where: {
-      type: {
-        in: ["cheonseong", "CheonIlGuk_ddeutgil"]
-      }
-    }
-  });
-
-  if (count === 0) return null;
-
-  const skip = Math.floor(Math.random() * count);
-  const randomWords = await prisma.words.findMany({
-    where: {
-      type: {
-        in: ["cheonseong", "CheonIlGuk_ddeutgil"]
-      }
-    },
-    take: 1,
-    skip,
-  });
-
-  return randomWords[0] as unknown as Word | null;
+  const words = await loadAllWords();
+  const filtered = words.filter(w => ["cheonseong", "CheonIlGuk_ddeutgil"].includes(w.type));
+  const pool = filtered.length > 0 ? filtered : words;
+  if (pool.length === 0) return null;
+  const randomIndex = Math.floor(Math.random() * pool.length);
+  return pool[randomIndex];
 }
 
 export async function getRandomWordExceptServer(
   except?: number | number[] | null
 ): Promise<Word | null> {
-  const excludedIds = Array.isArray(except) ? except : except ? [except] : [];
-  
-  const count = await prisma.words.count({
-    where: {
-      id: { notIn: excludedIds },
-      type: {
-        in: ["cheonseong", "CheonIlGuk_ddeutgil"]
-      }
-    }
-  });
-
-  if (count === 0) return getRandomWordServer();
-
-  const skip = Math.floor(Math.random() * count);
-  const randomWords = await prisma.words.findMany({
-    where: {
-      id: { notIn: excludedIds },
-      type: {
-        in: ["cheonseong", "CheonIlGuk_ddeutgil"]
-      }
-    },
-    take: 1,
-    skip,
-  });
-
-  return randomWords[0] as unknown as Word | null;
+  const words = await loadAllWords();
+  const excludedIds = new Set(Array.isArray(except) ? except : except ? [except] : []);
+  const filtered = words.filter(w => !excludedIds.has(w.id) && ["cheonseong", "CheonIlGuk_ddeutgil"].includes(w.type));
+  const pool = filtered.length > 0 ? filtered : words.filter(w => !excludedIds.has(w.id));
+  if (pool.length === 0) return getRandomWordServer();
+  const randomIndex = Math.floor(Math.random() * pool.length);
+  return pool[randomIndex];
 }

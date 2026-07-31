@@ -102,17 +102,7 @@ export default function SideNav() {
         </svg>
       ),
     },
-
-      {
-      href: "/admin/login",
-      label: "관리자",
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 5v14M5 12h14" />
-        </svg>
-      ),
-    },
-];
+  ];
 
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-72 glass-sidebar z-50 p-6 overflow-y-auto">

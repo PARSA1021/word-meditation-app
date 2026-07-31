@@ -77,6 +77,7 @@ function SearchFeed() {
 
   const [isRelatedExpanded, setIsRelatedExpanded] = useState(false);
   const [filterConfidence, setFilterConfidence] = useState<"all" | "high" | "medium" | "low">("all");
+  const [sortBy, setSortBy] = useState<"relevance" | "length" | "order">("relevance");
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   // 검색 상태 변경 시 URL 및 sessionStorage 업데이트
@@ -146,6 +147,17 @@ function SearchFeed() {
       revalidateOnFocus: false
     }
   );
+
+  const sortedResults = React.useMemo(() => {
+    if (!data?.data) return [];
+    const list = [...data.data];
+    if (sortBy === "length") {
+      list.sort((a: SearchResult, b: SearchResult) => b.word.text.length - a.word.text.length);
+    } else if (sortBy === "order") {
+      list.sort((a: SearchResult, b: SearchResult) => (a.word.id || 0) - (b.word.id || 0));
+    }
+    return list;
+  }, [data?.data, sortBy]);
 
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
@@ -239,7 +251,7 @@ function SearchFeed() {
       </header>
 
       {/* 2. Results Feed */}
-      <main className="max-w-3xl mx-auto w-full px-4 sm:px-6 pt-6 pb-24 md:pb-16 flex-1 flex flex-col">
+      <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 pt-6 pb-24 md:pb-16 flex-1 flex flex-col">
         <AnimatePresence mode="wait">
           {isFetching && !data && (
             <motion.div
@@ -263,17 +275,33 @@ function SearchFeed() {
             >
               {/* 필터 세션 */}
               <div className="px-1">
-                <div className="flex items-center justify-between mb-4 gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-3.5 bg-brand-primary rounded-full" />
-                    <h2 className="text-[12px] font-bold text-brand-deep uppercase tracking-widest">검색 분석 필터</h2>
+                    <h2 className="text-[12px] font-bold text-brand-deep uppercase tracking-widest">
+                      검색 분석 & 정렬 ({data.meta?.total || data.data.length}건)
+                    </h2>
                   </div>
-                  <button 
-                    onClick={() => setFilterConfidence("all")}
-                    className={`text-[11px] font-medium text-slate-400 hover:text-brand-primary transition-all ${filterConfidence !== 'all' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                  >
-                    필터 초기화
-                  </button>
+
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <span className="text-[11px] font-medium text-slate-400">정렬:</span>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as "relevance" | "length" | "order")}
+                      className="bg-white border border-slate-200 text-xs font-bold text-slate-700 rounded-lg px-2.5 py-1 outline-none shadow-sm focus:border-brand-primary cursor-pointer"
+                    >
+                      <option value="relevance">관련도순</option>
+                      <option value="length">본문 긴순</option>
+                      <option value="order">기본 순서순</option>
+                    </select>
+
+                    <button 
+                      onClick={() => { setFilterConfidence("all"); setSortBy("relevance"); }}
+                      className={`text-[11px] font-medium text-slate-400 hover:text-brand-primary transition-all ml-1 ${filterConfidence !== 'all' || sortBy !== 'relevance' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                    >
+                      초기화
+                    </button>
+                  </div>
                 </div>
                 
                 {/* [수정] 이모지 대신 인디케이터 서클로 정돈된 칩 버튼 배치 */}
@@ -330,8 +358,8 @@ function SearchFeed() {
                     <div className="flex items-center gap-2 px-1">
                       <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">정확히 일치하는 본문</span>
                     </div>
-                    <div className="space-y-4">
-                      {data.data
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                      {sortedResults
                         .filter((r: SearchResult) => r.confidence === 'high')
                         .map((result: SearchResult, index: number) => (
                           <motion.div
@@ -361,8 +389,8 @@ function SearchFeed() {
                     <div className="flex items-center gap-2 px-1">
                       <span className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">연관 또는 확장 검색 결과</span>
                     </div>
-                    <div className="space-y-4">
-                      {data.data
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                      {sortedResults
                         .filter((r: SearchResult) => (filterConfidence === 'all' ? r.confidence !== 'high' : r.confidence === filterConfidence))
                         .slice(0, (isRelatedExpanded || filterConfidence !== 'all') ? undefined : 3)
                         .map((result: SearchResult, index: number) => (

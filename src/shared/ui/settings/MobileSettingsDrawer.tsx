@@ -54,49 +54,28 @@ export default function MobileSettingsDrawer({ isOpen, onClose }: MobileSettings
               </div>
 
               {/* Settings Sections */}
-              <div className="space-y-10">
+              <div className="space-y-6">
                 <AccessibilitySettings />
 
-                <div className="space-y-4">
-                  <p className="text-[10px] font-black text-brand-primary uppercase tracking-[1px] px-1">
-                    기타
-                  </p>
-                  <div className="grid grid-cols-1 gap-3">
-                    <Link 
-                      href="/admin" 
-                      onClick={onClose}
-                      className="flex items-center justify-between p-5 rounded-2xl bg-indigo-50 border border-indigo-100 active:scale-[0.98] transition-all"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                        </div>
-                        <div>
-                          <span className="block font-bold text-brand-deep">관리자 모드</span>
-                          <span className="text-[11px] text-indigo-600/80 font-bold mt-0.5">서버 관리 및 데이터 센터</span>
-                        </div>
+                <div className="pt-2">
+                  <Link 
+                    href="/donate" 
+                    onClick={onClose}
+                    className="flex items-center justify-between p-4 rounded-2xl bg-rose-50/80 border border-rose-100 active:scale-[0.98] transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center text-lg">
+                        💝
                       </div>
-                      <svg className="w-5 h-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-
-                    <Link 
-                      href="/donate" 
-                      onClick={onClose}
-                      className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 border border-slate-100 active:scale-[0.98] transition-all"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xl">
-                          💝
-                        </div>
-                        <span className="font-bold text-brand-deep">개발자 후원하기</span>
+                      <div>
+                        <span className="block font-bold text-slate-800 text-xs">말씀 사역 후원하기</span>
+                        <span className="text-[10px] text-rose-600/80 font-medium">깨끗한 말씀 묵상 환경 후원</span>
                       </div>
-                      <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                  </div>
+                    </div>
+                    <svg className="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
                 </div>
               </div>
 

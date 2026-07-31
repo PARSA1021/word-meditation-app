@@ -11,10 +11,10 @@ export default function SavedPage() {
 
   return (
     <div className="min-h-screen bg-brand-bg transition-colors duration-500 pb-20 md:pb-32 selection:bg-red-500/10">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 md:pt-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 md:pt-24">
         
         {/* 상단 타이틀 섹션 */}
-        <header className="mb-10 sm:mb-14 md:mb-20 text-center md:text-left relative">
+        <header className="mb-10 sm:mb-14 md:mb-16 text-center md:text-left relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 sm:w-64 sm:h-64 bg-red-400/5 rounded-full blur-[80px] md:blur-[100px] -z-10" />
           
           <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-red-50/60 backdrop-blur-sm border border-red-100/50 text-[10px] sm:text-xs font-bold text-red-600 uppercase tracking-widest mb-4 sm:mb-6 shadow-sm">
@@ -25,11 +25,11 @@ export default function SavedPage() {
             참사랑 말씀 훈독함
           </div>
           
-          <h1 className="text-3xl sm:text-4xl md:text-[64px] font-bold text-brand-deep tracking-tight md:tracking-tighter leading-none font-serif mb-3 sm:mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-[56px] font-bold text-brand-deep tracking-tight md:tracking-tighter leading-none font-serif mb-3 sm:mb-4">
             참사랑의 <span className="text-red-500 font-serif">말씀</span>
           </h1>
           <div className="w-8 sm:w-12 h-0.5 sm:h-1 bg-red-500/20 mx-auto md:mx-0 rounded-full mb-4 sm:mb-6" />
-          <p className="text-slate-500 font-medium text-xs sm:text-sm md:text-lg max-w-xl mx-auto md:mx-0 leading-relaxed break-keep">
+          <p className="text-slate-500 font-medium text-xs sm:text-sm md:text-base max-w-xl mx-auto md:mx-0 leading-relaxed break-keep">
             하늘부모님과 참부모님의 심정과 은사가 가득한 생명의 말씀입니다.
           </p>
         </header>
@@ -39,7 +39,7 @@ export default function SavedPage() {
           {bookmarks.length > 0 ? (
             <motion.div 
               layout
-              className="grid gap-6 sm:gap-10 md:gap-14 pb-20 sm:pb-32"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 pb-20 sm:pb-32"
             >
               {bookmarks.map((word, index) => (
                 <motion.div

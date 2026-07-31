@@ -1,27 +1,11 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export default withAuth(
-  function proxy(req) {
-    // If the user is authenticated, continue.
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => {
-        // Admin routes require an ADMIN role
-        return token?.role === "ADMIN";
-      },
-    },
-    pages: {
-      signIn: "/admin/login",
-    },
-  }
-);
+export function proxy(request: NextRequest) {
+  // proxy.ts in Next.js 16 is a simple passthrough
+  // Auth protection is handled at page/layout level via getServerSession
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: [
-    "/admin/((?!login).*)",
-    "/api/evangelism/generate"
-  ],
+  matcher: [],
 };

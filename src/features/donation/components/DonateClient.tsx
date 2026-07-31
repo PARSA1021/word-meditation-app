@@ -13,14 +13,9 @@ interface BankAccount {
 
 const BANK_ACCOUNTS: BankAccount[] = [
   {
-    bankName: "카카오뱅크",
-    accountNumber: "3333-01-2345678",
-    accountHolder: "TruePath 말씀묵상",
-  },
-  {
-    bankName: "농협은행",
-    accountNumber: "302-1234-5678-91",
-    accountHolder: "TruePath 말씀묵상",
+    bankName: "KB국민은행",
+    accountNumber: "020602-04-230715",
+    accountHolder: "문성민",
   },
 ];
 
@@ -71,10 +66,10 @@ export default function DonateClient() {
         <div className="flex items-center justify-between">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200/70 text-slate-600 hover:text-brand-primary hover:border-brand-primary/30 transition-all active:scale-95 text-xs sm:text-sm font-bold shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200/70 text-slate-700 hover:text-brand-primary hover:border-brand-primary/40 transition-all active:scale-95 text-xs sm:text-sm font-bold shadow-sm"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>홈으로</span>
+            <ArrowLeft className="w-4 h-4 text-brand-primary" />
+            <span>← 말씀 묵상으로 돌아가기</span>
           </Link>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-600 text-xs font-bold">
             <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
@@ -114,7 +109,7 @@ export default function DonateClient() {
                 후원 계좌 안내
               </h2>
             </div>
-            <span className="text-[11px] font-bold text-slate-400">예금주: TruePath 말씀묵상</span>
+            <span className="text-[11px] font-bold text-slate-500">예금주: 문성민</span>
           </div>
 
           <div className="grid grid-cols-1 gap-3">

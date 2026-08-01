@@ -28,70 +28,70 @@ type AspectRatioMode = "1:1" | "4:5" | "16:9";
 
 const CARD_STUDIO_THEMES: ThemeConfig[] = [
   {
-    id: "truelove",
-    name: "참사랑과 평화",
-    badge: "세계평화통일가정연합",
-    bgGradient: ["#0284c7", "#0369a1", "#075985"],
-    textColor: "#ffffff",
-    accentColor: "#fde047",
-    borderColor: "#eab308",
-    subTextColor: "#e0f2fe",
-    swatchBg: "linear-gradient(135deg, #0284c7, #fde047)",
+    id: "minimal_white",
+    name: "순백의 미니멀",
+    badge: "오늘의 말씀",
+    bgGradient: ["#ffffff", "#fafafa", "#f5f5f5"],
+    textColor: "#1f2937",
+    accentColor: "#9ca3af",
+    borderColor: "#e5e7eb",
+    subTextColor: "#6b7280",
+    swatchBg: "linear-gradient(135deg, #ffffff, #e5e7eb)",
   },
   {
-    id: "cheonilguk",
-    name: "천일국 로얄 골드",
-    badge: "天一國 聖言",
-    bgGradient: ["#0f172a", "#1e1b4b", "#311042"],
-    textColor: "#fef08a",
-    accentColor: "#f59e0b",
-    borderColor: "#d97706",
-    subTextColor: "#cbd5e1",
-    swatchBg: "linear-gradient(135deg, #0f172a, #f59e0b)",
+    id: "serene_dawn",
+    name: "새벽의 은혜",
+    badge: "평온한 묵상",
+    bgGradient: ["#f8fafc", "#f1f5f9", "#e2e8f0"],
+    textColor: "#334155",
+    accentColor: "#64748b",
+    borderColor: "#cbd5e1",
+    subTextColor: "#94a3b8",
+    swatchBg: "linear-gradient(135deg, #f8fafc, #e2e8f0)",
   },
   {
-    id: "holywhite",
-    name: "순백의 은혜",
-    badge: "참부모님 말씀",
-    bgGradient: ["#ffffff", "#f8fafc", "#f1f5f9"],
-    textColor: "#1e293b",
-    accentColor: "#d97706",
-    borderColor: "#f59e0b",
-    subTextColor: "#64748b",
-    swatchBg: "linear-gradient(135deg, #ffffff, #d97706)",
+    id: "warm_sunset",
+    name: "따스한 위로",
+    badge: "마음의 안식",
+    bgGradient: ["#fff7ed", "#ffedd5", "#fed7aa"],
+    textColor: "#431407",
+    accentColor: "#fb923c",
+    borderColor: "#fdba74",
+    subTextColor: "#9a3412",
+    swatchBg: "linear-gradient(135deg, #fff7ed, #fed7aa)",
   },
   {
-    id: "peacegarden",
-    name: "천주 평화 동산",
-    badge: "원리 묵상",
-    bgGradient: ["#064e3b", "#047857", "#065f46"],
-    textColor: "#ecfdf5",
-    accentColor: "#6ee7b7",
-    borderColor: "#34d399",
-    subTextColor: "#a7f3d0",
-    swatchBg: "linear-gradient(135deg, #064e3b, #6ee7b7)",
+    id: "nature_breeze",
+    name: "숲속의 바람",
+    badge: "자연과 치유",
+    bgGradient: ["#f0fdf4", "#dcfce7", "#bbf7d0"],
+    textColor: "#14532d",
+    accentColor: "#4ade80",
+    borderColor: "#86efac",
+    subTextColor: "#166534",
+    swatchBg: "linear-gradient(135deg, #f0fdf4, #bbf7d0)",
   },
   {
-    id: "hanji",
-    name: "전통 한지 훈독",
-    badge: "참부모님 성언",
-    bgGradient: ["#fef3c7", "#fde68a", "#fef08a"],
-    textColor: "#451a03",
-    accentColor: "#991b1b",
-    borderColor: "#b45309",
-    subTextColor: "#78350f",
-    swatchBg: "linear-gradient(135deg, #fef3c7, #991b1b)",
+    id: "midnight_calm",
+    name: "자정의 고요",
+    badge: "깊은 은혜",
+    bgGradient: ["#111827", "#1f2937", "#374151"],
+    textColor: "#f9fafb",
+    accentColor: "#9ca3af",
+    borderColor: "#4b5563",
+    subTextColor: "#d1d5db",
+    swatchBg: "linear-gradient(135deg, #111827, #374151)",
   },
   {
-    id: "charcoal",
-    name: "클래식 먹선 블랙",
-    badge: "말씀 묵상",
-    bgGradient: ["#09090b", "#18181b", "#27272a"],
-    textColor: "#fafafa",
-    accentColor: "#38bdf8",
-    borderColor: "#52525b",
-    subTextColor: "#a1a1aa",
-    swatchBg: "linear-gradient(135deg, #09090b, #38bdf8)",
+    id: "ocean_depth",
+    name: "바다의 깊이",
+    badge: "무한한 사랑",
+    bgGradient: ["#0f172a", "#1e293b", "#334155"],
+    textColor: "#f8fafc",
+    accentColor: "#60a5fa",
+    borderColor: "#475569",
+    subTextColor: "#94a3b8",
+    swatchBg: "linear-gradient(135deg, #0f172a, #334155)",
   },
 ];
 
@@ -168,41 +168,72 @@ export default function WordCardImageModal({ word, isOpen, onClose }: WordCardIm
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Outer & Inner Frame Borders
+    // 2. Modern Minimalist Double Frame
+    const padding = Math.min(width, height) * 0.05;
+    
+    // Function to draw rounded rectangles for smooth frames
+    const drawRoundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    };
+
+    // Outer subtle frame
     ctx.strokeStyle = selectedTheme.borderColor;
-    ctx.lineWidth = 5;
-    ctx.globalAlpha = 0.45;
-    const padding = Math.min(width, height) * 0.04;
-    ctx.strokeRect(padding, padding, width - padding * 2, height - padding * 2);
-    ctx.strokeRect(padding + 14, padding + 14, width - (padding + 14) * 2, height - (padding + 14) * 2);
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.4;
+    drawRoundRect(ctx, padding, padding, width - padding * 2, height - padding * 2, Math.min(width, height) * 0.03);
+    ctx.stroke();
+
+    // Inner detailed frame
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.75;
+    const innerPadding = padding + 14;
+    drawRoundRect(ctx, innerPadding, innerPadding, width - innerPadding * 2, height - innerPadding * 2, Math.min(width, height) * 0.02);
+    ctx.stroke();
+
+    // 3. Immersive Quotes Background
+    ctx.globalAlpha = 0.035;
+    const quoteSize = Math.floor(Math.min(width, height) * 0.35);
+    ctx.font = `italic 400 ${quoteSize}px Georgia, serif`;
+    ctx.fillStyle = selectedTheme.textColor;
+    ctx.textAlign = "left";
+    ctx.fillText("“", padding * 2, padding + quoteSize * 0.85);
+    ctx.textAlign = "right";
+    ctx.fillText("”", width - padding * 2, height - padding - quoteSize * 0.1);
     ctx.globalAlpha = 1.0;
 
-    // Corner Ornaments
-    const drawCorner = (cx: number, cy: number) => {
-      ctx.beginPath();
-      ctx.arc(cx, cy, 16, 0, Math.PI * 2);
-      ctx.fillStyle = selectedTheme.accentColor;
-      ctx.fill();
-    };
-    drawCorner(padding + 7, padding + 7);
-    drawCorner(width - (padding + 7), padding + 7);
-    drawCorner(padding + 7, height - (padding + 7));
-    drawCorner(width - (padding + 7), height - (padding + 7));
-
-    // 3. Header Emblem Badge
-    const headerY = height * 0.14;
-    ctx.font = "bold 32px sans-serif";
+    // 4. Header Emblem Badge
+    const headerFontSize = Math.floor(Math.min(width, height) * 0.022);
+    const headerY = innerPadding + headerFontSize * 2.5;
+    ctx.font = `bold ${headerFontSize}px sans-serif`;
     ctx.fillStyle = selectedTheme.accentColor;
     ctx.textAlign = "center";
-    ctx.fillText(`❖ ${selectedTheme.badge} ❖`, width / 2, headerY);
+    ctx.fillText(`— ${selectedTheme.badge} —`, width / 2, headerY);
 
-    // 4. Auto-Fit Text Wrapping Algorithm
+    // 5. Intelligent Text Layout & Auto-Scaling
     const fullText = word.text.trim();
-    const maxWidth = width - padding * 4 - 80;
-    const maxTextHeight = height * 0.52;
+    const maxWidth = width - innerPadding * 3.5;
+    
+    let baseFontSize = aspectRatio === "16:9" ? width * 0.025 : Math.min(width, height) * 0.035;
+    if (fullText.length > 350) baseFontSize *= 0.65;
+    else if (fullText.length > 250) baseFontSize *= 0.75;
+    else if (fullText.length > 150) baseFontSize *= 0.85;
+    else if (fullText.length > 80) baseFontSize *= 0.95;
+
+    let fontSize = Math.floor(baseFontSize);
+    let lineHeight = fontSize * 1.7;
 
     const getWrappedLines = (text: string, currentFontSize: number): string[] => {
-      ctx.font = `500 ${currentFontSize}px sans-serif`;
+      ctx.font = `600 ${currentFontSize}px sans-serif`;
       const words = text.split(" ");
       const lines: string[] = [];
       let currentLine = "";
@@ -221,55 +252,67 @@ export default function WordCardImageModal({ word, isOpen, onClose }: WordCardIm
       return lines;
     };
 
-    let fontSize = aspectRatio === "16:9" ? 44 : 52;
-    if (fullText.length > 350) fontSize = 30;
-    else if (fullText.length > 250) fontSize = 34;
-    else if (fullText.length > 150) fontSize = 40;
-    else if (fullText.length > 80) fontSize = 46;
-
     let lines = getWrappedLines(fullText, fontSize);
-    let lineHeight = fontSize * 1.65;
-
-    while (lines.length * lineHeight > maxTextHeight && fontSize > 20) {
+    const availableHeight = height - (headerY + innerPadding * 2);
+    
+    while (lines.length * lineHeight > availableHeight * 0.7 && fontSize > 20) {
       fontSize -= 2;
-      lineHeight = fontSize * 1.65;
+      lineHeight = fontSize * 1.7;
       lines = getWrappedLines(fullText, fontSize);
     }
 
-    const textStartY = headerY + 70 + (maxTextHeight - lines.length * lineHeight) / 2;
-    ctx.font = `500 ${fontSize}px sans-serif`;
+    // Measure speaker & source height
+    const speakerFontSize = Math.floor(fontSize * 0.65);
+    const sourceFontSize = Math.floor(fontSize * 0.55);
+    
+    let attributionHeight = 0;
+    if (word.speaker) attributionHeight += speakerFontSize * 1.5 + (fontSize * 0.8);
+    if (word.source) attributionHeight += sourceFontSize * 1.5 + (fontSize * 0.3);
+    
+    // Perfect vertical centering math
+    const totalContentHeight = (lines.length * lineHeight) + attributionHeight;
+    const startY = headerY + (height - headerY - innerPadding - totalContentHeight) / 2 + fontSize * 0.8;
+    
+    // Draw Main Word Text
+    ctx.font = `600 ${fontSize}px sans-serif`;
     ctx.fillStyle = selectedTheme.textColor;
     ctx.textAlign = "center";
+    
+    // Soft elegant drop shadow for readability
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 4;
 
-    let currentY = textStartY;
+    let currentY = startY;
     for (const l of lines) {
       ctx.fillText(l, width / 2, currentY);
       currentY += lineHeight;
     }
+    
+    // Reset shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
 
-    // 5. Speaker / Source Attribution
-    let attrY = Math.max(currentY + 30, height * 0.78);
-    if (attrY > height * 0.86) attrY = height * 0.86;
-
-    if (word.speaker) {
-      ctx.font = "bold 32px sans-serif";
-      ctx.fillStyle = selectedTheme.accentColor;
-      ctx.fillText(`— ${word.speaker} —`, width / 2, attrY);
-      attrY += 48;
+    // Draw Attribution
+    if (word.speaker || word.source) {
+      currentY += (fontSize * 0.4); 
+      
+      if (word.speaker) {
+        ctx.font = `bold ${speakerFontSize}px sans-serif`;
+        ctx.fillStyle = selectedTheme.accentColor;
+        ctx.fillText(`— ${word.speaker} —`, width / 2, currentY);
+        currentY += speakerFontSize * 1.5;
+      }
+      
+      if (word.source) {
+        ctx.font = `400 ${sourceFontSize}px sans-serif`;
+        ctx.fillStyle = selectedTheme.subTextColor;
+        ctx.globalAlpha = 0.85;
+        ctx.fillText(word.source, width / 2, currentY);
+        ctx.globalAlpha = 1.0;
+      }
     }
-
-    if (word.source) {
-      ctx.font = "normal 26px sans-serif";
-      ctx.fillStyle = selectedTheme.subTextColor;
-      ctx.fillText(word.source, width / 2, attrY);
-    }
-
-    // 6. Footer Watermark
-    ctx.font = "bold 24px sans-serif";
-    ctx.fillStyle = selectedTheme.subTextColor;
-    ctx.globalAlpha = 0.7;
-    ctx.fillText("세계평화통일가정연합 말씀 묵상", width / 2, height - (padding + 30));
-    ctx.globalAlpha = 1.0;
 
     try {
       setPreviewDataUrl(canvas.toDataURL("image/png"));

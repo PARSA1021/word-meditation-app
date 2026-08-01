@@ -1,6 +1,16 @@
 // features/search/engine/ranking.ts
 import { MatchType } from "../types"
 
+export const SCORE_WEIGHTS = {
+  EXACT: 100,
+  TITLE: 80,
+  KEYWORD: 60,
+  TAG: 50,
+  CATEGORY: 50,
+  BODY: 40,
+  PARTIAL: 20
+}
+
 export function calculateSearchScore(
   matchType: MatchType,
   synonymWeight: number = 1.0,

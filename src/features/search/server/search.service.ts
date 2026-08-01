@@ -3,9 +3,9 @@ import "server-only"
 import { SearchResult, MatchType } from "../types"
 import { loadAllWords, getWordIndex } from "../indexing/word-repository"
 import { normalizeText, extractChosung } from "../engine/normalization"
-import { tokenize, preprocessWord, hasHangul, matchesAsWord } from "../engine/tokenizer"
+import { tokenize, preprocessWord, hasHangul, matchesAsWord, generateSubTokens } from "../engine/tokenizer"
 import { getSynonyms } from "../engine/synonyms"
-import { calculateSearchScore } from "../engine/ranking"
+import { calculateSearchScore, SCORE_WEIGHTS } from "../engine/ranking"
 import { getHighlightRanges } from "../engine/highlight"
 
 function deduplicateResults(results: SearchResult[]): SearchResult[] {
@@ -20,30 +20,15 @@ function deduplicateResults(results: SearchResult[]): SearchResult[] {
   return Array.from(seen.values())
 }
 
-/**
- * 단어 경계 기반 정확 매칭 (한국어/영어 모두 경계 적용)
- *
- * 핵심 수정: 한국어도 \b 처럼 동작하는 lookbehind/lookahead 패턴 사용
- * → "기적" 검색 시 "이기적"이 매칭되지 않음
- */
 function matchExact(targetText: string, token: string): boolean {
   return matchesAsWord(targetText, token)
 }
 
-/**
- * Stem 매칭도 단어 경계 적용
- * 기존 targetText.includes(processed) 는 substring 매칭이라 오매칭 발생
- */
 function matchStem(targetText: string, processed: string): boolean {
   return matchesAsWord(targetText, processed)
 }
 
-/**
- * 구문(phrase) 전체 매칭: 공백 포함 연속 토큰들이 텍스트에 등장하는지 확인
- */
 function matchPhrase(targetText: string, phrase: string): boolean {
-  // 구문 내 각 단어도 경계 체크가 필요하나 구문 자체가 연속 단위이므로
-  // 앞뒤 경계만 확인
   const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   const boundary = hasHangul(phrase)
     ? new RegExp(`(?<![가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9])${escaped}(?![가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9])`, "i")
@@ -65,12 +50,13 @@ export async function searchWords(
   const isChosungSearch = !isExactPhrase && /^[ㄱ-ㅎ\s]+$/.test(normalizedQuery)
 
   const queryTokens = isExactPhrase ? [normalizedQuery] : tokenize(normalizedQuery)
-  const tokenMeta = queryTokens.map(token => ({
-    original: token,
-    processed: preprocessWord(token),
-    synonyms: getSynonyms(token),
-    chosung: extractChosung(token),
-  }))
+  const subTokens = isExactPhrase ? [] : generateSubTokens(normalizedQuery)
+  // Combine full phrase tokens + split tokens, filter unique
+  const allSearchTerms = Array.from(new Set([
+    normalizedQuery,
+    ...queryTokens,
+    ...subTokens
+  ])).filter(Boolean)
 
   const results: SearchResult[] = []
   const words = await loadAllWords()
@@ -79,23 +65,22 @@ export async function searchWords(
   for (let i = 0; i < words.length; i++) {
     const word = words[i]
     const ix = index[i]
-    let totalScore = 0
-    let matchCount = 0
-    let highlightTokens: string[] = []
-    let bestMatchType: MatchType = "token"
+    
+    // Default search targeted strings
+    const targetText = mode === "text" ? ix.normalizedText : `${ix.normalizedSpeaker} ${ix.normalizedSource}`
+    const wText = normalizeText(word.text)
+    const wSource = normalizeText(word.source)
+    const wCategory = normalizeText(word.category)
+    const wKeywords = (word as any).keywords ? ((word as any).keywords as string[]).map(normalizeText) : []
+    const wTags = (word as any).tags ? ((word as any).tags as string[]).map(normalizeText) : []
 
-    const targetText =
-      mode === "text"
-        ? ix.normalizedText
-        : `${ix.normalizedSpeaker} ${ix.normalizedSource}`
-
-    // ── 초성 전체 검색 ────────────────────────────────────────────────────────
+    // 1. Chosung Search
     if (isChosungSearch) {
       const matchIdx = ix.textChosung.indexOf(normalizedQuery)
       if (matchIdx !== -1) {
         results.push({
           word,
-          score: calculateSearchScore("chosung"),
+          score: SCORE_WEIGHTS.PARTIAL,
           matchType: "chosung",
           explanation: `초성 검색: "${ix.normalizedText.substring(matchIdx, matchIdx + normalizedQuery.length)}"`,
           confidence: "low",
@@ -105,15 +90,14 @@ export async function searchWords(
       continue
     }
 
-    // ── 구문(exact phrase) 검색 ───────────────────────────────────────────────
+    // 2. Exact Phrase Match
     if (isExactPhrase) {
       if (matchPhrase(targetText, normalizedQuery)) {
-        const score = calculateSearchScore("phrase", 1, true)
         results.push({
           word,
-          score,
+          score: SCORE_WEIGHTS.EXACT,
           matchType: "phrase",
-          explanation: "검색어와 정확히 일치합니다.",
+          explanation: "검색어 구문과 정확히 일치합니다.",
           confidence: "high",
           highlightRanges: getHighlightRanges(word.text, [normalizedQuery]),
         })
@@ -121,119 +105,115 @@ export async function searchWords(
       continue
     }
 
-    // ── 일반 토큰 검색 ────────────────────────────────────────────────────────
-    let chosungMatchText = ""
+    // 3. Multi-field and Token Matching
+    let totalScore = 0
+    let bestExplanation = ""
+    let bestMatchType: MatchType = "partial"
+    let confidence: "high" | "medium" | "low" = "low"
+    const highlightTokens = new Set<string>()
 
-    for (const meta of tokenMeta) {
-      let tokenScore = 0
-      let matched = false
+    for (const token of queryTokens) {
+      let tokenScore = 0;
+      let exp = "";
+      let mt: MatchType = "partial";
+      let matchedFull = false;
+      
+      // 검색어 원본 길이 (1글자 여부 확인)
+      const isSingleChar = token.length === 1;
 
-      // 1) 정확 매칭 (단어 경계 적용 — "기적" ≠ "이기적")
-      if (matchExact(targetText, meta.original)) {
-        const isFullMatch = targetText === meta.original
-        tokenScore = calculateSearchScore("exact", 1, isFullMatch)
-        matched = true
-        bestMatchType = "exact"
-        highlightTokens.push(meta.original)
+      // 1) 정확히 일치 (+100)
+      if (wText === token) {
+        tokenScore += SCORE_WEIGHTS.EXACT;
+        exp = "검색어와 완전히 일치합니다.";
+        mt = "exact";
+        matchedFull = true;
       }
-      // 2) 형태소 스템 매칭 (단어 경계 적용)
-      else if (
-        meta.processed !== meta.original &&
-        matchStem(targetText, meta.processed)
-      ) {
-        tokenScore = calculateSearchScore("stem")
-        matched = true
-        bestMatchType = "stem"
-        highlightTokens.push(meta.processed)
+      
+      // 2) 검색어가 포함된 결과 (다중 필드)
+      // 문제 수정: 1글자 검색어일 경우 모든 책 이름('천성경'의 '성' 등)에 매칭되어 폭발하는 버그 방지
+      // 1글자는 matchExact(단어 경계)일 때만 인정하거나, 2글자 이상만 includes 허용
+      const validForTitle = !isSingleChar || matchExact(wSource, token);
+      if (validForTitle && wSource.includes(token)) {
+        tokenScore += SCORE_WEIGHTS.TITLE;
+        if (!matchedFull) { exp = "제목에 검색어가 포함되어 있습니다."; mt = "exact"; matchedFull = true; }
       }
-      // 3) 유의어 매칭 (단어 경계 적용)
-      else {
-        for (const syn of meta.synonyms) {
-          if (matchesAsWord(targetText, syn.word)) {
-            tokenScore = calculateSearchScore("synonym", syn.weight)
-            matched = true
-            bestMatchType = "synonym"
-            highlightTokens.push(syn.word)
-            break
+      
+      if (wKeywords.some(k => k === token)) {
+        tokenScore += SCORE_WEIGHTS.KEYWORD;
+        if (!matchedFull) { exp = "키워드에 검색어가 포함되어 있습니다."; mt = "exact"; matchedFull = true; }
+      }
+      
+      const validForCategory = !isSingleChar || matchExact(wCategory, token);
+      if ((validForCategory && wCategory.includes(token)) || wTags.some(t => t === token)) {
+        tokenScore += SCORE_WEIGHTS.TAG;
+        if (!matchedFull) { exp = "태그/카테고리에 검색어가 포함되어 있습니다."; mt = "exact"; matchedFull = true; }
+      }
+      
+      // 본문 포함
+      if (wText.includes(token)) {
+        tokenScore += SCORE_WEIGHTS.BODY;
+        if (!matchedFull) { 
+          exp = isSingleChar ? "본문에 검색어 단어가 포함되어 있습니다." : "본문에 검색어가 포함되어 있습니다."; 
+          mt = "token"; 
+          matchedFull = true; 
+        }
+      }
+
+      if (matchedFull) {
+        totalScore += tokenScore;
+        highlightTokens.add(token);
+        
+        if (mt === "exact" && bestMatchType !== "exact") {
+          bestMatchType = "exact"; bestExplanation = exp; confidence = "high";
+        } else if (mt === "token" && bestMatchType !== "exact" && bestMatchType !== "token") {
+          bestMatchType = "token"; bestExplanation = exp; confidence = "medium";
+        } else if (!bestExplanation) {
+          bestMatchType = mt; bestExplanation = exp; confidence = "low";
+        }
+      } else {
+        // 3) 검색어를 분리한 단어가 포함된 결과 및 부분 일치 (최대 +20점)
+        const subTokens = generateSubTokens(token);
+        let subMatches = 0;
+        for (const sub of subTokens) {
+          if (sub === token) continue;
+          
+          let subMatched = false;
+          // 서브토큰은 본문(Body)에서만 파악하여 책 제목 등의 과도한 가중치 인플레이션을 막습니다.
+          if (wText.includes(sub)) {
+            subMatched = true;
+          }
+          
+          if (subMatched) {
+            subMatches++;
+            highlightTokens.add(sub);
+          }
+        }
+        
+        if (subMatches > 0) {
+          // 분리된 토큰이 매칭된 경우, 요구사항에 맞춰 +20 점 부여 (더 이상 곱하지 않고 고정 가중치)
+          totalScore += SCORE_WEIGHTS.PARTIAL; 
+          if (!bestExplanation) {
+            bestMatchType = "partial";
+            bestExplanation = "연관 단어(부분 일치) 검색 결과입니다.";
+            confidence = "low";
           }
         }
       }
-
-      // 4) 부분 일치 (단어 경계 없이 포함 여부 확인, 2글자 이상)
-      if (!matched && meta.original.length >= 2) {
-        if (targetText.includes(meta.original)) {
-          tokenScore = calculateSearchScore("partial")
-          matched = true
-          bestMatchType = "partial"
-          highlightTokens.push(meta.original)
-        }
-      }
-
-      // 5) 초성 부분 매칭 (2글자 이상만)
-      if (!matched && meta.chosung.length >= 2) {
-        const matchIdx = ix.textChosung.indexOf(meta.chosung)
-        if (matchIdx !== -1) {
-          tokenScore = calculateSearchScore("chosung")
-          matched = true
-          bestMatchType = "chosung"
-          chosungMatchText = ix.normalizedText.substring(
-            matchIdx,
-            matchIdx + meta.chosung.length
-          )
-        }
-      }
-
-      if (matched) {
-        totalScore += tokenScore
-        matchCount++
-      }
     }
 
-    // ── 결과 조합 ─────────────────────────────────────────────────────────────
-    if (matchCount > 0) {
-      // 멀티 토큰 쿼리에서 일부만 매칭된 경우 점수 패널티
-      const coverageRatio = matchCount / queryTokens.length
-      const lengthBonus = Math.max(0, 1 - word.text.length / 5000) * 0.1
-      const finalScore =
-        (totalScore / queryTokens.length) * (1 + lengthBonus) * coverageRatio
-
-      let explanation = ""
-      let confidence: "high" | "medium" | "low" = "low"
-
-      if (bestMatchType === "exact") {
-        explanation = "검색어와 정확히 일치합니다."
-        confidence = "high"
-      } else if (bestMatchType === "stem") {
-        explanation = `"${highlightTokens[0]}" (기본형) 매칭`
-        confidence = "medium"
-      } else if (bestMatchType === "synonym") {
-        explanation = "유사 의미 매칭"
-        confidence = "medium"
-      } else if (bestMatchType === "partial") {
-        explanation = "부분 일치 매칭"
-        confidence = "low"
-      } else if (bestMatchType === "chosung") {
-        explanation = chosungMatchText
-          ? `초성 검색: "${chosungMatchText}"`
-          : "초성 검색 결과입니다."
-        confidence = "low"
-      }
-
+    if (totalScore > 0) {
       results.push({
         word,
-        score: finalScore,
+        score: totalScore,
         matchType: bestMatchType,
-        explanation,
+        explanation: bestExplanation,
         confidence,
-        highlightRanges: getHighlightRanges(
-          word.text,
-          highlightTokens.length > 0 ? highlightTokens : queryTokens
-        ),
+        highlightRanges: getHighlightRanges(word.text, Array.from(highlightTokens)),
       })
     }
   }
 
-  // ── 후처리 ────────────────────────────────────────────────────────────────
+  // ── 4. Fallback / Post-processing ─────────────────────────────────────────
   let finalResults = deduplicateResults(results)
 
   const counts: Record<string, number> = { all: finalResults.length }

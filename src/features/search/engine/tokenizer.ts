@@ -23,20 +23,11 @@ export function preprocessWord(word: string): string {
 
 /**
  * 한국어 단어 경계 정규식 패턴 생성
- *
- * 한국어는 \b word boundary가 없으므로 직접 경계 조건을 구성합니다.
- * 앞뒤가 공백/문자열 시작·끝이거나, 한글/영문/숫자의 경계인 경우에만 매칭합니다.
- *
- * 예) "기적" 검색 시 "이기적"에 매칭되지 않음
  */
 export function buildKoreanWordPattern(token: string): RegExp {
   const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-
-  // 앞 경계: 문자열 시작 또는 공백/구두점/숫자/영문자 뒤
   const lookbehind = "(?<![가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9])"
-  // 뒤 경계: 문자열 끝 또는 공백/구두점/숫자/영문자 앞
   const lookahead = "(?![가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9])"
-
   return new RegExp(`${lookbehind}${escaped}${lookahead}`, "gi")
 }
 
@@ -51,4 +42,28 @@ export function matchesAsWord(text: string, token: string): boolean {
     const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     return new RegExp(`\\b${escaped}\\b`, "i").test(text)
   }
+}
+
+/**
+ * 단어를 글자(음절) 단위와 형태소로 분리하여 서브 토큰을 생성합니다. (연관 단어 검색 용도)
+ */
+export function generateSubTokens(text: string): string[] {
+  const normalized = normalizeText(text)
+  const words = normalized.split(/\s+/).filter(Boolean)
+  const subTokens = new Set<string>()
+
+  for (const word of words) {
+    if (word.length === 1) {
+      subTokens.add(word)
+    } else if (hasHangul(word)) {
+      subTokens.add(word)
+      for (let i = 0; i < word.length; i++) {
+        subTokens.add(word[i])
+      }
+    } else {
+      subTokens.add(word)
+    }
+  }
+
+  return Array.from(subTokens)
 }

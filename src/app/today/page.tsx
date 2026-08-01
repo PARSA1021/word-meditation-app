@@ -173,7 +173,7 @@ export default function TodayPage() {
                 if (navigator.share) {
                   navigator.share({
                     title: `TruePath 말씀: ${word.category}`,
-                    text: word.content,
+                    text: word.text,
                     url: window.location.href,
                   }).catch((error) => {
                     if (error.name !== "AbortError") {

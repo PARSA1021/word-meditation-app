@@ -231,9 +231,6 @@ export default function HomeClient({ stats }: HomeClientProps) {
                     <h4 className="text-base sm:text-lg font-black text-brand-deep tracking-tight">주제별 탐색</h4>
                     <p className="text-xs font-semibold text-text-muted">에센셜 카테고리</p>
                   </div>
-                  <div className="text-right bg-brand-primary/5 px-2.5 py-1 rounded-lg border border-brand-primary/10">
-                    <span className="text-sm font-black text-brand-primary leading-none block">{stats.total.toLocaleString()}</span>
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-2">
@@ -306,6 +303,23 @@ export default function HomeClient({ stats }: HomeClientProps) {
         {/* ✅ [안정성 개정]: 빌드 오류를 뿜던 인라인 calc 연산을 제거하고 globals.css에 안전하게 매핑된 클래스 바인딩 */}
         <div className="pb-safe-offset-20 lg:hidden" />
         
+        {/* 모바일 전용 Sticky 하단 고정 버튼 (IMP-001) */}
+        <div className="fixed bottom-[88px] left-0 right-0 z-40 px-4 sm:hidden pointer-events-none pb-[calc(env(safe-area-inset-bottom))]">
+           <div className="w-full max-w-md mx-auto pointer-events-auto shadow-2xl shadow-brand-primary/20 rounded-2xl">
+             <Link
+               href="/today"
+               className="flex items-center justify-between w-full bg-brand-primary text-white rounded-2xl p-4 shadow-xl active:scale-95 transition-transform border border-white/20"
+             >
+               <div className="flex flex-col text-left">
+                 <span className="text-[11px] font-bold text-white/80">매일 만나는 지혜</span>
+                 <span className="font-black text-[17px]">오늘의 묵상 시작하기</span>
+               </div>
+               <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                 <Sparkles className="w-5 h-5 text-white" />
+               </div>
+             </Link>
+           </div>
+        </div>
       </motion.div>
     </div>
   );

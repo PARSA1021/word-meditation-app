@@ -97,11 +97,11 @@ export default function QuizPage() {
                             userAnswers[currentIdx] === quiz.answers[currentIdx] ? (
                                 userAnswers[currentIdx]
                             ) : (
-                                <div className="text-[11px] sm:text-xs text-center leading-tight">
-                                    <div className="line-through text-rose-400">
+                                <div className="text-[13px] sm:text-sm text-center leading-tight py-1">
+                                    <div className="line-through text-rose-400 font-medium mb-1">
                                         {userAnswers[currentIdx] || "?"}
                                     </div>
-                                    <div className="text-emerald-600 font-bold">
+                                    <div className="text-emerald-600 font-black border-t border-slate-200 pt-1">
                                         {quiz.answers[currentIdx]}
                                     </div>
                                 </div>
@@ -196,6 +196,14 @@ export default function QuizPage() {
                         {questionElements}
                     </div>
                 </div>
+
+                {!showCorrection && (
+                    <div className="text-center pb-1 relative z-10">
+                        <p className="text-sm font-bold text-slate-500 bg-white inline-block px-4 py-1.5 rounded-full shadow-sm border border-slate-100">
+                            아래에서 알맞은 성구 <span className="text-brand-primary">{quiz.answers.length}개</span>를 터치해 주세요
+                        </p>
+                    </div>
+                )}
 
                 {/* 선택지 그리드 */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">

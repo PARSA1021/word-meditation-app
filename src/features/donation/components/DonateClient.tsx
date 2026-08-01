@@ -28,6 +28,7 @@ export default function DonateClient() {
   const [donorName, setDonorName] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCopyAccount = (accountNumber: string, bankName: string) => {
     navigator.clipboard.writeText(accountNumber.replace(/-/g, ""));
@@ -52,10 +53,28 @@ export default function DonateClient() {
     ? parseInt(customAmount).toLocaleString()
     : "0";
 
-  const handleSubmitMessage = (e: React.FormEvent) => {
+  const handleSubmitMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!donorName.trim()) return;
-    setIsSubmitted(true);
+    if (!donorName.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      await fetch("/api/donation/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          donorName,
+          message,
+          amount: currentAmount !== "0" ? currentAmount + "원" : "미정"
+        })
+      });
+      setIsSubmitted(true);
+    } catch (err) {
+      console.error(err);
+      setIsSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -132,26 +151,48 @@ export default function DonateClient() {
                     </p>
                   </div>
 
-                  <button
-                    onClick={() => handleCopyAccount(account.accountNumber, account.bankName)}
-                    className={`inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 shrink-0 ${
-                      isCopied
-                        ? "bg-emerald-600 text-white shadow-sm"
-                        : "bg-white text-slate-700 border border-slate-200 hover:border-brand-primary hover:text-brand-primary shadow-xs"
-                    }`}
-                  >
-                    {isCopied ? (
-                      <>
-                        <Check className="w-3.5 h-3.5" />
-                        <span>복사 완료!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>계좌 복사</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="flex items-center gap-1.5 sm:gap-2 mt-2 sm:mt-0 overflow-x-auto pb-1 sm:pb-0 hide-scrollbar shrink-0">
+                    <button
+                      onClick={() => {
+                        handleCopyAccount(account.accountNumber, account.bankName);
+                        setTimeout(() => { window.location.href = "supertoss://"; }, 300);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-[#0050FF] hover:bg-[#0040DD] text-white text-[11px] sm:text-xs font-bold rounded-xl transition-colors shrink-0 active:scale-95 shadow-sm"
+                    >
+                      토스 열기
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleCopyAccount(account.accountNumber, account.bankName);
+                        setTimeout(() => { window.location.href = "kakaotalk://"; }, 300);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-[#FEE500] hover:bg-[#FDD800] text-[#000000] text-[11px] sm:text-xs font-bold rounded-xl transition-colors shrink-0 active:scale-95 shadow-sm"
+                    >
+                      카카오페이
+                    </button>
+                    <button
+                      onClick={() => handleCopyAccount(account.accountNumber, account.bankName)}
+                      className={`inline-flex items-center justify-center gap-1 sm:gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all active:scale-95 shrink-0 ${
+                        isCopied
+                          ? "bg-emerald-600 text-white shadow-sm"
+                          : "bg-white text-slate-700 border border-slate-200 hover:border-brand-primary hover:text-brand-primary shadow-xs"
+                      }`}
+                    >
+                      {isCopied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">복사 완료!</span>
+                          <span className="sm:hidden">복사 완료</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">계좌 복사</span>
+                          <span className="sm:hidden">계좌 복사</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -282,10 +323,11 @@ export default function DonateClient() {
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-brand-primary text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-brand-deep transition-all shadow-sm active:scale-98 flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 bg-brand-primary text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-brand-deep transition-all shadow-sm active:scale-98 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   <Heart className="w-4 h-4 fill-white" />
-                  <span>응원 메시지 전송하기</span>
+                  <span>{isSubmitting ? "전송 중..." : "응원 메시지 전송하기"}</span>
                 </button>
               </form>
             )}

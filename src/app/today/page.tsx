@@ -166,7 +166,40 @@ export default function TodayPage() {
           </motion.article>
         </AnimatePresence>
 
-        <div className="mt-12 text-center opacity-60 pb-24 lg:pb-0">
+        <div className="mt-8 mb-4 max-w-sm mx-auto w-full px-2 z-10 relative">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: `TruePath 말씀: ${word.category}`,
+                    text: word.content,
+                    url: window.location.href,
+                  }).catch((error) => {
+                    if (error.name !== "AbortError") {
+                      console.error("Share error:", error);
+                    }
+                  });
+                } else {
+                  alert("현재 브라우저에서는 공유 기능을 지원하지 않습니다.");
+                }
+              }}
+              className="flex flex-col items-center justify-center gap-1.5 p-3.5 bg-[#FEE500] text-[#000000] border border-[#FEE500] rounded-xl shadow-sm hover:bg-[#FEE500]/90 transition-all active:scale-95"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.58 2 10c0 2.84 1.85 5.31 4.67 6.8-.2.72-.73 2.68-.74 2.76-.02.13.11.23.23.16.19-.11 3.01-1.95 4.3-2.73.5.06 1.02.1 1.54.1 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/></svg>
+              <span className="text-[12px] font-bold tracking-tight">공유하기</span>
+            </button>
+            <Link
+              href="/library"
+              className="flex flex-col items-center justify-center gap-1.5 p-3.5 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-700 hover:text-brand-primary hover:border-brand-primary/30 transition-all active:scale-95"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              <span className="text-[12px] font-bold tracking-tight">비슷한 말씀 더보기</span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center opacity-60 pb-24 lg:pb-0 relative z-10">
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest hidden lg:block">
             키워드 방향키(←, →)로 넘기기
           </p>

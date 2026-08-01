@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Word } from "@/shared/types/word";
 import { Download, Share2, ArrowLeft, Check, Sparkles, X, Smartphone, Image as ImageIcon } from "lucide-react";
@@ -101,6 +102,11 @@ export default function WordCardImageModal({ word, isOpen, onClose }: WordCardIm
   const [isPressHoldModalOpen, setIsPressHoldModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const selectedTheme = CARD_STUDIO_THEMES[themeIndex];
@@ -344,7 +350,9 @@ export default function WordCardImageModal({ word, isOpen, onClose }: WordCardIm
     }, "image/png");
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -357,7 +365,8 @@ export default function WordCardImageModal({ word, isOpen, onClose }: WordCardIm
               e.stopPropagation();
               onClose();
             }}
-            className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[100]"
+            className="fixed inset-0 bg-slate-950/85 backdrop-blur-md"
+            style={{ zIndex: 99998 }}
           />
 
           {/* Main Floating Word Card Studio Modal Container */}
@@ -366,10 +375,11 @@ export default function WordCardImageModal({ word, isOpen, onClose }: WordCardIm
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] max-w-[660px] md:max-w-[760px] lg:max-w-[820px] h-[92vh] max-h-[880px] bg-white rounded-3xl shadow-2xl z-[101] overflow-hidden border border-slate-200 flex flex-col p-4 sm:p-6 space-y-3.5"
+            className="fixed left-1/2 -translate-x-1/2 top-4 bottom-4 sm:top-12 sm:bottom-12 w-[95vw] max-w-[660px] md:max-w-[760px] lg:max-w-[820px] bg-white rounded-2xl sm:rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.5)] flex flex-col p-3 sm:p-5 lg:p-6 space-y-2 sm:space-y-3.5 border border-slate-200"
+            style={{ zIndex: 99999 }}
           >
             {/* Header: Prominent "말씀으로 돌아가기" Button + Action controls */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2 sm:pb-3 shrink-0">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -565,7 +575,8 @@ export default function WordCardImageModal({ word, isOpen, onClose }: WordCardIm
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[130] bg-slate-900 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-2xl border border-slate-700/60 flex items-center gap-2"
+                className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-2xl border border-slate-700/60 flex items-center gap-2"
+                style={{ zIndex: 100000 }}
               >
                 <span>{toastMessage}</span>
               </motion.div>
@@ -573,6 +584,7 @@ export default function WordCardImageModal({ word, isOpen, onClose }: WordCardIm
           </AnimatePresence>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
